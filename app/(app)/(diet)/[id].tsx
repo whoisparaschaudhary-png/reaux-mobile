@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { Avatar } from '../../../src/components/ui/Avatar';
 import { Button } from '../../../src/components/ui/Button';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDietStore } from '../../../src/stores/useDietStore';
+import { useUIStore } from '../../../src/stores/useUIStore';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
 import type { User, DietCategory, Meal } from '../../../src/types/models';
 
@@ -43,13 +44,31 @@ export default function DietPlanDetailScreen() {
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
-  const { selectedPlan, isLoading, getPlanById, followPlan, likePlan, clearSelectedPlan } =
+  const { selectedPlan, isLoading, getPlanById, followPlan, likePlan, setPlanPublished, clearSelectedPlan } =
     useDietStore();
+  const showToast = useUIStore((s) => s.showToast);
+  const [publishLoading, setPublishLoading] = useState(false);
 
   useEffect(() => {
     if (id) getPlanById(id);
     return () => clearSelectedPlan();
   }, [id]);
+
+  const handlePublishToggle = useCallback(async () => {
+    if (!id || !selectedPlan) return;
+    setPublishLoading(true);
+    try {
+      await setPlanPublished(id, !selectedPlan.isPublished);
+      showToast(
+        selectedPlan.isPublished ? 'Plan unpublished' : 'Plan published',
+        'success'
+      );
+    } catch {
+      showToast('Failed to update publish status', 'error');
+    } finally {
+      setPublishLoading(false);
+    }
+  }, [id, selectedPlan, setPlanPublished, showToast]);
 
   const handleFollow = useCallback(() => {
     if (id) followPlan(id);
@@ -289,15 +308,19 @@ export default function DietPlanDetailScreen() {
               <View style={styles.adminSpacer} />
               <Button
                 title={selectedPlan.isPublished ? 'Unpublish Plan' : 'Publish Plan'}
-                onPress={() => {}}
+                onPress={handlePublishToggle}
                 variant="primary"
                 fullWidth
+                loading={publishLoading}
+                disabled={publishLoading}
                 leftIcon={
-                  <Ionicons
-                    name={selectedPlan.isPublished ? 'eye-off-outline' : 'eye-outline'}
-                    size={18}
-                    color={colors.text.onPrimary}
-                  />
+                  !publishLoading ? (
+                    <Ionicons
+                      name={selectedPlan.isPublished ? 'eye-off-outline' : 'eye-outline'}
+                      size={18}
+                      color={colors.text.onPrimary}
+                    />
+                  ) : undefined
                 }
               />
             </View>

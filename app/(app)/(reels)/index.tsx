@@ -8,6 +8,7 @@ import {
   FlatList,
   ViewToken,
   Dimensions,
+  Share,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -82,16 +83,28 @@ export default function ReelsScreen() {
     [reelHeight],
   );
 
+  const handleShareReel = useCallback((reel: Reel) => {
+    const message = reel.caption
+      ? `${reel.caption} — Check out this reel on REAUX Labs!`
+      : 'Check out this reel on REAUX Labs!';
+    Share.share({
+      message,
+      title: 'REAUX Labs Reel',
+    });
+  }, []);
+
   const renderReel = useCallback(
     ({ item }: { item: Reel }) => (
       <ReelCard
         reel={item}
         isVisible={item._id === visibleId}
         onLike={() => likeReel(item._id)}
+        onComment={() => router.push(`/(app)/(reels)/${item._id}`)}
+        onShare={() => handleShareReel(item)}
         height={reelHeight}
       />
     ),
-    [visibleId, likeReel, reelHeight],
+    [visibleId, likeReel, reelHeight, handleShareReel, router],
   );
 
   const renderFooter = useCallback(() => {

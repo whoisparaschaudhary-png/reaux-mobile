@@ -23,6 +23,7 @@ export interface RegisterParams {
   email: string;
   password: string;
   phone?: string;
+  dateOfBirth?: string;
   gymId?: string;
 }
 

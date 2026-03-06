@@ -4,7 +4,7 @@ import type { DietPlan } from '../../types/models';
 import type { CreateDietRequest } from '../../types/api';
 
 export const dietsApi = {
-  list: (params?: PaginationParams & { category?: string }) =>
+  list: (params?: PaginationParams & { category?: string; includeUnpublished?: boolean }) =>
     client.get<PaginatedResponse<DietPlan>>('/diets', { params }).then(r => r.data),
 
   getById: (id: string) =>

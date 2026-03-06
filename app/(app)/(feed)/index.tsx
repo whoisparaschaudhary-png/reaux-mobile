@@ -17,7 +17,7 @@ import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { PostCard } from '../../../src/components/cards/PostCard';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { SkeletonCard } from '../../../src/components/ui/SkeletonLoader';
-import { useFeedStore } from '../../../src/stores/useFeedStore';
+import { useFeedStore, getFeedCategoryKey } from '../../../src/stores/useFeedStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import {
   colors,
@@ -35,7 +35,7 @@ type Category = (typeof CATEGORIES)[number];
 const categoryToApi: Record<Category, string | undefined> = {
   'For You': undefined,
   'My Admins': 'admin',
-  Workouts: 'workout',
+  Workouts: 'workouts', // must match post category value (upload uses "workouts")
   Nutrition: 'nutrition',
 };
 
@@ -45,12 +45,21 @@ export default function FeedScreen() {
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
+  // Hide "My Admins" and "Nutrition" tabs for admin users
+  const visibleCategories = isAdmin
+    ? (CATEGORIES.filter((c) => c !== 'My Admins' && c !== 'Nutrition') as Category[])
+    : [...CATEGORIES];
+
+  const categoryApiParam = categoryToApi[activeCategory];
+  const categoryKey = getFeedCategoryKey(categoryApiParam);
+  const cached = useFeedStore((s) => s.postsByCategory[categoryKey]);
+  const posts = cached?.posts ?? [];
+  const pagination = cached?.pagination ?? { page: 1, limit: 10, total: 0, pages: 0 };
+
   const {
-    posts,
     isLoading,
     isRefreshing,
     error,
-    pagination,
     fetchPosts,
     refreshPosts,
     likePost,
@@ -70,18 +79,28 @@ export default function FeedScreen() {
     fabScale.value = withSpring(1, { damping: 10, stiffness: 400 });
   };
 
+  // When user is admin, "My Admins" and "Nutrition" are hidden — switch to "For You" if either was selected
   useEffect(() => {
-    fetchPosts(1, categoryToApi[activeCategory]);
-  }, [activeCategory]);
+    if (isAdmin && (activeCategory === 'My Admins' || activeCategory === 'Nutrition')) {
+      setActiveCategory('For You');
+    }
+  }, [isAdmin, activeCategory]);
+
+  // Fetch only when this category has no cached data, so tab switch shows cached list (data persists)
+  useEffect(() => {
+    const key = getFeedCategoryKey(categoryToApi[activeCategory]);
+    const hasCache = useFeedStore.getState().postsByCategory[key]?.posts?.length;
+    if (!hasCache) fetchPosts(1, categoryToApi[activeCategory]);
+  }, [activeCategory, fetchPosts]);
 
   const handleRefresh = useCallback(() => {
-    refreshPosts(categoryToApi[activeCategory]);
-  }, [activeCategory, refreshPosts]);
+    refreshPosts(categoryApiParam);
+  }, [categoryApiParam, refreshPosts]);
 
   const handleLoadMore = useCallback(() => {
     if (isLoading || pagination.page >= pagination.pages) return;
-    fetchPosts(pagination.page + 1, categoryToApi[activeCategory]);
-  }, [isLoading, pagination, activeCategory, fetchPosts]);
+    fetchPosts(pagination.page + 1, categoryApiParam);
+  }, [isLoading, pagination, categoryApiParam, fetchPosts]);
 
   const handleCategoryChange = useCallback((cat: Category) => {
     setActiveCategory(cat);
@@ -141,7 +160,7 @@ export default function FeedScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.tabsContent}
         >
-          {CATEGORIES.map((cat) => {
+          {visibleCategories.map((cat) => {
             const isActive = cat === activeCategory;
             return (
               <TouchableOpacity

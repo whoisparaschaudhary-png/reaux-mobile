@@ -19,10 +19,19 @@ interface ReelCardProps {
   reel: Reel;
   isVisible: boolean;
   onLike: () => void;
+  onComment?: () => void;
+  onShare?: () => void;
   height: number;
 }
 
-export const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, onLike, height }) => {
+export const ReelCard: React.FC<ReelCardProps> = ({
+  reel,
+  isVisible,
+  onLike,
+  onComment,
+  onShare,
+  height,
+}) => {
   const [isMuted, setIsMuted] = React.useState(false);
   const author = typeof reel.author === 'object' ? (reel.author as User) : null;
   const authorName = author?.name ?? 'Unknown';
@@ -95,6 +104,18 @@ export const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, onLike, hei
           />
           <Text style={styles.actionText}>{formatNumber(reel.likesCount)}</Text>
         </TouchableOpacity>
+        {onComment != null && (
+          <TouchableOpacity onPress={onComment} style={styles.actionItem}>
+            <Ionicons name="chatbubble-outline" size={26} color={colors.text.white} />
+            <Text style={styles.actionText}>Comment</Text>
+          </TouchableOpacity>
+        )}
+        {onShare != null && (
+          <TouchableOpacity onPress={onShare} style={styles.actionItem}>
+            <Ionicons name="share-outline" size={26} color={colors.text.white} />
+            <Text style={styles.actionText}>Share</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Bottom info */}

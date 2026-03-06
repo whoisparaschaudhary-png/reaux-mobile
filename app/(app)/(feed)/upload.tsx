@@ -18,6 +18,7 @@ import { Input } from '../../../src/components/ui/Input';
 import { Button } from '../../../src/components/ui/Button';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useFeedStore } from '../../../src/stores/useFeedStore';
+import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
 import {
   colors,
@@ -32,6 +33,7 @@ type PostCategory = (typeof POST_CATEGORIES)[number];
 
 export default function UploadPostScreen() {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const { createPost, isLoading } = useFeedStore();
   const { image, pickImage, clearImage, isLoading: isPickingImage } = useImagePicker();
 
@@ -59,18 +61,21 @@ export default function UploadPostScreen() {
     }
 
     try {
-      await createPost({
-        content: content.trim() || undefined,
-        mediaType: image ? 'image' : 'text',
-        mediaUrl: image?.uri,
-        hashtags: hashtags.length > 0 ? hashtags : undefined,
-        category: selectedCategory.toLowerCase(),
-      });
+      await createPost(
+        {
+          content: content.trim() || undefined,
+          mediaType: image ? 'image' : 'text',
+          mediaUrl: image?.uri,
+          hashtags: hashtags.length > 0 ? hashtags : undefined,
+          category: selectedCategory.toLowerCase(),
+        },
+        user ?? undefined
+      );
       router.back();
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Failed to create post.');
     }
-  }, [content, image, hashtags, selectedCategory, createPost, router]);
+  }, [content, image, hashtags, selectedCategory, createPost, router, user]);
 
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>

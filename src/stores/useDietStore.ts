@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { dietsApi } from '../api/endpoints/diets';
-import type { DietPlan, DietCategory } from '../types/models';
+import type { DietPlan, DietCategory, User } from '../types/models';
 import type { CreateDietRequest } from '../types/api';
 
 interface DietPagination {
@@ -18,14 +18,17 @@ interface DietState {
   error: string | null;
   pagination: DietPagination;
   suggestedPagination: DietPagination;
+  /** When true, next fetchPlans(1) will be skipped so newly created plan stays visible */
+  skipNextListRefresh: boolean;
 
-  fetchPlans: (page?: number, category?: DietCategory) => Promise<void>;
+  fetchPlans: (page?: number, category?: DietCategory, options?: { includeUnpublished?: boolean }) => Promise<void>;
   getPlanById: (id: string) => Promise<void>;
   fetchSuggestedPlans: (page?: number) => Promise<void>;
   followPlan: (id: string) => Promise<void>;
   likePlan: (id: string) => Promise<void>;
-  createPlan: (data: CreateDietRequest | FormData) => Promise<void>;
+  createPlan: (data: CreateDietRequest | FormData, currentUser?: User | null) => Promise<void>;
   updatePlan: (id: string, data: Partial<CreateDietRequest> | FormData) => Promise<void>;
+  setPlanPublished: (id: string, isPublished: boolean) => Promise<void>;
   clearError: () => void;
   clearSelectedPlan: () => void;
 }
@@ -38,26 +41,54 @@ export const useDietStore = create<DietState>((set, get) => ({
   error: null,
   pagination: { page: 1, limit: 10, total: 0, pages: 0 },
   suggestedPagination: { page: 1, limit: 10, total: 0, pages: 0 },
+  skipNextListRefresh: false,
 
-  fetchPlans: async (page = 1, category?) => {
+  fetchPlans: async (page = 1, category?, options?) => {
+    const { skipNextListRefresh, plans } = get();
+    if (page === 1 && skipNextListRefresh && plans.length > 0) {
+      set({ skipNextListRefresh: false });
+      return;
+    }
+    if (page === 1 && skipNextListRefresh) set({ skipNextListRefresh: false });
     set({ isLoading: true, error: null });
     try {
       const params: Record<string, any> = { page, limit: 10 };
       if (category) params.category = category;
+      if (options?.includeUnpublished) params.includeUnpublished = true;
       const response = await dietsApi.list(params);
 
       // Ensure count fields exist (initialize from arrays if not provided by backend)
-      const plansWithCounts = response.data.map(plan => ({
-        ...plan,
-        likesCount: plan.likesCount ?? plan.likes?.length ?? 0,
-        followersCount: plan.followersCount ?? plan.followers?.length ?? 0,
-      }));
-
-      set({
-        plans: page === 1 ? plansWithCounts : [...get().plans, ...plansWithCounts],
-        pagination: response.pagination,
-        isLoading: false,
+      const currentPlans = get().plans;
+      const plansWithCounts = response.data.map(plan => {
+        const existing = currentPlans.find(p => p._id === plan._id);
+        const createdByPopulated =
+          typeof plan.createdBy === 'object' && plan.createdBy !== null && (plan.createdBy as User).name;
+        return {
+          ...plan,
+          likesCount: plan.likesCount ?? plan.likes?.length ?? 0,
+          followersCount: plan.followersCount ?? plan.followers?.length ?? 0,
+          // Preserve createdBy from existing plan if API returned unpopulated (avoids "Unknown" on card)
+          createdBy: createdByPopulated ? plan.createdBy : (existing?.createdBy ?? plan.createdBy),
+        };
       });
+
+      if (page === 1) {
+        const responseIds = new Set(plansWithCounts.map((p) => p._id));
+        const localOnlyPlans = currentPlans.filter(
+          (p) => !responseIds.has(p._id) && (!category || p.category === category)
+        );
+        set({
+          plans: [...localOnlyPlans, ...plansWithCounts],
+          pagination: response.pagination,
+          isLoading: false,
+        });
+      } else {
+        set({
+          plans: [...get().plans, ...plansWithCounts],
+          pagination: response.pagination,
+          isLoading: false,
+        });
+      }
     } catch (err: any) {
       set({
         error: err.message || 'Failed to fetch diet plans',
@@ -128,25 +159,26 @@ export const useDietStore = create<DietState>((set, get) => ({
     try {
       const response = await dietsApi.follow(id);
       const serverPlan = response.data;
+      const createdByPopulated =
+        typeof serverPlan.createdBy === 'object' && serverPlan.createdBy !== null && (serverPlan.createdBy as User).name;
 
-      // Merge server response, preserving counts if server doesn't provide them
       set((state) => ({
         plans: state.plans.map((p) => {
           if (p._id !== id) return p;
-          return {
+          const merged = {
             ...p,
             ...serverPlan,
-            // Only update counts if server provides them, otherwise keep existing
             likesCount: serverPlan.likesCount ?? serverPlan.likes?.length ?? p.likesCount,
             followersCount: serverPlan.followersCount ?? serverPlan.followers?.length ?? p.followersCount,
           };
+          if (!createdByPopulated && p.createdBy) merged.createdBy = p.createdBy;
+          return merged;
         }),
-        selectedPlan: state.selectedPlan?._id === id ? {
-          ...state.selectedPlan,
-          ...serverPlan,
-          likesCount: serverPlan.likesCount ?? serverPlan.likes?.length ?? state.selectedPlan.likesCount,
-          followersCount: serverPlan.followersCount ?? serverPlan.followers?.length ?? state.selectedPlan.followersCount,
-        } : state.selectedPlan,
+        selectedPlan: state.selectedPlan?._id === id ? (() => {
+          const merged = { ...state.selectedPlan!, ...serverPlan, likesCount: serverPlan.likesCount ?? state.selectedPlan!.likesCount, followersCount: serverPlan.followersCount ?? state.selectedPlan!.followersCount };
+          if (!createdByPopulated && state.selectedPlan!.createdBy) merged.createdBy = state.selectedPlan!.createdBy;
+          return merged;
+        })() : state.selectedPlan,
       }));
     } catch (err: any) {
       // Revert optimistic update on failure
@@ -178,25 +210,26 @@ export const useDietStore = create<DietState>((set, get) => ({
     try {
       const response = await dietsApi.like(id);
       const serverPlan = response.data;
+      const createdByPopulated =
+        typeof serverPlan.createdBy === 'object' && serverPlan.createdBy !== null && (serverPlan.createdBy as User).name;
 
-      // Merge server response, preserving counts if server doesn't provide them
       set((state) => ({
         plans: state.plans.map((p) => {
           if (p._id !== id) return p;
-          return {
+          const merged = {
             ...p,
             ...serverPlan,
-            // Only update counts if server provides them, otherwise keep existing
             likesCount: serverPlan.likesCount ?? serverPlan.likes?.length ?? p.likesCount,
             followersCount: serverPlan.followersCount ?? serverPlan.followers?.length ?? p.followersCount,
           };
+          if (!createdByPopulated && p.createdBy) merged.createdBy = p.createdBy;
+          return merged;
         }),
-        selectedPlan: state.selectedPlan?._id === id ? {
-          ...state.selectedPlan,
-          ...serverPlan,
-          likesCount: serverPlan.likesCount ?? serverPlan.likes?.length ?? state.selectedPlan.likesCount,
-          followersCount: serverPlan.followersCount ?? serverPlan.followers?.length ?? state.selectedPlan.followersCount,
-        } : state.selectedPlan,
+        selectedPlan: state.selectedPlan?._id === id ? (() => {
+          const merged = { ...state.selectedPlan!, ...serverPlan, likesCount: serverPlan.likesCount ?? state.selectedPlan!.likesCount, followersCount: serverPlan.followersCount ?? state.selectedPlan!.followersCount };
+          if (!createdByPopulated && state.selectedPlan!.createdBy) merged.createdBy = state.selectedPlan!.createdBy;
+          return merged;
+        })() : state.selectedPlan,
       }));
     } catch (err: any) {
       // Revert optimistic update on failure
@@ -205,13 +238,20 @@ export const useDietStore = create<DietState>((set, get) => ({
     }
   },
 
-  createPlan: async (data) => {
+  createPlan: async (data, currentUser) => {
     set({ isLoading: true, error: null });
     try {
       const response = await dietsApi.create(data);
+      const newPlan = response.data;
+      const createdByPopulated =
+        typeof newPlan.createdBy === 'object' && newPlan.createdBy !== null && (newPlan.createdBy as User).name;
+      const planToPrepend: DietPlan = createdByPopulated
+        ? newPlan
+        : { ...newPlan, createdBy: currentUser ?? newPlan.createdBy };
       set((state) => ({
-        plans: [response.data, ...state.plans],
+        plans: [planToPrepend, ...state.plans],
         isLoading: false,
+        skipNextListRefresh: true,
       }));
     } catch (err: any) {
       set({
@@ -237,6 +277,30 @@ export const useDietStore = create<DietState>((set, get) => ({
         error: err.message || 'Failed to update diet plan',
         isLoading: false,
       });
+      throw err;
+    }
+  },
+
+  setPlanPublished: async (id, isPublished) => {
+    const { plans, selectedPlan } = get();
+    try {
+      const response = await dietsApi.update(id, { isPublished });
+      const updated = response.data;
+      const createdByPopulated =
+        typeof updated.createdBy === 'object' && updated.createdBy !== null && (updated.createdBy as User).name;
+      set((state) => {
+        const prevSelected = state.selectedPlan?._id === id ? state.selectedPlan : null;
+        const merge = (target: DietPlan) => {
+          const m = { ...target, ...updated };
+          if (!createdByPopulated && target.createdBy) m.createdBy = target.createdBy;
+          return m;
+        };
+        return {
+          plans: state.plans.map((p) => (p._id === id ? merge(p) : p)),
+          selectedPlan: prevSelected ? merge(prevSelected) : state.selectedPlan,
+        };
+      });
+    } catch (err: any) {
       throw err;
     }
   },

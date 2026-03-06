@@ -13,6 +13,7 @@ import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
 import { Button } from '../../../src/components/ui/Button';
 import { Input } from '../../../src/components/ui/Input';
+import { useCartStore } from '../../../src/stores/useCartStore';
 import { colors, fontFamily, spacing } from '../../../src/theme';
 
 export default function AddressScreen() {
@@ -45,14 +46,23 @@ export default function AddressScreen() {
     return Object.keys(newErrors).length === 0;
   }, [form]);
 
+  const setSelectedAddress = useCartStore((s) => s.setSelectedAddress);
+
   const handleSave = useCallback(() => {
     if (!validate()) return;
 
-    // In a full implementation, this would save to the backend
+    const streetLine = [form.street.trim(), form.apartment.trim()].filter(Boolean).join(', ');
+    setSelectedAddress({
+      street: streetLine || form.street.trim(),
+      city: form.city.trim(),
+      state: form.state.trim(),
+      pincode: form.pincode.trim(),
+      phone: form.phone.trim(),
+    });
     Alert.alert('Address Saved', 'Your shipping address has been saved.', [
       { text: 'OK', onPress: () => router.back() },
     ]);
-  }, [validate]);
+  }, [validate, setSelectedAddress, form.street, form.apartment, form.city, form.state, form.pincode, form.phone]);
 
   return (
     <SafeScreen>

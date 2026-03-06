@@ -25,13 +25,14 @@ const PAYMENT_METHODS = [
 ];
 
 export default function CartScreen() {
-  const { cart, isLoading, fetchCart, removeFromCart, cartTotal } = useCartStore();
+  const { cart, isLoading, fetchCart, removeFromCart, cartTotal, selectedAddress, loadSavedAddress } = useCartStore();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState('cod');
 
   useEffect(() => {
     fetchCart();
-  }, []);
+    loadSavedAddress();
+  }, [fetchCart, loadSavedAddress]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -131,7 +132,9 @@ export default function CartScreen() {
                 <View style={styles.addressInfo}>
                   <Text style={styles.addressLabel}>Home</Text>
                   <Text style={styles.addressText} numberOfLines={2}>
-                    Add your shipping address
+                    {selectedAddress
+                      ? `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.pincode}`
+                      : 'Add your shipping address'}
                   </Text>
                 </View>
                 <Ionicons

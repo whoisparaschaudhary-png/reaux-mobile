@@ -15,6 +15,7 @@ import { Header } from '../../../src/components/layout/Header';
 import { Input } from '../../../src/components/ui/Input';
 import { Button } from '../../../src/components/ui/Button';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
+import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDietStore } from '../../../src/stores/useDietStore';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
@@ -44,12 +45,19 @@ export default function UploadDietScreen() {
   const [instructions, setInstructions] = useState('');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
+  const user = useAuthStore((s) => s.user);
   const { createPlan, isLoading } = useDietStore();
   const { image, pickImage, clearImage } = useImagePicker();
 
   const handleSubmit = useCallback(async () => {
     if (!title.trim()) {
       Alert.alert('Validation', 'Please enter a plan title.');
+      return;
+    }
+
+    const caloriesNum = calories.trim() ? Number(calories) : NaN;
+    if (calories.trim() && (Number.isNaN(caloriesNum) || caloriesNum <= 0)) {
+      Alert.alert('Validation', 'Calories per day must be a number greater than 0.');
       return;
     }
 
@@ -72,7 +80,7 @@ export default function UploadDietScreen() {
         form.append('title', title.trim());
         form.append('category', category);
         if (description.trim()) form.append('description', description.trim());
-        if (calories) form.append('totalCalories', calories);
+        if (caloriesNum > 0) form.append('totalCalories', String(caloriesNum));
         if (meals.length > 0) form.append('meals', JSON.stringify(meals));
         form.append('isPublished', 'false');
 
@@ -84,23 +92,33 @@ export default function UploadDietScreen() {
         };
         form.append('image', imageFile);
 
-        await createPlan(form);
+        await createPlan(form, user ?? undefined);
       } else {
-        await createPlan({
-          title: title.trim(),
-          category,
-          description: description.trim() || undefined,
-          totalCalories: calories ? Number(calories) : undefined,
-          meals,
-          isPublished: false,
-        });
+        await createPlan(
+          {
+            title: title.trim(),
+            category,
+            description: description.trim() || undefined,
+            totalCalories: caloriesNum > 0 ? caloriesNum : undefined,
+            meals,
+            isPublished: false,
+          },
+          user ?? undefined
+        );
       }
       Alert.alert('Success', 'Diet plan created successfully!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
       console.error('Create diet plan error:', error);
-      const errorMessage = error?.message || error?.toString() || 'Failed to create diet plan';
+      let errorMessage = error?.message || 'Failed to create diet plan';
+      const fieldErrors = error?.errors?.fieldErrors;
+      if (fieldErrors && typeof fieldErrors === 'object') {
+        const firstMessages = Object.values(fieldErrors).flat();
+        if (Array.isArray(firstMessages) && firstMessages.length > 0 && typeof firstMessages[0] === 'string') {
+          errorMessage = firstMessages[0];
+        }
+      }
       Alert.alert('Error', errorMessage);
     }
   }, [title, category, description, calories, breakfast, lunch, snacks, dinner, image, createPlan]);
@@ -129,7 +147,7 @@ export default function UploadDietScreen() {
             placeholder="e.g. 2500"
             value={calories}
             onChangeText={setCalories}
-            keyboardType="numeric"
+            keyboardType="number-pad"
             style={styles.fieldSpacing}
           />
 

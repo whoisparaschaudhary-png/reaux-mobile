@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
-import * as Notifications from 'expo-notifications';
+import type { EventSubscription } from 'expo-modules-core';
 import {
   getPushNotificationToken,
   addNotificationReceivedListener,
@@ -22,8 +22,8 @@ export function useNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<EventSubscription | null>(null);
+  const responseListener = useRef<EventSubscription | null>(null);
 
   // Initialize notifications when user is logged in
   useEffect(() => {
@@ -109,12 +109,10 @@ export function useNotifications() {
     );
 
     return () => {
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
-      }
+      notificationListener.current?.remove();
+      responseListener.current?.remove();
+      notificationListener.current = null;
+      responseListener.current = null;
     };
   }, [router]);
 

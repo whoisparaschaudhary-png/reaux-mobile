@@ -41,7 +41,6 @@ export default function ProfileScreen() {
   const { pickImage } = useImagePicker();
 
   const [name, setName] = useState(user?.name || '');
-  const [phone, setPhone] = useState(user?.phone || '');
   const [hasChanges, setHasChanges] = useState(false);
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
@@ -81,22 +80,14 @@ export default function ProfileScreen() {
   const handleNameChange = useCallback(
     (value: string) => {
       setName(value);
-      setHasChanges(value !== (user?.name || '') || phone !== (user?.phone || ''));
+      setHasChanges(value !== (user?.name || ''));
     },
-    [user?.name, user?.phone, phone],
-  );
-
-  const handlePhoneChange = useCallback(
-    (value: string) => {
-      setPhone(value);
-      setHasChanges(name !== (user?.name || '') || value !== (user?.phone || ''));
-    },
-    [user?.name, user?.phone, name],
+    [user?.name],
   );
 
   const handleSave = async () => {
     try {
-      await updateProfile({ name, phone });
+      await updateProfile({ name });
       setHasChanges(false);
       Alert.alert('Success', 'Profile updated successfully');
     } catch {
@@ -190,16 +181,18 @@ export default function ProfileScreen() {
           <Text style={styles.readOnlyHint}>Email cannot be changed</Text>
         </View>
 
-        {/* Contact Information */}
+        {/* Contact Information - Phone is compulsory at registration and non-editable */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Contact Information</Text>
           <Input
             label="Phone"
-            placeholder="Enter your phone number"
-            value={phone}
-            onChangeText={handlePhoneChange}
+            placeholder="Phone number"
+            value={user?.phone ? `+91 ${user.phone}` : '—'}
+            onChangeText={() => {}}
             keyboardType="phone-pad"
+            style={styles.readOnlyField}
           />
+          <Text style={styles.readOnlyHint}>Phone cannot be changed</Text>
         </View>
 
         {/* Gym Details - All users with gym assignment */}

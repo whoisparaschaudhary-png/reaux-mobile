@@ -1,11 +1,23 @@
 import { create } from 'zustand';
 import { cartApi } from '../api/endpoints/cart';
+import { getItem, setItem, removeItem } from '../utils/storage';
+import { STORAGE_KEYS } from '../utils/constants';
 import type { Cart, Product } from '../types/models';
+
+export interface ShippingAddressState {
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+}
 
 interface CartState {
   cart: Cart | null;
   isLoading: boolean;
   error: string | null;
+  /** Saved shipping address used for checkout (set when user saves on Add Address screen) */
+  selectedAddress: ShippingAddressState | null;
 
   // Derived
   itemCount: () => number;
@@ -15,6 +27,8 @@ interface CartState {
   fetchCart: () => Promise<void>;
   addToCart: (productId: string, quantity?: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
+  setSelectedAddress: (address: ShippingAddressState | null) => void;
+  loadSavedAddress: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -22,6 +36,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   cart: null,
   isLoading: false,
   error: null,
+  selectedAddress: null,
 
   itemCount: () => {
     const cart = get().cart;
@@ -77,6 +92,28 @@ export const useCartStore = create<CartState>((set, get) => ({
         error: err.message || 'Failed to remove from cart',
         isLoading: false,
       });
+    }
+  },
+
+  setSelectedAddress: (address) => {
+    set({ selectedAddress: address });
+    if (address) {
+      setItem(STORAGE_KEYS.SHIPPING_ADDRESS, JSON.stringify(address)).catch(() => {});
+    } else {
+      removeItem(STORAGE_KEYS.SHIPPING_ADDRESS).catch(() => {});
+    }
+  },
+
+  /** Load saved shipping address from storage (e.g. on app/cart mount) */
+  loadSavedAddress: async () => {
+    const json = await getItem(STORAGE_KEYS.SHIPPING_ADDRESS);
+    if (json) {
+      try {
+        const parsed = JSON.parse(json) as ShippingAddressState;
+        if (parsed && typeof parsed.street === 'string' && typeof parsed.city === 'string') {
+          set({ selectedAddress: parsed });
+        }
+      } catch {}
     }
   },
 

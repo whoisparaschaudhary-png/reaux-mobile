@@ -39,7 +39,6 @@ export default function EditProfileScreen() {
   const isLoading = useAuthStore((s) => s.isLoading);
 
   const [name, setName] = useState(user?.name || '');
-  const [phone, setPhone] = useState(user?.phone || '');
   const [height, setHeight] = useState(user?.height?.toString() || '');
   const [weight, setWeight] = useState(user?.weight?.toString() || '');
   const [gender, setGender] = useState<Gender | undefined>(user?.gender);
@@ -70,7 +69,7 @@ export default function EditProfileScreen() {
       name: name.trim(),
     };
 
-    if (phone.trim()) data.phone = phone.trim();
+    // Phone is non-editable (set at registration only)
     if (height) data.height = parseFloat(height);
     if (weight) data.weight = parseFloat(weight);
     if (gender) data.gender = gender;
@@ -118,15 +117,16 @@ export default function EditProfileScreen() {
           />
         </View>
 
-        {/* Phone */}
+        {/* Phone - compulsory at registration, non-editable */}
         <View style={styles.fieldGroup}>
           <Input
             label="Phone"
-            placeholder="Enter your phone number"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
+            placeholder="Phone number"
+            value={user?.phone ? `+91 ${user.phone}` : '—'}
+            onChangeText={() => {}}
+            style={styles.readOnlyField}
           />
+          <Text style={styles.readOnlyHint}>Phone cannot be changed</Text>
         </View>
 
         {/* Height */}
@@ -325,5 +325,15 @@ const styles = StyleSheet.create({
   },
   saveContainer: {
     marginTop: spacing.xxl,
+  },
+  readOnlyField: {
+    opacity: 0.8,
+  },
+  readOnlyHint: {
+    fontFamily: fontFamily.regular,
+    fontSize: 11,
+    lineHeight: 16,
+    color: colors.text.light,
+    marginTop: spacing.xs,
   },
 });

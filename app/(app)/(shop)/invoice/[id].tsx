@@ -1,11 +1,10 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -15,6 +14,8 @@ import { Header } from '../../../../src/components/layout/Header';
 import { Button } from '../../../../src/components/ui/Button';
 import { Badge } from '../../../../src/components/ui/Badge';
 import { useOrderStore } from '../../../../src/stores/useOrderStore';
+import { useUIStore } from '../../../../src/stores/useUIStore';
+import { exportSingleOrderPDF } from '../../../../src/utils/pdfExport';
 import { formatCurrency, formatDate } from '../../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../../src/theme';
 import type { OrderStatus } from '../../../../src/types/models';
@@ -31,18 +32,26 @@ export default function InvoiceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { selectedOrder, isLoading, getOrderById, clearSelectedOrder } =
     useOrderStore();
+  const showToast = useUIStore((s) => s.showToast);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     if (id) getOrderById(id);
     return () => clearSelectedOrder();
   }, [id]);
 
-  const handleDownloadPDF = useCallback(() => {
-    Alert.alert(
-      'Download PDF',
-      'PDF download functionality will be available soon.',
-    );
-  }, []);
+  const handleDownloadPDF = useCallback(async () => {
+    if (!selectedOrder) return;
+    setPdfLoading(true);
+    try {
+      await exportSingleOrderPDF(selectedOrder);
+      showToast('Invoice PDF ready to share or save', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to generate PDF', 'error');
+    } finally {
+      setPdfLoading(false);
+    }
+  }, [selectedOrder, showToast]);
 
   if (isLoading || !selectedOrder) {
     return (
@@ -226,12 +235,16 @@ export default function InvoiceScreen() {
             onPress={handleDownloadPDF}
             fullWidth
             size="lg"
+            loading={pdfLoading}
+            disabled={pdfLoading}
             leftIcon={
-              <Ionicons
-                name="document-outline"
-                size={20}
-                color={colors.text.onPrimary}
-              />
+              !pdfLoading ? (
+                <Ionicons
+                  name="document-outline"
+                  size={20}
+                  color={colors.text.onPrimary}
+                />
+              ) : undefined
             }
           />
         </View>

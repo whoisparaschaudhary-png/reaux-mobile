@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,20 +18,31 @@ import { useOrderStore } from '../../../src/stores/useOrderStore';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
 import type { Product } from '../../../src/types/models';
+import type { ShippingAddressState } from '../../../src/stores/useCartStore';
+
+const emptyAddress: ShippingAddressState = {
+  street: '',
+  city: '',
+  state: '',
+  pincode: '',
+  phone: '',
+};
 
 export default function CheckoutScreen() {
-  const { cart, cartTotal, fetchCart } = useCartStore();
+  const { cart, cartTotal, fetchCart, selectedAddress, loadSavedAddress } = useCartStore();
   const { createOrder, isLoading: orderLoading } = useOrderStore();
 
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
-  const [address, setAddress] = useState({
-    street: '',
-    city: '',
-    state: '',
-    pincode: '',
-    phone: '',
-  });
+  const [address, setAddress] = useState<ShippingAddressState>(emptyAddress);
+
+  // Load persisted address and prefill when user has already saved one
+  useEffect(() => {
+    loadSavedAddress();
+  }, [loadSavedAddress]);
+  useEffect(() => {
+    if (selectedAddress) setAddress(selectedAddress);
+  }, [selectedAddress]);
 
   const total = cartTotal();
   const finalAmount = total - discount;

@@ -12,26 +12,45 @@ import {
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { SafeScreen } from '../../src/components/layout/SafeScreen';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
 import { useAuthStore } from '../../src/stores/useAuthStore';
 import { useUIStore } from '../../src/stores/useUIStore';
-import { isValidEmail, isValidIndianPhone, isValidName, isValidPassword } from '../../src/utils/validators';
-import { colors, fontFamily, spacing } from '../../src/theme';
+import { isValidEmail, isValidIndianPhone, isValidName, isValidPassword, isValidDateOfBirth } from '../../src/utils/validators';
+import { colors, fontFamily, spacing, borderRadius } from '../../src/theme';
+
+const maxDate = new Date();
+maxDate.setFullYear(maxDate.getFullYear() - 10);
+
+const formatDisplayDate = (date: Date) =>
+  date.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
 
 export default function RegisterScreen() {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const register = useAuthStore((s) => s.register);
   const isLoading = useAuthStore((s) => s.isLoading);
   const showToast = useUIStore((s) => s.showToast);
 
   const handleRegister = async () => {
-    if (!isValidName(name)) {
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+    if (!firstName.trim()) {
+      showToast('First name is required', 'error');
+      return;
+    }
+    if (!lastName.trim()) {
+      showToast('Last name is required', 'error');
+      return;
+    }
+    if (!isValidName(fullName)) {
       showToast('Name must be at least 2 characters', 'error');
       return;
     }
@@ -51,8 +70,16 @@ export default function RegisterScreen() {
       showToast('Password must be at least 6 characters', 'error');
       return;
     }
+    if (!dateOfBirth) {
+      showToast('Please select your date of birth', 'error');
+      return;
+    }
+    if (!isValidDateOfBirth(dateOfBirth.toISOString())) {
+      showToast('You must be at least 10 years old to register', 'error');
+      return;
+    }
     try {
-      await register(name.trim(), email.trim(), password, phone.trim() || undefined);
+      await register(fullName, email.trim(), password, phone.trim() || undefined, dateOfBirth.toISOString());
       router.replace('/(app)/(feed)');
     } catch (err: any) {
       showToast(err.message || 'Registration failed', 'error');
@@ -107,13 +134,24 @@ export default function RegisterScreen() {
                 </Text>
 
                 <View style={styles.formInputs}>
-                  <Input
-                    label="FULL NAME"
-                    placeholder="Enter your name"
-                    value={name}
-                    onChangeText={setName}
-                    autoCapitalize="words"
-                  />
+                  <View style={styles.nameRow}>
+                    <Input
+                      label="FIRST NAME"
+                      placeholder="First name"
+                      value={firstName}
+                      onChangeText={setFirstName}
+                      autoCapitalize="words"
+                      style={styles.nameField}
+                    />
+                    <Input
+                      label="LAST NAME"
+                      placeholder="Last name"
+                      value={lastName}
+                      onChangeText={setLastName}
+                      autoCapitalize="words"
+                      style={styles.nameField}
+                    />
+                  </View>
 
                   <Input
                     label="EMAIL"
@@ -126,11 +164,53 @@ export default function RegisterScreen() {
 
                   <Input
                     label="PHONE"
-                    placeholder="Enter 10-digit phone number"
+                    placeholder="10-digit number"
                     value={phone}
-                    onChangeText={setPhone}
+                    onChangeText={(text) => setPhone(text.replace(/\D/g, '').slice(0, 10))}
                     keyboardType="phone-pad"
+                    leftIcon={<Text style={styles.phonePrefix}>+91</Text>}
                   />
+
+                  <View style={styles.dateField}>
+                    <Text style={styles.inputLabel}>DATE OF BIRTH</Text>
+                    <TouchableOpacity
+                      style={styles.dateTouchable}
+                      onPress={() => setShowDatePicker(true)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.dateText,
+                          !dateOfBirth && styles.datePlaceholder,
+                        ]}
+                      >
+                        {dateOfBirth ? formatDisplayDate(dateOfBirth) : 'Select date of birth'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {showDatePicker && (
+                    <View style={styles.datePickerWrap}>
+                      <DateTimePicker
+                        value={dateOfBirth || maxDate}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        maximumDate={maxDate}
+                        onChange={(event: DateTimePickerEvent, selectedDate?: Date) => {
+                          if (Platform.OS === 'android') setShowDatePicker(false);
+                          if (event.type === 'set' && selectedDate) setDateOfBirth(selectedDate);
+                        }}
+                      />
+                      {Platform.OS === 'ios' && (
+                        <TouchableOpacity
+                          style={styles.datePickerDone}
+                          onPress={() => setShowDatePicker(false)}
+                        >
+                          <Text style={styles.datePickerDoneText}>Done</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
 
                   <Input
                     label="PASSWORD"
@@ -223,6 +303,65 @@ const styles = StyleSheet.create({
   formInputs: {
     gap: spacing.sm,
     width: '100%',
+  },
+  nameRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    width: '100%',
+  },
+  nameField: {
+    flex: 1,
+  },
+  phonePrefix: {
+    fontFamily: fontFamily.regular,
+    fontSize: 16,
+    color: colors.text.primary,
+    marginRight: spacing.xs,
+  },
+  dateField: {
+    marginBottom: spacing.lg,
+  },
+  inputLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+  },
+  dateTouchable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.border.gray,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background.white,
+    minHeight: 48,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  dateText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.text.primary,
+  },
+  datePlaceholder: {
+    color: colors.text.light,
+  },
+  datePickerWrap: {
+    marginBottom: spacing.md,
+  },
+  datePickerDone: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    backgroundColor: colors.primary.yellow,
+    borderRadius: borderRadius.lg,
+  },
+  datePickerDoneText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 16,
+    color: colors.text.primary,
   },
   signinRow: {
     flexDirection: 'row',

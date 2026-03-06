@@ -39,27 +39,27 @@ export default function DietScreen() {
   const { plans, isLoading, pagination, fetchPlans } = useDietStore();
 
   const loadPlans = useCallback(() => {
-    fetchPlans(1, selectedCategory);
-  }, [fetchPlans, selectedCategory]);
+    fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin });
+  }, [fetchPlans, selectedCategory, isAdmin]);
 
   useRefreshOnFocus(loadPlans);
 
   const handleRefresh = useCallback(() => {
-    fetchPlans(1, selectedCategory);
-  }, [fetchPlans, selectedCategory]);
+    fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin });
+  }, [fetchPlans, selectedCategory, isAdmin]);
 
   const handleLoadMore = useCallback(() => {
     if (pagination.page < pagination.pages && !isLoading) {
-      fetchPlans(pagination.page + 1, selectedCategory);
+      fetchPlans(pagination.page + 1, selectedCategory, { includeUnpublished: isAdmin });
     }
-  }, [fetchPlans, pagination, isLoading, selectedCategory]);
+  }, [fetchPlans, pagination, isLoading, selectedCategory, isAdmin]);
 
   const handleCategorySelect = useCallback(
     (category: DietCategory | undefined) => {
       setSelectedCategory(category);
-      fetchPlans(1, category);
+      fetchPlans(1, category, { includeUnpublished: isAdmin });
     },
-    [fetchPlans],
+    [fetchPlans, isAdmin],
   );
 
   const handlePlanPress = useCallback((plan: DietPlan) => {
