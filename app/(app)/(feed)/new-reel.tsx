@@ -133,7 +133,7 @@ export default function NewReelScreen() {
   }, [video, caption, affiliateLink, selectedCategory, thumbnail, router]);
 
   return (
-    <RoleGuard allowedRoles={['admin', 'superadmin']}>
+    <RoleGuard allowedRoles={['superadmin']}>
       <SafeScreen>
       <Header
         title="New Reel"

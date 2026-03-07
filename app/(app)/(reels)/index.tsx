@@ -29,7 +29,7 @@ export default function ReelsScreen() {
   const [visibleId, setVisibleId] = useState<string | null>(null);
   const [reelHeight, setReelHeight] = useState(SCREEN_HEIGHT);
   const user = useAuthStore((s) => s.user);
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const isSuperAdmin = user?.role === 'superadmin';
 
   const {
     reels,
@@ -128,9 +128,9 @@ export default function ReelsScreen() {
           <EmptyState
             icon="videocam-outline"
             title="No reels yet"
-            message={isAdmin ? "Be the first to share a reel with the community." : "Check back later for new reels."}
-            actionLabel={isAdmin ? "Create Reel" : undefined}
-            onAction={isAdmin ? () => router.push('/(app)/(feed)/new-reel') : undefined}
+            message={isSuperAdmin ? "Be the first to share a reel with the community." : "Check back later for new reels."}
+            actionLabel={isSuperAdmin ? "Create Reel" : undefined}
+            onAction={isSuperAdmin ? () => router.push('/(app)/(feed)/new-reel') : undefined}
           />
         ) : (
           <FlatList
@@ -160,7 +160,7 @@ export default function ReelsScreen() {
         {/* Overlay header */}
         <View style={styles.overlayHeader} pointerEvents="box-none">
           <Text style={styles.headerTitle}>Reels</Text>
-          {isAdmin && (
+          {isSuperAdmin && (
             <TouchableOpacity
               onPress={() => router.push('/(app)/(feed)/new-reel')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
