@@ -5,7 +5,7 @@
     "scheme": "reauxlabs",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Example.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Example.png",
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
@@ -32,7 +32,7 @@
       "googleServicesFile": "./google-services.json"
     },
     "notification": {
-      "icon": "./assets/icon.png",
+      "icon": "./assets/Example.png",
       "color": "#F9F506",
       "androidMode": "default",
       "androidCollapsedTitle": "#{unread_notifications} new notifications"
@@ -49,7 +49,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
+          "icon": "./assets/Example.png",
           "color": "#F9F506",
           "mode": "default"
         }
