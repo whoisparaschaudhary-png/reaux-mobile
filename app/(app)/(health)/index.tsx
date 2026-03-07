@@ -392,7 +392,7 @@ export default function HealthScreen() {
         {result && (
           <TouchableOpacity
             style={[styles.dietSuggestionCard, shadows.card]}
-            onPress={() => router.push('/(app)/(diet)/suggested' as any)}
+            onPress={() => router.push('/(app)/(health)/suggested' as any)}
             activeOpacity={0.7}
           >
             <View style={styles.dietSuggestionContent}>
