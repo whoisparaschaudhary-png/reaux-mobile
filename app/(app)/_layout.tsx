@@ -1,12 +1,24 @@
+import { useEffect } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/stores/useAuthStore';
 import { colors, fontFamily, layout } from '../../src/theme';
 
+function debugLog(p: { location: string; message: string; data?: Record<string, unknown>; hypothesisId?: string }) {
+  const body = { sessionId: '1c7f0b', runId: 'run1', hypothesisId: p.hypothesisId ?? 'E', location: p.location, message: p.message, data: p.data ?? {}, timestamp: Date.now() };
+  fetch('http://127.0.0.1:7927/ingest/9dae40e1-b3fb-4628-a12e-08648e00da2b', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '1c7f0b' }, body: JSON.stringify(body) }).catch(() => {});
+}
+
 export default function AppLayout() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+
+  // #region agent log
+  useEffect(() => {
+    debugLog({ location: 'app/(app)/_layout.tsx:AppLayout', message: 'App tabs mounted', data: { role: user?.role }, hypothesisId: 'E' });
+  }, [user?.role]);
+  // #endregion
 
   return (
     <Tabs

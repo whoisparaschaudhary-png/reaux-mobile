@@ -150,6 +150,12 @@ export default function FeedScreen() {
     fetchWorkouts({ page: 1, category });
   }, [activeCategory, workoutCategory]);
 
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7927/ingest/9dae40e1-b3fb-4628-a12e-08648e00da2b', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '1c7f0b' }, body: JSON.stringify({ sessionId: '1c7f0b', runId: 'run1', hypothesisId: 'E', location: 'app/(app)/(feed)/index.tsx:FeedScreen', message: 'Feed screen mounted', data: { activeCategory }, timestamp: Date.now() }) }).catch(() => {});
+  }, [activeCategory]);
+  // #endregion
+
   const handleRefresh = useCallback(() => {
     if (activeCategory === 'Workouts') {
       const category = workoutCategory === 'all' ? undefined : workoutCategory;
