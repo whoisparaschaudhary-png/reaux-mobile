@@ -27,46 +27,26 @@ export function useNotifications() {
 
   // Initialize notifications when user is logged in
   useEffect(() => {
-    console.log('🔔 useNotifications effect triggered, user:', user ? user._id : 'null');
-
-    if (!user) {
-      console.log('⚠️ No user found, skipping notification initialization');
-      return;
-    }
+    if (!user) return;
 
     let isMounted = true;
 
     const initializeNotifications = async () => {
-      console.log('🚀 Starting notification initialization...');
       setIsLoading(true);
       try {
-        // Get push token
-        console.log('📲 Requesting push token...');
         const token = await getPushNotificationToken();
-        console.log('📲 Push token result:', token ? 'Success' : 'Failed');
-
         if (isMounted && token) {
           setExpoPushToken(token);
-          console.log('📱 Push token ready:', token);
-
-          // Register token with backend
-          console.log('🔄 Registering token with backend...');
           try {
             await registerDeviceToken(token, user._id);
-            console.log('✅ Token registration successful');
-          } catch (registerError) {
-            console.error('❌ Failed to register token with backend:', registerError);
-            // Don't fail the whole flow if registration fails
+          } catch {
+            // Don't fail if registration fails
           }
-        } else if (!token) {
-          console.error('❌ Failed to get push token');
         }
-      } catch (error) {
-        console.error('❌ Failed to initialize notifications:', error);
+      } catch {
+        // Ignore errors
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       }
     };
 
@@ -79,18 +59,14 @@ export function useNotifications() {
 
   // Listen for notifications
   useEffect(() => {
-    // Notification received while app is in foreground
     notificationListener.current = addNotificationReceivedListener(
-      (notification) => {
-        console.log('📬 Notification received:', notification);
-        // You can show a toast or update UI here
+      (_notification) => {
+        // Foreground notification received
       }
     );
 
-    // User tapped on notification
     responseListener.current = addNotificationResponseReceivedListener(
       (response) => {
-        console.log('👆 Notification tapped:', response);
 
         // Navigate based on notification data
         const data = response.notification.request.content.data;

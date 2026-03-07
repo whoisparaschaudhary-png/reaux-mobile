@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef, useState } from 'react';
+import React, { useEffect, useCallback, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,18 +13,22 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { ReelCard } from '../../../src/components/cards/ReelCard';
+import { ReelCommentsSheet } from '../../../src/components/cards/ReelCommentsSheet';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { useReelStore } from '../../../src/stores/useReelStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
-import { colors, fontFamily, typography, spacing, shadows } from '../../../src/theme';
+import { colors, fontFamily, spacing } from '../../../src/theme';
 import type { Reel } from '../../../src/types/models';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function ReelsScreen() {
   const router = useRouter();
-  const [visibleId, setVisibleId] = useState<string | null>(null);
+  const [visibleIndex, setVisibleIndex] = useState<number>(0);
   const [reelHeight, setReelHeight] = useState(SCREEN_HEIGHT);
+  const [commentReel, setCommentReel] = useState<{ id: string; count: number } | null>(null);
+  // Extra copies of the reel list appended for looping
+  const [loopedCopies, setLoopedCopies] = useState<Reel[]>([]);
   const user = useAuthStore((s) => s.user);
   const isSuperAdmin = user?.role === 'superadmin';
 
@@ -39,34 +43,44 @@ export default function ReelsScreen() {
     likeReel,
   } = useReelStore();
 
+  // Combined list: original pages + any looped copies
+  const displayReels = useMemo(() => [...reels, ...loopedCopies], [reels, loopedCopies]);
+
   useEffect(() => {
     fetchReels(1);
   }, []);
 
-  // Pause all videos when navigating away from reels screen
+  // Pause all videos when navigating away
   useFocusEffect(
     useCallback(() => {
-      // Screen is focused - do nothing special
       return () => {
-        // Screen is unfocused - pause all videos
-        setVisibleId(null);
+        setVisibleIndex(-1);
       };
     }, [])
   );
 
   const handleRefresh = useCallback(() => {
+    setLoopedCopies([]);
     refreshReels();
   }, [refreshReels]);
 
+  const loopingRef = useRef(false);
   const handleLoadMore = useCallback(() => {
-    if (isLoading || pagination.page >= pagination.pages) return;
-    fetchReels(pagination.page + 1);
-  }, [isLoading, pagination, fetchReels]);
+    if (isLoading) return;
+    if (pagination.page < pagination.pages) {
+      fetchReels(pagination.page + 1);
+    } else if (reels.length > 0 && !loopingRef.current) {
+      // All pages loaded — loop back by appending reels again
+      loopingRef.current = true;
+      setLoopedCopies((prev) => [...prev, ...reels]);
+      setTimeout(() => { loopingRef.current = false; }, 2000);
+    }
+  }, [isLoading, pagination, fetchReels, reels]);
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      if (viewableItems.length > 0) {
-        setVisibleId(viewableItems[0].item._id);
+      if (viewableItems.length > 0 && viewableItems[0].index !== null) {
+        setVisibleIndex(viewableItems[0].index);
       }
     },
   ).current;
@@ -83,25 +97,26 @@ export default function ReelsScreen() {
   );
 
   const renderReel = useCallback(
-    ({ item }: { item: Reel }) => (
+    ({ item, index }: { item: Reel; index: number }) => (
       <ReelCard
         reel={item}
-        isVisible={item._id === visibleId}
+        isVisible={index === visibleIndex}
         onLike={() => likeReel(item._id)}
+        onComment={() => setCommentReel({ id: item._id, count: item.commentsCount ?? 0 })}
         height={reelHeight}
       />
     ),
-    [visibleId, likeReel, reelHeight],
+    [visibleIndex, likeReel, reelHeight],
   );
 
   const renderFooter = useCallback(() => {
-    if (!isLoading || reels.length === 0) return null;
+    if (!isLoading || displayReels.length === 0) return null;
     return (
       <View style={[styles.footerLoader, { height: reelHeight }]}>
         <ActivityIndicator size="large" color={colors.primary.yellow} />
       </View>
     );
-  }, [isLoading, reels.length, reelHeight]);
+  }, [isLoading, displayReels.length, reelHeight]);
 
   return (
     <SafeScreen>
@@ -109,28 +124,28 @@ export default function ReelsScreen() {
         style={styles.container}
         onLayout={(e) => setReelHeight(e.nativeEvent.layout.height)}
       >
-        {isLoading && reels.length === 0 ? (
+        {isLoading && displayReels.length === 0 ? (
           <View style={styles.centerLoader}>
             <ActivityIndicator size="large" color={colors.primary.yellow} />
             <Text style={styles.loadingText}>Loading reels...</Text>
           </View>
-        ) : !isLoading && reels.length === 0 && !error ? (
+        ) : !isLoading && displayReels.length === 0 && !error ? (
           <EmptyState
             icon="videocam-outline"
             title="No reels yet"
-            message={isSuperAdmin ? "Be the first to share a reel with the community." : "Check back later for new reels."}
-            actionLabel={isSuperAdmin ? "Create Reel" : undefined}
+            message={isSuperAdmin ? 'Be the first to share a reel with the community.' : 'Check back later for new reels.'}
+            actionLabel={isSuperAdmin ? 'Create Reel' : undefined}
             onAction={isSuperAdmin ? () => router.push('/(app)/(feed)/new-reel') : undefined}
           />
         ) : (
           <FlatList
-            data={reels}
+            data={displayReels}
             renderItem={renderReel}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(_, index) => String(index)}
             onRefresh={handleRefresh}
             refreshing={isRefreshing}
             onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.5}
+            onEndReachedThreshold={0.3}
             ListFooterComponent={renderFooter}
             showsVerticalScrollIndicator={false}
             onViewableItemsChanged={onViewableItemsChanged}
@@ -140,10 +155,9 @@ export default function ReelsScreen() {
             snapToAlignment="start"
             decelerationRate="fast"
             getItemLayout={getItemLayout}
-            windowSize={3}
+            windowSize={5}
             maxToRenderPerBatch={2}
             initialNumToRender={1}
-            removeClippedSubviews
           />
         )}
 
@@ -160,6 +174,13 @@ export default function ReelsScreen() {
           )}
         </View>
       </View>
+
+      <ReelCommentsSheet
+        visible={commentReel !== null}
+        reelId={commentReel?.id ?? null}
+        commentsCount={commentReel?.count ?? 0}
+        onClose={() => setCommentReel(null)}
+      />
     </SafeScreen>
   );
 }

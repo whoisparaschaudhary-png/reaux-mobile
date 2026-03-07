@@ -1,6 +1,6 @@
 import client from '../client';
 import type { ApiResponse, PaginatedResponse, PaginationParams } from '../types';
-import type { Reel } from '../../types/models';
+import type { Reel, ReelComment } from '../../types/models';
 
 export const reelsApi = {
   list: (params?: PaginationParams) =>
@@ -19,4 +19,10 @@ export const reelsApi = {
 
   like: (id: string) =>
     client.post<ApiResponse<Reel>>(`/reels/${id}/like`).then(r => r.data),
+
+  getComments: (id: string, params?: PaginationParams) =>
+    client.get<PaginatedResponse<ReelComment>>(`/reels/${id}/comments`, { params }).then(r => r.data),
+
+  addComment: (id: string, content: string) =>
+    client.post<ApiResponse<ReelComment>>(`/reels/${id}/comment`, { content }).then(r => r.data),
 };

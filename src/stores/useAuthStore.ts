@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { login, register, getMe, updateProfile, uploadAvatar } from '../api/endpoints/auth';
 import type { UpdateProfileParams } from '../api/endpoints/auth';
-import { getToken, setToken, removeToken, getItem, setItem } from '../utils/storage';
+import { getToken, setToken, removeToken, getItem, setItem, removeItem } from '../utils/storage';
 import { STORAGE_KEYS } from '../utils/constants';
 import type { User } from '../types/models';
 
@@ -36,6 +36,7 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
       const response = await login(email, password);
       const { token: authToken, user } = response.data;
       await setToken(authToken);
+      await setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
       set({ user: user as unknown as User, token: authToken, isAuthenticated: true, isLoading: false });
 
       // Only register push token if it hasn't been registered yet on this device
@@ -66,6 +67,7 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
       const response = await register({ name, email, password, phone });
       const { token: authToken, user } = response.data;
       await setToken(authToken);
+      await setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
       set({ user: user as unknown as User, token: authToken, isAuthenticated: true, isLoading: false });
 
       // Only register push token if it hasn't been registered yet on this device
@@ -93,8 +95,8 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
   logout: async () => {
     await removeToken();
     // Clear cached push token so next login re-registers if needed
-    const { removeItem } = await import('../utils/storage');
     await removeItem(STORAGE_KEYS.PUSH_TOKEN);
+    await removeItem(STORAGE_KEYS.USER_DATA);
     set({ user: null, token: null, isAuthenticated: false, error: null });
     // Clear all stores that hold user-specific data
     const { useNotificationStore } = await import('./useNotificationStore');
@@ -108,9 +110,38 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
         set({ isRestoring: false });
         return;
       }
+
+      // Restore from cache immediately so app opens without waiting for network
+      const cachedUser = await getItem(STORAGE_KEYS.USER_DATA);
+      if (cachedUser) {
+        set({
+          token: storedToken,
+          user: JSON.parse(cachedUser) as User,
+          isAuthenticated: true,
+          isRestoring: false,
+        });
+        // Refresh profile in background (don't await)
+        getMe()
+          .then((response) => {
+            const freshUser = response.data as unknown as User;
+            set({ user: freshUser });
+            setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(freshUser));
+          })
+          .catch(() => {
+            // Token expired — clear and force re-login
+            removeToken();
+            removeItem(STORAGE_KEYS.USER_DATA);
+            set({ user: null, token: null, isAuthenticated: false });
+          });
+        return;
+      }
+
+      // No cache — fall back to blocking network call
       set({ token: storedToken });
       const response = await getMe();
-      set({ user: response.data as unknown as User, isAuthenticated: true, isRestoring: false });
+      const user = response.data as unknown as User;
+      await setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+      set({ user, isAuthenticated: true, isRestoring: false });
     } catch {
       await removeToken();
       set({ token: null, isRestoring: false });

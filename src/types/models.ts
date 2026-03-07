@@ -158,6 +158,15 @@ export interface Reel {
   linkedProduct?: string | Product;
   isLiked?: boolean;
   likesCount: number;
+  commentsCount: number;
+  createdAt: string;
+}
+
+export interface ReelComment {
+  _id: string;
+  reelId: string;
+  author: string | User;
+  content: string;
   createdAt: string;
 }
 
