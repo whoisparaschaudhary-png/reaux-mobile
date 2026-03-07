@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +17,8 @@ import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { workoutsApi } from '../../../../src/api/endpoints/workouts';
 import { useUIStore } from '../../../../src/stores/useUIStore';
+import { useFeedStore } from '../../../../src/stores/useFeedStore';
+import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
 import type { WorkoutCategory, WorkoutDifficulty, Exercise } from '../../../../src/types/models';
 
@@ -50,6 +51,8 @@ const emptyExercise = (): Exercise => ({
 export default function CreateWorkoutScreen() {
   const router = useRouter();
   const showToast = useUIStore((s) => s.showToast);
+  const user = useAuthStore((s) => s.user);
+  const createPost = useFeedStore((s) => s.createPost);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -112,6 +115,20 @@ export default function CreateWorkoutScreen() {
           .filter(Boolean),
         exercises: validExercises,
       });
+      // Create a feed post with category "workouts" so it appears under the Workouts tab
+      const postContent = description.trim()
+        ? `${title.trim()}\n\n${description.trim()}`
+        : title.trim();
+      await createPost(
+        {
+          content: postContent,
+          mediaType: image.trim() ? 'image' : 'text',
+          mediaUrl: image.trim() || undefined,
+          hashtags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+          category: 'workouts',
+        },
+        user ?? undefined
+      );
       showToast('Workout created successfully', 'success');
       router.back();
     } catch (error: any) {

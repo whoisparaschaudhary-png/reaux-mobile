@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -17,6 +16,7 @@ import { Input } from '../../../src/components/ui/Input';
 import { Button } from '../../../src/components/ui/Button';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useDietStore } from '../../../src/stores/useDietStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { dietsApi } from '../../../src/api/endpoints/diets';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
@@ -82,7 +82,7 @@ export default function EditDietScreen() {
         setSnacks(getMealText('Snacks'));
         setDinner(getMealText('Dinner'));
       } catch {
-        Alert.alert('Error', 'Failed to load diet plan.', [
+        showAppAlert('Error', 'Failed to load diet plan.', [
           { text: 'OK', onPress: () => router.back() },
         ]);
       } finally {
@@ -106,7 +106,7 @@ export default function EditDietScreen() {
   const handleSubmit = useCallback(async () => {
     if (!id) return;
     if (!title.trim()) {
-      Alert.alert('Validation', 'Please enter a plan title.');
+      showAppAlert('Validation', 'Please enter a plan title.');
       return;
     }
 
@@ -153,13 +153,13 @@ export default function EditDietScreen() {
           image: existingImage,
         });
       }
-      Alert.alert('Success', 'Diet plan updated successfully!', [
+      showAppAlert('Success', 'Diet plan updated successfully!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
       console.error('Update diet plan error:', error);
       const errorMessage = error?.message || error?.toString() || 'Failed to update diet plan';
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     }
   }, [id, title, category, description, calories, breakfast, lunch, snacks, dinner, image, existingImage, updatePlan]);
 

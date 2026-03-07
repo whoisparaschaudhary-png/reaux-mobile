@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -17,6 +16,7 @@ import { Badge } from '../../../../src/components/ui/Badge';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { gymsApi } from '../../../../src/api/endpoints/gyms';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
 import type { Gym } from '../../../../src/types/models';
 
@@ -31,7 +31,7 @@ export default function GymListScreen() {
       const response = await gymsApi.list({ limit: 50 });
       setGyms(response.data);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to load gyms');
+      showAppAlert('Error', err.message || 'Failed to load gyms');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -48,7 +48,7 @@ export default function GymListScreen() {
   };
 
   const handleDelete = (gym: Gym) => {
-    Alert.alert(
+    showAppAlert(
       'Deactivate Gym',
       `Are you sure you want to deactivate "${gym.name}"?`,
       [
@@ -61,7 +61,7 @@ export default function GymListScreen() {
               await gymsApi.remove(gym._id);
               setGyms((prev) => prev.filter((g) => g._id !== gym._id));
             } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to deactivate gym');
+              showAppAlert('Error', err.message || 'Failed to deactivate gym');
             }
           },
         },

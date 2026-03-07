@@ -35,7 +35,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onPress }) => {
           </Text>
           <Text style={styles.date}>{formatDate(order.createdAt)}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+        <View style={[styles.statusBadge, { backgroundColor: status.bg || '#f0f0f0' }]}>
           <Text style={[styles.statusText, { color: status.text }]}>
             {status.label}
           </Text>

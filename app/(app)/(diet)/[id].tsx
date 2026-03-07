@@ -18,6 +18,7 @@ import { Button } from '../../../src/components/ui/Button';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDietStore } from '../../../src/stores/useDietStore';
 import { useUIStore } from '../../../src/stores/useUIStore';
+import { exportDietPlanPDF } from '../../../src/utils/pdfExport';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
 import type { User, DietCategory, Meal } from '../../../src/types/models';
 
@@ -48,6 +49,7 @@ export default function DietPlanDetailScreen() {
     useDietStore();
   const showToast = useUIStore((s) => s.showToast);
   const [publishLoading, setPublishLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     if (id) getPlanById(id);
@@ -77,6 +79,19 @@ export default function DietPlanDetailScreen() {
   const handleLike = useCallback(() => {
     if (id) likePlan(id);
   }, [id, likePlan]);
+
+  const handleExportPDF = useCallback(async () => {
+    if (!selectedPlan) return;
+    setPdfLoading(true);
+    try {
+      await exportDietPlanPDF(selectedPlan);
+      showToast('PDF exported successfully', 'success');
+    } catch {
+      showToast('Failed to export PDF', 'error');
+    } finally {
+      setPdfLoading(false);
+    }
+  }, [selectedPlan, showToast]);
 
   if (isLoading && !selectedPlan) {
     return (
@@ -151,6 +166,18 @@ export default function DietPlanDetailScreen() {
             activeOpacity={0.7}
           >
             <Ionicons name="chevron-back" size={24} color={colors.text.white} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.exportButton}
+            onPress={handleExportPDF}
+            disabled={pdfLoading}
+            activeOpacity={0.7}
+          >
+            {pdfLoading ? (
+              <ActivityIndicator size="small" color={colors.text.white} />
+            ) : (
+              <Ionicons name="document-attach-outline" size={24} color={colors.text.white} />
+            )}
           </TouchableOpacity>
           <View style={styles.heroBadge}>
             <Badge text={categoryInfo.label} variant={categoryInfo.variant} size="md" />
@@ -367,6 +394,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.md,
     left: spacing.lg,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.overlay.medium,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exportButton: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.lg,
     width: 36,
     height: 36,
     borderRadius: 18,

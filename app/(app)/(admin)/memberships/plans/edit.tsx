@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -18,6 +17,7 @@ import { Button } from '../../../../../src/components/ui/Button';
 import { SkeletonLoader } from '../../../../../src/components/ui/SkeletonLoader';
 import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
+import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
 
 const DURATIONS = [
@@ -82,11 +82,11 @@ export default function EditMembershipPlanScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Plan name is required');
+      showAppAlert('Validation', 'Plan name is required');
       return;
     }
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      Alert.alert('Validation', 'Valid price is required');
+      showAppAlert('Validation', 'Valid price is required');
       return;
     }
 
@@ -102,11 +102,11 @@ export default function EditMembershipPlanScreen() {
         isActive,
       });
 
-      Alert.alert('Success', 'Membership plan updated successfully', [
+      showAppAlert('Success', 'Membership plan updated successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to update plan');
+      showAppAlert('Error', err.message || 'Failed to update plan');
     }
   };
 

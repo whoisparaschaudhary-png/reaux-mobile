@@ -43,14 +43,15 @@ export const Badge: React.FC<BadgeProps> = ({
   variant = 'default',
   size = 'md',
 }) => {
-  const colorScheme = variantColors[variant];
+  const resolvedVariant = variant && variantColors[variant] ? variant : 'default';
+  const colorScheme = variantColors[resolvedVariant];
 
   const containerStyle: ViewStyle = {
-    backgroundColor: colorScheme.bg,
+    backgroundColor: colorScheme.bg ?? colors.border.light,
   };
 
   const textStyle: TextStyle = {
-    color: colorScheme.text,
+    color: colorScheme.text ?? colors.text.secondary,
   };
 
   return (

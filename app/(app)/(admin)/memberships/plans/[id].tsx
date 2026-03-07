@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../../../src/components/layout/SafeScreen';
@@ -10,6 +10,7 @@ import { Badge } from '../../../../../src/components/ui/Badge';
 import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
 import { useAuthStore } from '../../../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { formatCurrency, formatDate } from '../../../../../src/utils/formatters';
 import {
   colors,
@@ -47,7 +48,7 @@ export default function MembershipPlanDetailScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    showAppAlert(
       'Delete Plan',
       'Are you sure you want to delete this membership plan? This action cannot be undone.',
       [
@@ -58,11 +59,11 @@ export default function MembershipPlanDetailScreen() {
           onPress: async () => {
             try {
               await deletePlan(id);
-              Alert.alert('Success', 'Plan deleted successfully', [
+              showAppAlert('Success', 'Plan deleted successfully', [
                 { text: 'OK', onPress: () => router.back() },
               ]);
             } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to delete plan');
+              showAppAlert('Error', err.message || 'Failed to delete plan');
             }
           },
         },

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +16,7 @@ import { Input } from '../../../src/components/ui/Input';
 import { Button } from '../../../src/components/ui/Button';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { reelsApi } from '../../../src/api/endpoints/reels';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import {
   colors,
   fontFamily,
@@ -46,7 +46,7 @@ export default function NewReelScreen() {
   const pickVideo = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
+      showAppAlert(
         'Permission needed',
         'Please grant camera roll permissions to upload videos.',
       );
@@ -73,7 +73,7 @@ export default function NewReelScreen() {
   const pickThumbnail = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
+      showAppAlert(
         'Permission needed',
         'Please grant camera roll permissions to select a thumbnail.',
       );
@@ -94,7 +94,7 @@ export default function NewReelScreen() {
 
   const handleSubmit = useCallback(async () => {
     if (!video) {
-      Alert.alert('Missing video', 'Please select a video for your reel.');
+      showAppAlert('Missing video', 'Please select a video for your reel.');
       return;
     }
 
@@ -126,7 +126,7 @@ export default function NewReelScreen() {
       await reelsApi.create(formData);
       router.back();
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to upload reel.');
+      showAppAlert('Error', err.message || 'Failed to upload reel.');
     } finally {
       setIsSubmitting(false);
     }

@@ -5,8 +5,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   ScrollView,
-  Share,
   TouchableOpacity,
+  Linking,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -18,6 +19,7 @@ import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { reelsApi } from '../../../src/api/endpoints/reels';
 import { useReelStore } from '../../../src/stores/useReelStore';
 import { formatRelative, formatNumber } from '../../../src/utils/formatters';
+import { STORE_URLS } from '../../../src/utils/constants';
 import { colors, fontFamily, spacing } from '../../../src/theme';
 import type { Reel, User } from '../../../src/types/models';
 
@@ -61,12 +63,9 @@ export default function ReelDetailScreen() {
   }, [id, likeReel]);
 
   const handleShare = useCallback(() => {
-    if (!reel) return;
-    const message = reel.caption
-      ? `${reel.caption} — Check out this reel on REAUX Labs!`
-      : 'Check out this reel on REAUX Labs!';
-    Share.share({ message, title: 'REAUX Labs Reel' });
-  }, [reel]);
+    const storeUrl = Platform.OS === 'ios' ? STORE_URLS.ios : STORE_URLS.android;
+    Linking.openURL(storeUrl).catch(() => {});
+  }, []);
 
   if (isLoading) {
     return (

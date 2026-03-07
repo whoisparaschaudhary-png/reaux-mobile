@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,7 +18,7 @@ import { Button } from '../../../../src/components/ui/Button';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { useProductStore } from '../../../../src/stores/useProductStore';
-import { useUIStore } from '../../../../src/stores/useUIStore';
+import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { productsApi } from '../../../../src/api/endpoints/products';
 import { exportProductsListPDF } from '../../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
@@ -56,7 +55,7 @@ export default function ProductListScreen() {
           await productsApi.update(product._id, { isActive: newStatus });
           await fetchProducts();
         } catch {
-          Alert.alert('Error', `Failed to ${action} product.`);
+          showAppAlert('Error', `Failed to ${action} product.`);
         } finally {
           setTogglingIds((prev) => {
             const next = new Set(prev);
@@ -67,7 +66,7 @@ export default function ProductListScreen() {
       };
 
       if (!newStatus) {
-        Alert.alert(
+        showAppAlert(
           'Deactivate Product',
           `Are you sure you want to deactivate "${product.name}"? It will be hidden from the shop.`,
           [

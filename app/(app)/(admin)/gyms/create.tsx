@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Modal,
   FlatList,
 } from 'react-native';
@@ -18,6 +17,7 @@ import { Input } from '../../../../src/components/ui/Input';
 import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { gymsApi } from '../../../../src/api/endpoints/gyms';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { useAdminStore } from '../../../../src/stores/useAdminStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
@@ -76,7 +76,7 @@ export default function CreateGymScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Gym name is required');
+      showAppAlert('Validation', 'Gym name is required');
       return;
     }
 
@@ -149,27 +149,27 @@ export default function CreateGymScreen() {
       if (selectedAdmin && createdGymId) {
         try {
           await gymsApi.assignAdmin(createdGymId, selectedAdmin);
-          Alert.alert('Success', 'Gym created and admin assigned successfully', [
+          showAppAlert('Success', 'Gym created and admin assigned successfully', [
             { text: 'OK', onPress: () => router.back() },
           ]);
         } catch (assignError: any) {
           console.error('Error assigning admin:', assignError);
           const assignErrorMsg = assignError?.message || 'Failed to assign admin';
-          Alert.alert(
+          showAppAlert(
             'Partial Success',
             `Gym created successfully, but admin assignment failed: ${assignErrorMsg}`,
             [{ text: 'OK', onPress: () => router.back() }]
           );
         }
       } else {
-        Alert.alert('Success', 'Gym created successfully', [
+        showAppAlert('Success', 'Gym created successfully', [
           { text: 'OK', onPress: () => router.back() },
         ]);
       }
     } catch (error: any) {
       console.error('Error creating gym:', error);
       const errorMessage = error?.message || error?.toString() || 'Failed to create gym';
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
     }

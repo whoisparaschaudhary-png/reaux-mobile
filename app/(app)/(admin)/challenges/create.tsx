@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
@@ -14,6 +13,7 @@ import { Input } from '../../../../src/components/ui/Input';
 import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { useChallengeStore } from '../../../../src/stores/useChallengeStore';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
 import type { ChallengeType } from '../../../../src/types/models';
 
@@ -33,19 +33,19 @@ export default function CreateChallengeScreen() {
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      Alert.alert('Validation', 'Challenge title is required');
+      showAppAlert('Validation', 'Challenge title is required');
       return;
     }
     if (!target || isNaN(Number(target)) || Number(target) <= 0) {
-      Alert.alert('Validation', 'A valid target number is required');
+      showAppAlert('Validation', 'A valid target number is required');
       return;
     }
     if (!startDate.trim()) {
-      Alert.alert('Validation', 'Start date is required (YYYY-MM-DD)');
+      showAppAlert('Validation', 'Start date is required (YYYY-MM-DD)');
       return;
     }
     if (!endDate.trim()) {
-      Alert.alert('Validation', 'End date is required (YYYY-MM-DD)');
+      showAppAlert('Validation', 'End date is required (YYYY-MM-DD)');
       return;
     }
 
@@ -60,11 +60,11 @@ export default function CreateChallengeScreen() {
         endDate: endDate.trim(),
       });
 
-      Alert.alert('Success', 'Challenge created successfully', [
+      showAppAlert('Success', 'Challenge created successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to create challenge');
+      showAppAlert('Error', err.message || 'Failed to create challenge');
     } finally {
       setIsSubmitting(false);
     }

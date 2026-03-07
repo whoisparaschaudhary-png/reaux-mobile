@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   StyleSheet,
   RefreshControl,
 } from 'react-native';
@@ -19,7 +18,7 @@ import { Button } from '../../../../src/components/ui/Button';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { useOrderStore } from '../../../../src/stores/useOrderStore';
-import { useUIStore } from '../../../../src/stores/useUIStore';
+import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { formatCurrency, formatDate } from '../../../../src/utils/formatters';
 import { exportOrdersListPDF, exportSingleOrderPDF } from '../../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
@@ -80,7 +79,7 @@ export default function AdminOrdersScreen() {
   const handleStatusChange = useCallback(
     (order: Order, newStatus: OrderStatus) => {
       const statusLabel = STATUS_BADGE_MAP[newStatus].label;
-      Alert.alert(
+      showAppAlert(
         'Update Order Status',
         `Change status from "${STATUS_BADGE_MAP[order.status].label}" to "${statusLabel}" for order ...${order._id.slice(-6)}?`,
         [
@@ -92,7 +91,7 @@ export default function AdminOrdersScreen() {
                 await updateOrderStatus(order._id, newStatus);
                 setExpandedOrderId(null);
               } catch {
-                Alert.alert('Error', 'Failed to update order status. Please try again.');
+                showAppAlert('Error', 'Failed to update order status. Please try again.');
               }
             },
           },

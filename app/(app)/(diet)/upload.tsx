@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +16,7 @@ import { Button } from '../../../src/components/ui/Button';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDietStore } from '../../../src/stores/useDietStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
 import type { DietCategory } from '../../../src/types/models';
@@ -51,13 +51,13 @@ export default function UploadDietScreen() {
 
   const handleSubmit = useCallback(async () => {
     if (!title.trim()) {
-      Alert.alert('Validation', 'Please enter a plan title.');
+      showAppAlert('Validation', 'Please enter a plan title.');
       return;
     }
 
     const caloriesNum = calories.trim() ? Number(calories) : NaN;
     if (calories.trim() && (Number.isNaN(caloriesNum) || caloriesNum <= 0)) {
-      Alert.alert('Validation', 'Calories per day must be a number greater than 0.');
+      showAppAlert('Validation', 'Calories per day must be a number greater than 0.');
       return;
     }
 
@@ -106,7 +106,7 @@ export default function UploadDietScreen() {
           user ?? undefined
         );
       }
-      Alert.alert('Success', 'Diet plan created successfully!', [
+      showAppAlert('Success', 'Diet plan created successfully!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
@@ -119,7 +119,7 @@ export default function UploadDietScreen() {
           errorMessage = firstMessages[0];
         }
       }
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     }
   }, [title, category, description, calories, breakfast, lunch, snacks, dinner, image, createPlan]);
 

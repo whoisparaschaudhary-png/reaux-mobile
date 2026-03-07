@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
@@ -17,6 +16,7 @@ import { Input } from '../../../src/components/ui/Input';
 import { Button } from '../../../src/components/ui/Button';
 import { Card } from '../../../src/components/ui/Card';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { useNotificationStore } from '../../../src/stores/useNotificationStore';
 import { usersApi } from '../../../src/api/endpoints/users';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
@@ -89,9 +89,9 @@ export default function ProfileScreen() {
     try {
       await updateProfile({ name });
       setHasChanges(false);
-      Alert.alert('Success', 'Profile updated successfully');
+      showAppAlert('Success', 'Profile updated successfully');
     } catch {
-      Alert.alert('Error', 'Failed to update profile');
+      showAppAlert('Error', 'Failed to update profile');
     }
   };
 
@@ -100,15 +100,15 @@ export default function ProfileScreen() {
     if (result) {
       try {
         await uploadAvatarAction(result.uri, result.type, result.fileName);
-        Alert.alert('Success', 'Profile picture updated');
+        showAppAlert('Success', 'Profile picture updated');
       } catch {
-        Alert.alert('Error', 'Failed to upload profile picture');
+        showAppAlert('Error', 'Failed to upload profile picture');
       }
     }
   };
 
   const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
+    showAppAlert('Log Out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Log Out',

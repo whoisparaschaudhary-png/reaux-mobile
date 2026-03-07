@@ -7,7 +7,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +18,7 @@ import { Button } from '../../../src/components/ui/Button';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useFeedStore } from '../../../src/stores/useFeedStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
 import {
   colors,
@@ -56,7 +56,7 @@ export default function UploadPostScreen() {
 
   const handlePost = useCallback(async () => {
     if (!content.trim() && !image) {
-      Alert.alert('Missing content', 'Please add some text or an image to your post.');
+      showAppAlert('Missing content', 'Please add some text or an image to your post.');
       return;
     }
 
@@ -73,7 +73,7 @@ export default function UploadPostScreen() {
       );
       router.back();
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to create post.');
+      showAppAlert('Error', err.message || 'Failed to create post.');
     }
   }, [content, image, hashtags, selectedCategory, createPost, router, user]);
 

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../../../src/components/layout/SafeScreen';
@@ -10,6 +10,7 @@ import { Badge } from '../../../../../src/components/ui/Badge';
 import { Avatar } from '../../../../../src/components/ui/Avatar';
 import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
+import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { formatCurrency, formatDate } from '../../../../../src/utils/formatters';
 import {
   colors,
@@ -47,7 +48,7 @@ export default function MembershipDetailScreen() {
   }, [id]);
 
   const handleCancel = () => {
-    Alert.alert(
+    showAppAlert(
       'Cancel Membership',
       'Are you sure you want to cancel this membership? This action cannot be undone.',
       [
@@ -58,9 +59,9 @@ export default function MembershipDetailScreen() {
           onPress: async () => {
             try {
               await cancelMembership(id);
-              Alert.alert('Success', 'Membership cancelled successfully');
+              showAppAlert('Success', 'Membership cancelled successfully');
             } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to cancel membership');
+              showAppAlert('Error', err.message || 'Failed to cancel membership');
             }
           },
         },

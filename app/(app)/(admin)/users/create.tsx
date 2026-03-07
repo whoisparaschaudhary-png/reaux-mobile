@@ -112,7 +112,11 @@ export default function CreateUserScreen() {
       return;
     }
 
-    if (phone.trim() && !isValidIndianPhone(phone)) {
+    if (!phone.trim()) {
+      showToast('Phone number is required', 'error');
+      return;
+    }
+    if (!isValidIndianPhone(phone)) {
       showToast('Please enter a valid 10-digit Indian phone number', 'error');
       return;
     }
@@ -214,8 +218,8 @@ export default function CreateUserScreen() {
               <View style={styles.inputSpacing} />
 
               <Input
-                label="PHONE (OPTIONAL)"
-                placeholder="Enter phone number"
+                label="PHONE *"
+                placeholder="Enter phone number (10 digits)"
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"

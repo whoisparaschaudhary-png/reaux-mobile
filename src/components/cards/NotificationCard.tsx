@@ -43,7 +43,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
   const { _id, title, message, type, isRead, createdAt } = notification;
   const iconName = iconMap[type] || 'notifications-outline';
   const iconColor = iconColorMap[type] || colors.text.secondary;
-  const iconBg = iconBgMap[type] || colors.border.light;
+  const iconBg = iconBgMap[type] ?? colors.border.light;
 
   const handlePress = () => {
     if (!isRead && onMarkAsRead) {
@@ -58,7 +58,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
+      <View style={[styles.iconContainer, { backgroundColor: iconBg || colors.border.light }]}>
         <Ionicons name={iconName} size={20} color={iconColor} />
       </View>
 

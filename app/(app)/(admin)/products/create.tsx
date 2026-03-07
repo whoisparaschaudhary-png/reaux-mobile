@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
@@ -16,6 +15,7 @@ import { Input } from '../../../../src/components/ui/Input';
 import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { productsApi } from '../../../../src/api/endpoints/products';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
 import client from '../../../../src/api/client';
@@ -74,11 +74,11 @@ export default function CreateProductScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Product name is required');
+      showAppAlert('Validation', 'Product name is required');
       return;
     }
     if (!price || isNaN(Number(price))) {
-      Alert.alert('Validation', 'Valid price is required');
+      showAppAlert('Validation', 'Valid price is required');
       return;
     }
 
@@ -114,7 +114,7 @@ export default function CreateProductScreen() {
           headers: { 'Content-Type': 'multipart/form-data' },
           timeout: 60_000,
         });
-        Alert.alert('Success', 'Product created successfully', [
+        showAppAlert('Success', 'Product created successfully', [
           { text: 'OK', onPress: () => router.back() },
         ]);
         return;
@@ -130,13 +130,13 @@ export default function CreateProductScreen() {
         nutrition: buildNutrition(),
       } as any);
 
-      Alert.alert('Success', 'Product created successfully', [
+      showAppAlert('Success', 'Product created successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
       console.error('Error creating product:', error);
       const errorMessage = error?.message || error?.toString() || 'Failed to create product';
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
     }

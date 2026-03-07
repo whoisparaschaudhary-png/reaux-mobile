@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -17,6 +16,7 @@ import { Input } from '../../../../src/components/ui/Input';
 import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { productsApi } from '../../../../src/api/endpoints/products';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
 import client from '../../../../src/api/client';
@@ -107,7 +107,7 @@ export default function EditProductScreen() {
           setSugar(p.nutrition.sugar?.toString() || '');
         }
       } catch (err: any) {
-        Alert.alert('Error', err.message || 'Failed to load product');
+        showAppAlert('Error', err.message || 'Failed to load product');
         router.back();
       } finally {
         setIsLoading(false);
@@ -117,11 +117,11 @@ export default function EditProductScreen() {
 
   const handleSubmit = async () => {
     if (!id || !name.trim()) {
-      Alert.alert('Validation', 'Product name is required');
+      showAppAlert('Validation', 'Product name is required');
       return;
     }
     if (!price || isNaN(Number(price))) {
-      Alert.alert('Validation', 'Valid price is required');
+      showAppAlert('Validation', 'Valid price is required');
       return;
     }
 
@@ -169,13 +169,13 @@ export default function EditProductScreen() {
         } as any);
       }
 
-      Alert.alert('Success', 'Product updated successfully', [
+      showAppAlert('Success', 'Product updated successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
       console.error('Error updating product:', error);
       const errorMessage = error?.message || error?.toString() || 'Failed to update product';
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
     }

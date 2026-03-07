@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Alert,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -14,6 +13,7 @@ import { Header } from '../../../src/components/layout/Header';
 import { Button } from '../../../src/components/ui/Button';
 import { Input } from '../../../src/components/ui/Input';
 import { useCartStore } from '../../../src/stores/useCartStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing } from '../../../src/theme';
 
 export default function AddressScreen() {
@@ -59,7 +59,7 @@ export default function AddressScreen() {
       pincode: form.pincode.trim(),
       phone: form.phone.trim(),
     });
-    Alert.alert('Address Saved', 'Your shipping address has been saved.', [
+    showAppAlert('Address Saved', 'Your shipping address has been saved.', [
       { text: 'OK', onPress: () => router.back() },
     ]);
   }, [validate, setSelectedAddress, form.street, form.apartment, form.city, form.state, form.pincode, form.phone]);

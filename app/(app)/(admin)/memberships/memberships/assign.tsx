@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -19,6 +18,7 @@ import { Avatar } from '../../../../../src/components/ui/Avatar';
 import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
 import { usersApi } from '../../../../../src/api/endpoints/users';
+import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../../../src/utils/formatters';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
 import type { User, MembershipPlan, Gym } from '../../../../../src/types/models';
@@ -48,7 +48,7 @@ export default function AssignMembershipScreen() {
       const response = await usersApi.getUsers({ limit: 100 });
       setUsers(response.data || []);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to load users');
+      showAppAlert('Error', err.message || 'Failed to load users');
     } finally {
       setLoadingUsers(false);
     }
@@ -68,15 +68,15 @@ export default function AssignMembershipScreen() {
 
   const handleSubmit = async () => {
     if (!selectedUserId) {
-      Alert.alert('Validation', 'Please select a user');
+      showAppAlert('Validation', 'Please select a user');
       return;
     }
     if (!selectedPlanId) {
-      Alert.alert('Validation', 'Please select a membership plan');
+      showAppAlert('Validation', 'Please select a membership plan');
       return;
     }
     if (!startDate) {
-      Alert.alert('Validation', 'Please enter a start date');
+      showAppAlert('Validation', 'Please enter a start date');
       return;
     }
 
@@ -87,11 +87,11 @@ export default function AssignMembershipScreen() {
         startDate,
       });
 
-      Alert.alert('Success', 'Membership assigned successfully', [
+      showAppAlert('Success', 'Membership assigned successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to assign membership');
+      showAppAlert('Error', err.message || 'Failed to assign membership');
     }
   };
 

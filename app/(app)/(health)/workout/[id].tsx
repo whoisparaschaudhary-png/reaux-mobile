@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   ActivityIndicator,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +14,8 @@ import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../src/components/layout/Header';
 import { Badge } from '../../../../src/components/ui/Badge';
 import { useWorkoutStore } from '../../../../src/stores/useWorkoutStore';
+import { useUIStore } from '../../../../src/stores/useUIStore';
+import { exportWorkoutPlanPDF } from '../../../../src/utils/pdfExport';
 import {
   colors,
   fontFamily,
@@ -31,12 +34,27 @@ const DIFFICULTY_CONFIG: Record<WorkoutDifficulty, { variant: 'success' | 'warni
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const showToast = useUIStore((s) => s.showToast);
   const { selectedWorkout, isLoading, fetchWorkoutById, clearSelected } = useWorkoutStore();
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     if (id) fetchWorkoutById(id);
     return () => clearSelected();
   }, [id]);
+
+  const handleExportPDF = useCallback(async () => {
+    if (!selectedWorkout) return;
+    setPdfLoading(true);
+    try {
+      await exportWorkoutPlanPDF(selectedWorkout);
+      showToast('PDF exported successfully', 'success');
+    } catch {
+      showToast('Failed to export PDF', 'error');
+    } finally {
+      setPdfLoading(false);
+    }
+  }, [selectedWorkout, showToast]);
 
   if (isLoading || !selectedWorkout) {
     return (
@@ -54,7 +72,25 @@ export default function WorkoutDetailScreen() {
 
   return (
     <SafeScreen>
-      <Header title="Workout" showBack onBack={() => router.back()} />
+      <Header
+        title="Workout"
+        showBack
+        onBack={() => router.back()}
+        rightAction={
+          <TouchableOpacity
+            onPress={handleExportPDF}
+            disabled={pdfLoading}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ minWidth: 40, alignItems: 'flex-end' }}
+          >
+            {pdfLoading ? (
+              <ActivityIndicator size="small" color={colors.primary.yellow} />
+            ) : (
+              <Ionicons name="document-attach-outline" size={24} color={colors.text.primary} />
+            )}
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         style={styles.scroll}

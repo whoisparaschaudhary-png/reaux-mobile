@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, LogBox } from 'react-native';
 import { Slot, useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '../src/stores/useAuthStore';
 import { Toast } from '../src/components/ui/Toast';
+import { AppAlert } from '../src/components/ui/AppAlert';
 import { useNotifications } from '../src/hooks/useNotifications';
 
 // Keep splash visible while we load fonts and restore auth
@@ -21,6 +22,22 @@ export default function RootLayout() {
 
   // Initialize push notifications
   useNotifications();
+
+  // Suppress "Unable to activate keep awake" from expo-keep-awake (used by expo-video)
+  useEffect(() => {
+    LogBox.ignoreLogs(['Unable to activate keep awake', 'Error: Unable to activate keep awake']);
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const msg = event?.reason?.message ?? String(event?.reason ?? '');
+      if (typeof msg === 'string' && msg.includes('Unable to activate keep awake')) {
+        event.preventDefault?.();
+        event.stopPropagation?.();
+      }
+    };
+    (global as any).onunhandledrejection = onUnhandledRejection;
+    return () => {
+      delete (global as any).onunhandledrejection;
+    };
+  }, []);
 
   const [fontsLoaded, fontError] = useFonts({
     'SplineSans-Regular': require('../assets/fonts/SplineSans-Regular.ttf'),
@@ -83,6 +100,7 @@ export default function RootLayout() {
         <StatusBar style="auto" />
         <Slot />
         <Toast />
+        <AppAlert />
       </View>
     </SafeAreaProvider>
   );

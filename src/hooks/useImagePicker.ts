@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { Alert } from 'react-native';
+import { showAppAlert } from '../stores/useUIStore';
 
 interface PickedImage {
   uri: string;
@@ -15,7 +15,7 @@ export function useImagePicker() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please grant camera roll permissions to upload images.');
+      showAppAlert('Permission needed', 'Please grant camera roll permissions to upload images.');
       return null;
     }
 

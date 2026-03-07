@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -18,6 +17,7 @@ import { Button } from '../../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
 import { gymsApi } from '../../../../../src/api/endpoints/gyms';
+import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
 import type { Gym } from '../../../../../src/types/models';
 
@@ -53,7 +53,7 @@ export default function CreateMembershipPlanScreen() {
         setSelectedGymId(response.data[0]._id);
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to load gyms');
+      showAppAlert('Error', err.message || 'Failed to load gyms');
     } finally {
       setLoadingGyms(false);
     }
@@ -75,15 +75,15 @@ export default function CreateMembershipPlanScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Plan name is required');
+      showAppAlert('Validation', 'Plan name is required');
       return;
     }
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      Alert.alert('Validation', 'Valid price is required');
+      showAppAlert('Validation', 'Valid price is required');
       return;
     }
     if (!selectedGymId) {
-      Alert.alert('Validation', 'Please select a gym');
+      showAppAlert('Validation', 'Please select a gym');
       return;
     }
 
@@ -99,11 +99,11 @@ export default function CreateMembershipPlanScreen() {
         features: filteredFeatures.length > 0 ? filteredFeatures : undefined,
       });
 
-      Alert.alert('Success', 'Membership plan created successfully', [
+      showAppAlert('Success', 'Membership plan created successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to create plan');
+      showAppAlert('Error', err.message || 'Failed to create plan');
     }
   };
 

@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Alert,
   StyleSheet,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -15,6 +14,7 @@ import { Button } from '../../../src/components/ui/Button';
 import { Input } from '../../../src/components/ui/Input';
 import { useCartStore } from '../../../src/stores/useCartStore';
 import { useOrderStore } from '../../../src/stores/useOrderStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
 import type { Product } from '../../../src/types/models';
@@ -50,7 +50,7 @@ export default function CheckoutScreen() {
 
   const handlePlaceOrder = useCallback(async () => {
     if (!address.street || !address.city || !address.state || !address.pincode || !address.phone) {
-      Alert.alert('Missing Address', 'Please fill in all address fields to continue.');
+      showAppAlert('Missing Address', 'Please fill in all address fields to continue.');
       return;
     }
 
@@ -60,12 +60,12 @@ export default function CheckoutScreen() {
         promoCode: promoCode || undefined,
       });
       await fetchCart();
-      Alert.alert('Order Placed!', `Your order #${order._id?.slice(-8).toUpperCase() ?? ''} has been placed successfully.`, [
+      showAppAlert('Order Placed!', `Your order #${order._id?.slice(-8).toUpperCase() ?? ''} has been placed successfully.`, [
         { text: 'View Orders', onPress: () => router.replace('/(app)/(shop)/orders') },
         { text: 'OK', onPress: () => router.replace('/(app)/(shop)/') },
       ]);
     } catch (err: any) {
-      Alert.alert('Order Failed', err.message || 'Something went wrong. Please try again.');
+      showAppAlert('Order Failed', err.message || 'Something went wrong. Please try again.');
     }
   }, [address, promoCode]);
 

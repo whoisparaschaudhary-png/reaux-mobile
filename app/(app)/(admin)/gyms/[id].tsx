@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Modal,
   FlatList,
   ActivityIndicator,
@@ -19,6 +18,7 @@ import { Input } from '../../../../src/components/ui/Input';
 import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { gymsApi } from '../../../../src/api/endpoints/gyms';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { useAdminStore } from '../../../../src/stores/useAdminStore';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
@@ -94,7 +94,7 @@ export default function EditGymScreen() {
         setSelectedAdmin(gymData.createdBy._id);
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to load gym');
+      showAppAlert('Error', err.message || 'Failed to load gym');
       router.back();
     } finally {
       setIsLoadingGym(false);
@@ -145,12 +145,12 @@ export default function EditGymScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Gym name is required');
+      showAppAlert('Validation', 'Gym name is required');
       return;
     }
 
     if (!id) {
-      Alert.alert('Error', 'Gym ID is missing');
+      showAppAlert('Error', 'Gym ID is missing');
       return;
     }
 
@@ -245,7 +245,7 @@ export default function EditGymScreen() {
           } catch (assignError: any) {
             console.error('Error assigning admin:', assignError);
             const assignErrorMsg = assignError?.message || 'Failed to assign admin';
-            Alert.alert(
+            showAppAlert(
               'Partial Success',
               `Gym updated successfully, but admin assignment failed: ${assignErrorMsg}`,
               [{ text: 'OK', onPress: () => router.back() }]
@@ -255,13 +255,13 @@ export default function EditGymScreen() {
         }
       }
 
-      Alert.alert('Success', 'Gym updated successfully', [
+      showAppAlert('Success', 'Gym updated successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
       console.error('Error updating gym:', error);
       const errorMessage = error?.message || error?.toString() || 'Failed to update gym';
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
     }

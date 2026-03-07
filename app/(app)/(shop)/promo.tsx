@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +11,7 @@ import { Header } from '../../../src/components/layout/Header';
 import { Button } from '../../../src/components/ui/Button';
 import { Input } from '../../../src/components/ui/Input';
 import { promosApi } from '../../../src/api/endpoints/promos';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { colors, fontFamily, borderRadius, spacing } from '../../../src/theme';
 import type { PromoCode } from '../../../src/types/models';
 
@@ -43,7 +43,7 @@ export default function PromoScreen() {
 
   const handleUseCode = useCallback(() => {
     if (result) {
-      Alert.alert(
+      showAppAlert(
         'Promo Applied',
         `Code "${result.code}" has been applied. You'll see the discount at checkout.`,
         [{ text: 'OK', onPress: () => router.back() }],

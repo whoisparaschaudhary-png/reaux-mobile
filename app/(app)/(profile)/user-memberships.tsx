@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { SkeletonLoader } from '../../../src/components/ui/SkeletonLoader';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../src/stores/useMembershipStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { formatCurrency, formatDate } from '../../../src/utils/formatters';
 import { Badge } from '../../../src/components/ui/Badge';
 import {
@@ -70,7 +71,7 @@ function UserMembershipsContent() {
   };
 
   const handleCancelMembership = (membership: Membership) => {
-    Alert.alert(
+    showAppAlert(
       'Cancel Membership',
       'Are you sure you want to cancel this membership?',
       [
@@ -81,9 +82,9 @@ function UserMembershipsContent() {
           onPress: async () => {
             try {
               await cancelMembership(membership._id);
-              Alert.alert('Success', 'Membership cancelled successfully');
+              showAppAlert('Success', 'Membership cancelled successfully');
             } catch {
-              Alert.alert('Error', 'Failed to cancel membership');
+              showAppAlert('Error', 'Failed to cancel membership');
             }
           },
         },

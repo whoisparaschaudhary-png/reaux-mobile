@@ -543,10 +543,10 @@ export default function HealthScreen() {
           <Text style={styles.historyButtonText}>See History</Text>
         </TouchableOpacity>
 
-        {/* Workouts Section */}
+        {/* Workouts Section - opens Feed with Workouts tab */}
         <TouchableOpacity
           style={[styles.workoutCard, shadows.card]}
-          onPress={() => router.push('/(app)/(health)/workouts' as any)}
+          onPress={() => router.push('/(app)/(feed)?tab=workouts' as any)}
           activeOpacity={0.7}
         >
           <View style={styles.workoutCardContent}>

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +19,7 @@ import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { usersApi } from '../../../../src/api/endpoints/users';
 import { gymsApi } from '../../../../src/api/endpoints/gyms';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
-import { useUIStore } from '../../../../src/stores/useUIStore';
+import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, typography } from '../../../../src/theme';
 import type { User, Role, Gym } from '../../../../src/types/models';
 
@@ -149,7 +148,7 @@ export default function UserDetailScreen() {
     if (!user || !id) return;
     const newStatus = user.status === 'active' ? 'disabled' : 'active';
     const action = newStatus === 'disabled' ? 'Deactivate' : 'Activate';
-    Alert.alert(
+    showAppAlert(
       `${action} User`,
       `Are you sure you want to ${action.toLowerCase()} ${user.name}?`,
       [

@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -17,6 +16,7 @@ import { Header } from '../../../src/components/layout/Header';
 import { Input } from '../../../src/components/ui/Input';
 import { Button } from '../../../src/components/ui/Button';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import {
   colors,
   typography,
@@ -61,7 +61,7 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Name is required');
+      showAppAlert('Validation', 'Name is required');
       return;
     }
 
@@ -77,11 +77,11 @@ export default function EditProfileScreen() {
 
     try {
       await updateProfile(data);
-      Alert.alert('Success', 'Profile updated successfully', [
+      showAppAlert('Success', 'Profile updated successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch {
-      Alert.alert('Error', 'Failed to update profile');
+      showAppAlert('Error', 'Failed to update profile');
     }
   };
 
