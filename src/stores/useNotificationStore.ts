@@ -23,6 +23,7 @@ interface NotificationState {
   markAllAsRead: () => Promise<void>;
   getUnreadCount: () => Promise<void>;
   clearError: () => void;
+  reset: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
@@ -116,19 +117,26 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           notifications: response.data,
           pagination: response.pagination,
         });
-        // Calculate unread count from fetched notifications
         const unreadCount = response.data.filter((n) => !n.isRead).length;
         set({ unreadCount });
-      } catch (err: any) {
-        // On error, just set unread count to 0
+      } catch {
+        // On error (e.g. 401 when logged out), just set unread count to 0
         set({ unreadCount: 0 });
       }
     } else {
-      // Calculate unread count from existing notifications
       const unreadCount = state.notifications.filter((n) => !n.isRead).length;
       set({ unreadCount });
     }
   },
 
   clearError: () => set({ error: null }),
+
+  reset: () => set({
+    notifications: [],
+    unreadCount: 0,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    pagination: { page: 1, limit: 20, total: 0, pages: 0 },
+  }),
 }));

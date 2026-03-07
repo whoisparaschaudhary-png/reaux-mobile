@@ -136,32 +136,42 @@ export default function BmiHistoryScreen() {
             <View style={styles.currentSection}>
               <Text style={styles.sectionHeading}>BMI Over Time</Text>
               {currentBmi && (
-                <View style={styles.currentRow}>
-                  <Text style={styles.currentBmi}>{currentBmi.bmi?.toFixed(1)}</Text>
-                  {trend && (
-                    <View
-                      style={[
-                        styles.trendBadge,
-                        { backgroundColor: trend.isUp ? '#fee2e2' : '#dcfce7' },
-                      ]}
-                    >
-                      <Ionicons
-                        name={trend.isUp ? 'trending-up' : 'trending-down'}
-                        size={14}
-                        color={trend.isUp ? colors.status.error : colors.status.success}
-                      />
-                      <Text
+                <>
+                  <View style={styles.currentRow}>
+                    <Text style={styles.currentBmi}>{currentBmi.bmi?.toFixed(1)}</Text>
+                    {trend && (
+                      <View
                         style={[
-                          styles.trendText,
-                          { color: trend.isUp ? colors.status.error : colors.status.success },
+                          styles.trendBadge,
+                          { backgroundColor: trend.isUp ? '#fee2e2' : '#dcfce7' },
                         ]}
                       >
-                        {trend.isUp ? '+' : ''}
-                        {trend.value?.toFixed(1)}%
+                        <Ionicons
+                          name={trend.isUp ? 'trending-up' : 'trending-down'}
+                          size={14}
+                          color={trend.isUp ? colors.status.error : colors.status.success}
+                        />
+                        <Text
+                          style={[
+                            styles.trendText,
+                            { color: trend.isUp ? colors.status.error : colors.status.success },
+                          ]}
+                        >
+                          {trend.isUp ? '+' : ''}
+                          {trend.value?.toFixed(1)}%
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  {currentBmi.bmr != null && (
+                    <View style={styles.bmrRow}>
+                      <Ionicons name="flame-outline" size={16} color={colors.status.warning} />
+                      <Text style={styles.bmrText}>
+                        BMR: <Text style={styles.bmrValue}>{Math.round(currentBmi.bmr)} cal/day</Text>
                       </Text>
                     </View>
                   )}
-                </View>
+                </>
               )}
             </View>
 
@@ -300,6 +310,21 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.medium,
     fontSize: 12,
     lineHeight: 16,
+  },
+  bmrRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  bmrText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: colors.text.secondary,
+  },
+  bmrValue: {
+    fontFamily: fontFamily.bold,
+    color: colors.text.primary,
   },
   chartCard: {
     backgroundColor: colors.background.card,

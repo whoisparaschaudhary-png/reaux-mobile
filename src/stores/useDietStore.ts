@@ -3,6 +3,15 @@ import { dietsApi } from '../api/endpoints/diets';
 import type { DietPlan, DietCategory } from '../types/models';
 import type { CreateDietRequest } from '../types/api';
 
+// Backend returns isLiked/isFollowed directly when Bearer token is present
+const computePlanFlags = (plan: DietPlan): DietPlan => ({
+  ...plan,
+  isLiked: plan.isLiked ?? false,
+  isFollowed: plan.isFollowed ?? false,
+  likesCount: plan.likesCount ?? 0,
+  followersCount: plan.followersCount ?? 0,
+});
+
 interface DietPagination {
   page: number;
   limit: number;
@@ -46,12 +55,7 @@ export const useDietStore = create<DietState>((set, get) => ({
       if (category) params.category = category;
       const response = await dietsApi.list(params);
 
-      // Ensure count fields exist (initialize from arrays if not provided by backend)
-      const plansWithCounts = response.data.map(plan => ({
-        ...plan,
-        likesCount: plan.likesCount ?? plan.likes?.length ?? 0,
-        followersCount: plan.followersCount ?? plan.followers?.length ?? 0,
-      }));
+      const plansWithCounts = response.data.map(computePlanFlags);
 
       set({
         plans: page === 1 ? plansWithCounts : [...get().plans, ...plansWithCounts],
@@ -71,12 +75,7 @@ export const useDietStore = create<DietState>((set, get) => ({
     try {
       const response = await dietsApi.getById(id);
 
-      // Ensure count fields exist (initialize from arrays if not provided by backend)
-      const planWithCounts = {
-        ...response.data,
-        likesCount: response.data.likesCount ?? response.data.likes?.length ?? 0,
-        followersCount: response.data.followersCount ?? response.data.followers?.length ?? 0,
-      };
+      const planWithCounts = computePlanFlags(response.data);
 
       set({ selectedPlan: planWithCounts, isLoading: false });
     } catch (err: any) {
@@ -108,15 +107,14 @@ export const useDietStore = create<DietState>((set, get) => ({
   followPlan: async (id) => {
     const { plans, selectedPlan } = get();
 
-    // Optimistic update: toggle isFollowed and followersCount
+    // Optimistic update
     const optimisticUpdate = (plan: DietPlan) => {
       if (plan._id !== id) return plan;
-      const currentCount = plan.followersCount ?? 0;
       const isCurrentlyFollowed = plan.isFollowed ?? false;
       return {
         ...plan,
         isFollowed: !isCurrentlyFollowed,
-        followersCount: isCurrentlyFollowed ? currentCount - 1 : currentCount + 1,
+        followersCount: isCurrentlyFollowed ? (plan.followersCount ?? 1) - 1 : (plan.followersCount ?? 0) + 1,
       };
     };
 
@@ -129,27 +127,21 @@ export const useDietStore = create<DietState>((set, get) => ({
       const response = await dietsApi.follow(id);
       const serverPlan = response.data;
 
-      // Merge server response, preserving counts if server doesn't provide them
       set((state) => ({
-        plans: state.plans.map((p) => {
-          if (p._id !== id) return p;
-          return {
+        plans: state.plans.map((p) =>
+          p._id !== id ? p : {
             ...p,
-            ...serverPlan,
-            // Only update counts if server provides them, otherwise keep existing
-            likesCount: serverPlan.likesCount ?? serverPlan.likes?.length ?? p.likesCount,
-            followersCount: serverPlan.followersCount ?? serverPlan.followers?.length ?? p.followersCount,
-          };
-        }),
+            isFollowed: serverPlan.isFollowed ?? p.isFollowed,
+            followersCount: serverPlan.followersCount ?? p.followersCount,
+          }
+        ),
         selectedPlan: state.selectedPlan?._id === id ? {
           ...state.selectedPlan,
-          ...serverPlan,
-          likesCount: serverPlan.likesCount ?? serverPlan.likes?.length ?? state.selectedPlan.likesCount,
-          followersCount: serverPlan.followersCount ?? serverPlan.followers?.length ?? state.selectedPlan.followersCount,
+          isFollowed: serverPlan.isFollowed ?? state.selectedPlan.isFollowed,
+          followersCount: serverPlan.followersCount ?? state.selectedPlan.followersCount,
         } : state.selectedPlan,
       }));
     } catch (err: any) {
-      // Revert optimistic update on failure
       set({ plans, selectedPlan, error: err.message || 'Failed to follow plan' });
       throw err;
     }
@@ -158,15 +150,14 @@ export const useDietStore = create<DietState>((set, get) => ({
   likePlan: async (id) => {
     const { plans, selectedPlan } = get();
 
-    // Optimistic update: toggle isLiked and likesCount
+    // Optimistic update
     const optimisticUpdate = (plan: DietPlan) => {
       if (plan._id !== id) return plan;
-      const currentCount = plan.likesCount ?? 0;
       const isCurrentlyLiked = plan.isLiked ?? false;
       return {
         ...plan,
         isLiked: !isCurrentlyLiked,
-        likesCount: isCurrentlyLiked ? currentCount - 1 : currentCount + 1,
+        likesCount: isCurrentlyLiked ? (plan.likesCount ?? 1) - 1 : (plan.likesCount ?? 0) + 1,
       };
     };
 
@@ -179,27 +170,21 @@ export const useDietStore = create<DietState>((set, get) => ({
       const response = await dietsApi.like(id);
       const serverPlan = response.data;
 
-      // Merge server response, preserving counts if server doesn't provide them
       set((state) => ({
-        plans: state.plans.map((p) => {
-          if (p._id !== id) return p;
-          return {
+        plans: state.plans.map((p) =>
+          p._id !== id ? p : {
             ...p,
-            ...serverPlan,
-            // Only update counts if server provides them, otherwise keep existing
-            likesCount: serverPlan.likesCount ?? serverPlan.likes?.length ?? p.likesCount,
-            followersCount: serverPlan.followersCount ?? serverPlan.followers?.length ?? p.followersCount,
-          };
-        }),
+            isLiked: serverPlan.isLiked ?? p.isLiked,
+            likesCount: serverPlan.likesCount ?? p.likesCount,
+          }
+        ),
         selectedPlan: state.selectedPlan?._id === id ? {
           ...state.selectedPlan,
-          ...serverPlan,
-          likesCount: serverPlan.likesCount ?? serverPlan.likes?.length ?? state.selectedPlan.likesCount,
-          followersCount: serverPlan.followersCount ?? serverPlan.followers?.length ?? state.selectedPlan.followersCount,
+          isLiked: serverPlan.isLiked ?? state.selectedPlan.isLiked,
+          likesCount: serverPlan.likesCount ?? state.selectedPlan.likesCount,
         } : state.selectedPlan,
       }));
     } catch (err: any) {
-      // Revert optimistic update on failure
       set({ plans, selectedPlan, error: err.message || 'Failed to like plan' });
       throw err;
     }

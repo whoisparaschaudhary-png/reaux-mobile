@@ -84,7 +84,11 @@ export const useFeedStore = create<FeedState>((set, get) => ({
       const response = await postsApi.like(id);
       const serverPost = response.data;
       set((state) => ({
-        posts: state.posts.map((p) => (p._id === id ? { ...p, ...serverPost } : p)),
+        posts: state.posts.map((p) =>
+          p._id === id
+            ? { ...p, isLiked: serverPost.isLiked, likesCount: serverPost.likesCount }
+            : p,
+        ),
       }));
     } catch {
       // Revert optimistic update on failure

@@ -8,7 +8,7 @@ interface BmiState {
   isLoading: boolean;
   error: string | null;
 
-  recordBmi: (height: number, weight: number) => Promise<BmiRecord>;
+  recordBmi: (height: number, weight: number, age?: number, gender?: string) => Promise<BmiRecord>;
   fetchHistory: () => Promise<void>;
   getLatest: () => Promise<void>;
   clearError: () => void;
@@ -20,10 +20,10 @@ export const useBmiStore = create<BmiState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  recordBmi: async (height, weight) => {
+  recordBmi: async (height, weight, age, gender) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await bmiApi.record({ height, weight });
+      const response = await bmiApi.record({ height, weight, age, gender: gender as any });
       const newRecord = response.data;
       set((state) => ({
         records: [newRecord, ...state.records],

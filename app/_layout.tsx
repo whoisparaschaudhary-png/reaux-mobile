@@ -66,15 +66,17 @@ export default function RootLayout() {
     };
   }, [router]);
 
+  // Hide splash as soon as fonts are ready — don't wait for network (restoreSession)
+  // The app handles the loading state internally via isRestoring
   useEffect(() => {
-    if ((fontsLoaded || fontError) && !isRestoring) {
+    if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError, isRestoring]);
+  }, [fontsLoaded, fontError]);
 
-  // Wait for fonts before rendering
+  // While fonts are loading, keep native splash visible (return dark bg instead of null to avoid black flash)
   if (!fontsLoaded && !fontError) {
-    return null;
+    return <View style={styles.splash} />;
   }
 
   return (
@@ -91,5 +93,9 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  splash: {
+    flex: 1,
+    backgroundColor: '#1c1c0d', // matches splash backgroundColor in app.json
   },
 });

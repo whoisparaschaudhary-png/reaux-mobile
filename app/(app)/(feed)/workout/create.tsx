@@ -7,9 +7,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Alert,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../src/components/layout/Header';
@@ -49,17 +48,7 @@ const emptyExercise = (): Exercise => ({
 
 export default function CreateWorkoutScreen() {
   const router = useRouter();
-  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const showToast = useUIStore((s) => s.showToast);
-
-  const handleBack = () => {
-    if (returnTo === 'feed') {
-      router.dismissAll();
-      router.navigate('/(app)/(feed)' as any);
-    } else {
-      router.back();
-    }
-  };
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -123,7 +112,7 @@ export default function CreateWorkoutScreen() {
         exercises: validExercises,
       });
       showToast('Workout created successfully', 'success');
-      handleBack();
+      router.back();
     } catch (error: any) {
       showToast(error.message || 'Failed to create workout', 'error');
     } finally {
@@ -134,7 +123,7 @@ export default function CreateWorkoutScreen() {
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
       <SafeScreen>
-        <Header title="Create Workout" showBack onBack={handleBack} />
+        <Header title="Create Workout" showBack onBack={() => router.back()} />
 
         <KeyboardAvoidingView
           style={styles.flex}

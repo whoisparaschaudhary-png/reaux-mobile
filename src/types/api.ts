@@ -25,6 +25,8 @@ export interface UpdateProfileRequest {
 export interface RecordBmiRequest {
   height: number;
   weight: number;
+  age?: number;
+  gender?: Gender;
 }
 
 export interface CreatePostRequest {

@@ -14,6 +14,7 @@ import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
 import { useBmiStore } from '../../../src/stores/useBmiStore';
+import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
 import type { BmiCategory, BmiRecord } from '../../../src/types/models';
 
@@ -57,6 +58,12 @@ function calculateBmiLocal(height: number, weight: number): { bmi: number; categ
   else if (bmi < 30) category = 'overweight';
   else category = 'obese';
   return { bmi, category };
+}
+
+// Mifflin-St Jeor formula
+function calculateBmrLocal(height: number, weight: number, age: number, gender: string): number {
+  const base = 10 * weight + 6.25 * height - 5 * age;
+  return gender === 'female' ? base - 161 : base + 5;
 }
 
 // Custom slider component using PanResponder (avoids external dependency)
@@ -151,9 +158,29 @@ const sliderStyles = StyleSheet.create({
   },
 });
 
+type Gender = 'male' | 'female';
+
+function getAgeFromDob(dob?: string): number | null {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  if (isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age > 0 ? age : null;
+}
+
 export default function HealthScreen() {
-  const [height, setHeight] = useState(170);
-  const [weight, setWeight] = useState(70);
+  const user = useAuthStore((s) => s.user);
+
+  const profileAge = getAgeFromDob(user?.dateOfBirth);
+  const profileGender = (user?.gender === 'male' || user?.gender === 'female') ? user.gender as Gender : null;
+
+  const [height, setHeight] = useState(user?.height ?? 170);
+  const [weight, setWeight] = useState(user?.weight ?? 70);
+  const [age, setAge] = useState<number>(profileAge ?? 25);
+  const [gender, setGender] = useState<Gender>(profileGender ?? 'male');
   const [result, setResult] = useState<{ bmi: number; category: BmiCategory; bmr?: number; message?: string } | null>(null);
 
   const { recordBmi, getLatest, latestRecord, isLoading } = useBmiStore();
@@ -163,23 +190,24 @@ export default function HealthScreen() {
   }, []);
 
   const handleCalculate = useCallback(async () => {
-    // Show local result immediately
+    // Show local result immediately (with local BMR as fallback)
     const localResult = calculateBmiLocal(height, weight);
-    setResult(localResult);
+    const localBmr = calculateBmrLocal(height, weight, age, gender);
+    setResult({ ...localResult, bmr: localBmr });
 
     try {
-      const apiRecord = await recordBmi(height, weight);
-      // Update with API response (includes BMR, message, etc.)
+      const apiRecord = await recordBmi(height, weight, age, gender);
+      // Update with API response (overrides local with server values)
       setResult({
         bmi: apiRecord.bmi,
         category: apiRecord.category,
-        bmr: apiRecord.bmr,
+        bmr: apiRecord.bmr ?? localBmr,
         message: apiRecord.message,
       });
     } catch {
-      // Still show local result even if API fails
+      // Local result with local BMR already shown — nothing more to do
     }
-  }, [height, weight, recordBmi]);
+  }, [height, weight, age, gender, recordBmi]);
 
   const handleSeeHistory = useCallback(() => {
     router.push('/(app)/(health)/history' as any);
@@ -249,6 +277,41 @@ export default function HealthScreen() {
           </View>
         </View>
 
+        {/* Gender selector */}
+        <View style={styles.genderSection}>
+          <Text style={styles.sliderLabel}>Gender</Text>
+          <View style={styles.genderRow}>
+            <TouchableOpacity
+              style={[styles.genderOption, gender === 'male' && styles.genderOptionActive]}
+              onPress={() => setGender('male')}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="male"
+                size={20}
+                color={gender === 'male' ? colors.text.onPrimary : colors.text.secondary}
+              />
+              <Text style={[styles.genderText, gender === 'male' && styles.genderTextActive]}>
+                Male
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.genderOption, gender === 'female' && styles.genderOptionActive]}
+              onPress={() => setGender('female')}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="female"
+                size={20}
+                color={gender === 'female' ? colors.text.onPrimary : colors.text.secondary}
+              />
+              <Text style={[styles.genderText, gender === 'female' && styles.genderTextActive]}>
+                Female
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Calculate button */}
         <Button
           title="CALCULATE BMI"
@@ -262,43 +325,66 @@ export default function HealthScreen() {
         {/* Result card */}
         {result && bmiConfig && (
           <View style={[styles.resultCard, shadows.card]}>
-            <Text style={styles.resultLabel}>YOUR RESULT</Text>
-
-            <Text style={[styles.resultBmi, { color: bmiConfig.color }]}>
-              {result.bmi.toFixed(1)}
-            </Text>
-
-            <Badge text={bmiConfig.label} variant={bmiConfig.variant} size="md" />
-
-            {/* Color bar */}
-            <View style={styles.colorBar}>
-              <View style={[styles.colorSegment, { backgroundColor: colors.status.info, flex: 1 }]} />
-              <View style={[styles.colorSegment, { backgroundColor: colors.status.success, flex: 2 }]} />
-              <View style={[styles.colorSegment, { backgroundColor: colors.status.warning, flex: 1.5 }]} />
-              <View style={[styles.colorSegment, { backgroundColor: colors.status.error, flex: 2 }]} />
-            </View>
-
-            {/* Indicator position */}
-            <View style={styles.indicatorContainer}>
-              <View style={[styles.barIndicator, { left: `${getBarPosition(result.bmi)}%` }]}>
-                <View style={styles.barIndicatorLine} />
-                <View style={styles.barIndicatorDot} />
+            {/* Tinted header */}
+            <View style={[styles.resultHeader, { backgroundColor: `${bmiConfig.color}15` }]}>
+              <Text style={styles.resultLabel}>YOUR BMI</Text>
+              <Text style={[styles.resultBmi, { color: bmiConfig.color }]}>
+                {result.bmi.toFixed(1)}
+              </Text>
+              <View style={[styles.categoryPill, { backgroundColor: `${bmiConfig.color}20`, borderColor: `${bmiConfig.color}40` }]}>
+                <View style={[styles.categoryDot, { backgroundColor: bmiConfig.color }]} />
+                <Text style={[styles.categoryText, { color: bmiConfig.color }]}>{bmiConfig.label}</Text>
               </View>
             </View>
 
-            {/* BMR */}
-            {result.bmr && (
-              <View style={styles.bmrRow}>
-                <Ionicons name="flame-outline" size={18} color={colors.status.warning} />
-                <Text style={styles.bmrText}>
-                  BMR: <Text style={styles.bmrValue}>{Math.round(result.bmr)} cal/day</Text>
-                </Text>
+            <View style={styles.resultBody}>
+              {/* Stats row */}
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{height}</Text>
+                  <Text style={styles.statLabel}>Height (cm)</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{weight}</Text>
+                  <Text style={styles.statLabel}>Weight (kg)</Text>
+                </View>
               </View>
-            )}
 
-            <Text style={styles.resultMessage}>
-              {result.message || bmiConfig.message}
-            </Text>
+              {/* Color bar */}
+              <View style={styles.colorBarSection}>
+                <View style={styles.colorBar}>
+                  <View style={[styles.colorSegment, { backgroundColor: colors.status.info, flex: 1 }]} />
+                  <View style={[styles.colorSegment, { backgroundColor: colors.status.success, flex: 2 }]} />
+                  <View style={[styles.colorSegment, { backgroundColor: colors.status.warning, flex: 1.5 }]} />
+                  <View style={[styles.colorSegment, { backgroundColor: colors.status.error, flex: 2 }]} />
+                </View>
+                <View style={styles.indicatorContainer}>
+                  <View style={[styles.barIndicator, { left: `${getBarPosition(result.bmi)}%` }]}>
+                    <View style={[styles.barIndicatorPin, { borderTopColor: bmiConfig.color }]} />
+                  </View>
+                </View>
+                <View style={styles.barLabels}>
+                  <Text style={styles.barLabel}>Under</Text>
+                  <Text style={styles.barLabel}>Normal</Text>
+                  <Text style={styles.barLabel}>Over</Text>
+                  <Text style={styles.barLabel}>Obese</Text>
+                </View>
+              </View>
+
+              {/* BMR chip */}
+              {result.bmr && (
+                <View style={styles.bmrChip}>
+                  <Ionicons name="flame" size={16} color={colors.status.warning} />
+                  <Text style={styles.bmrChipLabel}>Basal Metabolic Rate</Text>
+                  <Text style={styles.bmrChipValue}>{Math.round(result.bmr)} cal/day</Text>
+                </View>
+              )}
+
+              <Text style={styles.resultMessage}>
+                {result.message || bmiConfig.message}
+              </Text>
+            </View>
           </View>
         )}
 
@@ -332,27 +418,7 @@ export default function HealthScreen() {
           <Text style={styles.historyButtonText}>See History</Text>
         </TouchableOpacity>
 
-        {/* Workouts Section */}
-        <TouchableOpacity
-          style={[styles.workoutCard, shadows.card]}
-          onPress={() => router.push('/(app)/(health)/workouts' as any)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.workoutCardContent}>
-            <View style={styles.workoutCardIcon}>
-              <Ionicons name="barbell-outline" size={28} color={colors.primary.dark} />
-            </View>
-            <View style={styles.workoutCardTextBlock}>
-              <Text style={styles.workoutCardTitle}>Explore Workouts</Text>
-              <Text style={styles.workoutCardSubtitle}>
-                Browse workout plans for strength, cardio, HIIT and more
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.text.light} />
-          </View>
-        </TouchableOpacity>
-
-        <View style={styles.bottomSpacer} />
+<View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeScreen>
   );
@@ -414,82 +480,182 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: colors.text.light,
   },
+  genderSection: {
+    marginBottom: spacing.xxl,
+  },
+  genderRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
+  genderOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.pill,
+    borderWidth: 1.5,
+    borderColor: colors.border.gray,
+    backgroundColor: colors.background.white,
+  },
+  genderOptionActive: {
+    backgroundColor: colors.primary.yellow,
+    borderColor: colors.primary.yellow,
+  },
+  genderText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 15,
+    color: colors.text.secondary,
+  },
+  genderTextActive: {
+    color: colors.text.onPrimary,
+  },
   resultCard: {
     backgroundColor: colors.background.card,
     borderRadius: borderRadius.card,
-    padding: spacing.xxl,
-    alignItems: 'center',
+    overflow: 'hidden',
     marginTop: spacing.xxl,
+  },
+  resultHeader: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
+    paddingHorizontal: spacing.xxl,
   },
   resultLabel: {
     fontFamily: fontFamily.bold,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 11,
+    letterSpacing: 2,
     color: colors.text.light,
-    letterSpacing: 1.5,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   resultBmi: {
     fontFamily: fontFamily.bold,
-    fontSize: 56,
-    lineHeight: 64,
+    fontSize: 64,
+    lineHeight: 72,
     marginBottom: spacing.md,
+  },
+  categoryPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.pill,
+    borderWidth: 1,
+  },
+  categoryDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  categoryText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 13,
+  },
+  resultBody: {
+    paddingHorizontal: spacing.xxl,
+    paddingBottom: spacing.xxl,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingVertical: spacing.lg,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.border.light,
+    marginBottom: spacing.xl,
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statValue: {
+    fontFamily: fontFamily.bold,
+    fontSize: 20,
+    color: colors.text.primary,
+  },
+  statLabel: {
+    fontFamily: fontFamily.regular,
+    fontSize: 11,
+    color: colors.text.light,
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: colors.border.light,
+  },
+  colorBarSection: {
+    marginBottom: spacing.xl,
   },
   colorBar: {
     flexDirection: 'row',
     width: '100%',
-    height: 8,
-    borderRadius: 4,
+    height: 10,
+    borderRadius: 5,
     overflow: 'hidden',
-    marginTop: spacing.xl,
   },
   colorSegment: {
     height: '100%',
   },
   indicatorContainer: {
     width: '100%',
-    height: 20,
+    height: 16,
     position: 'relative',
-    marginBottom: spacing.md,
   },
   barIndicator: {
     position: 'absolute',
     top: 0,
     alignItems: 'center',
-    marginLeft: -6,
+    marginLeft: -7,
   },
-  barIndicatorLine: {
-    width: 2,
-    height: 8,
-    backgroundColor: colors.background.dark,
+  barIndicatorPin: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 7,
+    borderRightWidth: 7,
+    borderTopWidth: 12,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
   },
-  barIndicatorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.background.dark,
-    borderWidth: 2,
-    borderColor: colors.background.white,
+  barLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
   },
-  bmrRow: {
+  barLabel: {
+    fontFamily: fontFamily.regular,
+    fontSize: 10,
+    color: colors.text.light,
+  },
+  bmrChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.md,
+    gap: spacing.sm,
+    backgroundColor: '#fff8e7',
+    borderRadius: borderRadius.pill,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.lg,
   },
-  bmrText: {
-    fontFamily: fontFamily.regular,
-    fontSize: 14,
+  bmrChipLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: 13,
     color: colors.text.secondary,
+    flex: 1,
   },
-  bmrValue: {
+  bmrChipValue: {
     fontFamily: fontFamily.bold,
+    fontSize: 14,
     color: colors.text.primary,
   },
   resultMessage: {
     fontFamily: fontFamily.regular,
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 21,
     color: colors.text.secondary,
     textAlign: 'center',
   },
@@ -536,42 +702,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     color: colors.text.primary,
-  },
-  workoutCard: {
-    backgroundColor: colors.background.card,
-    borderRadius: borderRadius.card,
-    padding: spacing.lg,
-    marginTop: spacing.xxl,
-  },
-  workoutCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  workoutCardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primary.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  workoutCardTextBlock: {
-    flex: 1,
-    marginRight: spacing.sm,
-  },
-  workoutCardTitle: {
-    fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
-    color: colors.text.primary,
-  },
-  workoutCardSubtitle: {
-    fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
-    color: colors.text.secondary,
-    marginTop: 2,
   },
   bottomSpacer: {
     height: spacing.xxxl,

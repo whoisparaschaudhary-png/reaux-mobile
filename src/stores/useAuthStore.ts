@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { login, register, getMe, updateProfile, uploadAvatar } from '../api/endpoints/auth';
 import type { UpdateProfileParams } from '../api/endpoints/auth';
-import { getToken, setToken, removeToken } from '../utils/storage';
+import { getToken, setToken, removeToken, getItem, setItem } from '../utils/storage';
+import { STORAGE_KEYS } from '../utils/constants';
 import type { User } from '../types/models';
 
 interface AuthState {
@@ -21,7 +22,7 @@ interface AuthState {
   clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set, _get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
@@ -37,17 +38,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await setToken(authToken);
       set({ user: user as unknown as User, token: authToken, isAuthenticated: true, isLoading: false });
 
-      // Register device token immediately after login
+      // Only register push token if it hasn't been registered yet on this device
       try {
         const { getPushNotificationToken } = await import('../services/notifications');
         const { notificationsApi } = await import('../api/endpoints/notifications');
         const pushToken = await getPushNotificationToken();
         if (pushToken) {
-          await notificationsApi.registerDeviceToken(pushToken);
-          console.log('✅ Device token registered after login');
+          const registeredToken = await getItem(STORAGE_KEYS.PUSH_TOKEN);
+          if (registeredToken !== pushToken) {
+            await notificationsApi.registerDeviceToken(pushToken);
+            await setItem(STORAGE_KEYS.PUSH_TOKEN, pushToken);
+          }
         }
-      } catch (tokenError) {
-        console.error('Failed to register device token after login:', tokenError);
+      } catch {
         // Don't fail login if token registration fails
       }
     } catch (err: any) {
@@ -65,17 +68,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await setToken(authToken);
       set({ user: user as unknown as User, token: authToken, isAuthenticated: true, isLoading: false });
 
-      // Register device token immediately after registration
+      // Only register push token if it hasn't been registered yet on this device
       try {
         const { getPushNotificationToken } = await import('../services/notifications');
         const { notificationsApi } = await import('../api/endpoints/notifications');
         const pushToken = await getPushNotificationToken();
         if (pushToken) {
-          await notificationsApi.registerDeviceToken(pushToken);
-          console.log('✅ Device token registered after registration');
+          const registeredToken = await getItem(STORAGE_KEYS.PUSH_TOKEN);
+          if (registeredToken !== pushToken) {
+            await notificationsApi.registerDeviceToken(pushToken);
+            await setItem(STORAGE_KEYS.PUSH_TOKEN, pushToken);
+          }
         }
-      } catch (tokenError) {
-        console.error('Failed to register device token after registration:', tokenError);
+      } catch {
         // Don't fail registration if token registration fails
       }
     } catch (err: any) {
@@ -87,7 +92,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await removeToken();
+    // Clear cached push token so next login re-registers if needed
+    const { removeItem } = await import('../utils/storage');
+    await removeItem(STORAGE_KEYS.PUSH_TOKEN);
     set({ user: null, token: null, isAuthenticated: false, error: null });
+    // Clear all stores that hold user-specific data
+    const { useNotificationStore } = await import('./useNotificationStore');
+    useNotificationStore.getState().reset();
   },
 
   restoreSession: async () => {
