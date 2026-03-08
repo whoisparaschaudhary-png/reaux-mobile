@@ -19,19 +19,11 @@ interface ReelCardProps {
   reel: Reel;
   isVisible: boolean;
   onLike: () => void;
-  onComment?: () => void;
-  onShare?: () => void;
+  onComment: () => void;
   height: number;
 }
 
-export const ReelCard: React.FC<ReelCardProps> = ({
-  reel,
-  isVisible,
-  onLike,
-  onComment,
-  onShare,
-  height,
-}) => {
+export const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, onLike, onComment, height }) => {
   const [isMuted, setIsMuted] = React.useState(false);
   const author = typeof reel.author === 'object' ? (reel.author as User) : null;
   const authorName = author?.name ?? 'Unknown';
@@ -94,42 +86,35 @@ export const ReelCard: React.FC<ReelCardProps> = ({
         />
       </TouchableOpacity>
 
-      {/* Right side actions */}
-      <View style={styles.actions}>
-        <TouchableOpacity onPress={onLike} style={styles.actionItem}>
-          <Ionicons
-            name={isLiked ? 'heart' : 'heart-outline'}
-            size={28}
-            color={isLiked ? colors.status.error : colors.text.white}
-          />
-          <Text style={styles.actionText}>{formatNumber(reel.likesCount)}</Text>
-        </TouchableOpacity>
-        {onComment != null && (
+      {/* Bottom section: info (left) + actions (right) */}
+      <View style={styles.bottomSection}>
+        <View style={styles.bottomLeft}>
+          <View style={styles.authorRow}>
+            <Avatar uri={authorAvatar} name={authorName} size={36} />
+            <Text style={styles.authorName}>{authorName}</Text>
+          </View>
+          {reel.caption ? (
+            <Text style={styles.caption} numberOfLines={2}>
+              {reel.caption}
+            </Text>
+          ) : null}
+          <Text style={styles.timestamp}>{formatRelative(reel.createdAt)}</Text>
+        </View>
+
+        <View style={styles.actions}>
+          <TouchableOpacity onPress={onLike} style={styles.actionItem}>
+            <Ionicons
+              name={isLiked ? 'heart' : 'heart-outline'}
+              size={28}
+              color={isLiked ? colors.status.error : colors.text.white}
+            />
+            <Text style={styles.actionText}>{formatNumber(reel.likesCount)}</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={onComment} style={styles.actionItem}>
             <Ionicons name="chatbubble-outline" size={26} color={colors.text.white} />
-            <Text style={styles.actionText}>Comment</Text>
+            <Text style={styles.actionText}>{formatNumber(reel.commentsCount ?? 0)}</Text>
           </TouchableOpacity>
-        )}
-        {onShare != null && (
-          <TouchableOpacity onPress={onShare} style={styles.actionItem}>
-            <Ionicons name="share-outline" size={26} color={colors.text.white} />
-            <Text style={styles.actionText}>Share</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Bottom info */}
-      <View style={styles.bottomInfo}>
-        <View style={styles.authorRow}>
-          <Avatar uri={authorAvatar} name={authorName} size={36} />
-          <Text style={styles.authorName}>{authorName}</Text>
         </View>
-        {reel.caption ? (
-          <Text style={styles.caption} numberOfLines={2}>
-            {reel.caption}
-          </Text>
-        ) : null}
-        <Text style={styles.timestamp}>{formatRelative(reel.createdAt)}</Text>
       </View>
     </View>
   );
@@ -155,13 +140,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Right-side actions
-  actions: {
+  // Bottom section
+  bottomSection: {
     position: 'absolute',
-    right: spacing.md,
-    bottom: 120,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xxl,
+    paddingTop: spacing.xxxl,
+  },
+  bottomLeft: {
+    flex: 1,
+    paddingRight: spacing.md,
+  },
+  actions: {
     alignItems: 'center',
     gap: spacing.xl,
+    paddingBottom: spacing.xs,
   },
   actionItem: {
     alignItems: 'center',
@@ -171,16 +169,9 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: 12,
     color: colors.text.white,
-  },
-
-  // Bottom info
-  bottomInfo: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 60,
-    padding: spacing.lg,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   authorRow: {
     flexDirection: 'row',
@@ -192,6 +183,9 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: 15,
     color: colors.text.white,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   caption: {
     fontFamily: fontFamily.regular,
@@ -199,10 +193,16 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: colors.text.white,
     marginBottom: spacing.xs,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   timestamp: {
     fontFamily: fontFamily.regular,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.7)',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });

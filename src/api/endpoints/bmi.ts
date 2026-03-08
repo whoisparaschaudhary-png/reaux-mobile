@@ -5,7 +5,7 @@ import type { RecordBmiRequest } from '../../types/api';
 
 export const bmiApi = {
   record: (data: RecordBmiRequest) =>
-    client.post<ApiResponse<BmiRecord>>('/bmi', data).then(r => r.data),
+    client.post<ApiResponse<BmiRecord>>('/bmi/record', data).then(r => r.data),
 
   getHistory: (params?: PaginationParams) =>
     client.get<PaginatedResponse<BmiRecord>>('/bmi/history', { params }).then(r => r.data),

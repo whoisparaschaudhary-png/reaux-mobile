@@ -1,5 +1,4 @@
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 
 // Configure how notifications are handled when app is in foreground
@@ -39,42 +38,23 @@ export async function requestNotificationPermissions(): Promise<boolean> {
  */
 export async function getPushNotificationToken(): Promise<string | null> {
   try {
-    console.log('📲 getPushNotificationToken: Starting...');
-    console.log('📲 Device.isDevice:', Device.isDevice);
-    console.log('📲 Platform:', Platform.OS);
-
-    // Request permissions first
-    console.log('📲 Requesting notification permissions...');
     const hasPermission = await requestNotificationPermissions();
-    console.log('📲 Permission granted:', hasPermission);
+    if (!hasPermission) return null;
 
-    if (!hasPermission) {
-      console.log('⚠️ Permission denied');
-      return null;
-    }
-
-    // Get the native FCM token (for Firebase Admin SDK)
-    console.log('📲 Getting native FCM push token...');
     const token = await Notifications.getDevicePushTokenAsync();
 
-    console.log('✅ Push notification token:', token.data);
-
-    // For Android, set up notification channel
     if (Platform.OS === 'android') {
-      console.log('📲 Setting up Android notification channel...');
       await Notifications.setNotificationChannelAsync('default', {
         name: 'default',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#F9F506', // Your primary yellow color
+        lightColor: '#F9F506',
         sound: 'default',
       });
-      console.log('✅ Android notification channel created');
     }
 
     return token.data;
-  } catch (error) {
-    console.error('❌ Error getting push notification token:', error);
+  } catch {
     return null;
   }
 }
@@ -83,28 +63,16 @@ export async function getPushNotificationToken(): Promise<string | null> {
  * Send device token to backend
  */
 export async function registerDeviceToken(token: string, userId: string): Promise<void> {
-  try {
-    const { notificationsApi } = await import('../api/endpoints/notifications');
-    await notificationsApi.registerDeviceToken(token);
-    console.log('✅ Device token registered with backend:', { token, userId });
-  } catch (error) {
-    console.error('❌ Failed to register device token:', error);
-    throw error;
-  }
+  const { notificationsApi } = await import('../api/endpoints/notifications');
+  await notificationsApi.registerDeviceToken(token);
 }
 
 /**
  * Remove device token from backend
  */
 export async function removeDeviceToken(token: string): Promise<void> {
-  try {
-    const { notificationsApi } = await import('../api/endpoints/notifications');
-    await notificationsApi.removeDeviceToken(token);
-    console.log('✅ Device token removed from backend:', token);
-  } catch (error) {
-    console.error('❌ Failed to remove device token:', error);
-    throw error;
-  }
+  const { notificationsApi } = await import('../api/endpoints/notifications');
+  await notificationsApi.removeDeviceToken(token);
 }
 
 /**
