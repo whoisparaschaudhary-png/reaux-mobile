@@ -22,4 +22,12 @@ export const postsApi = {
     client
       .post<ApiResponse<Comment>>(`/posts/${id}/comment`, { content })
       .then(r => r.data),
+
+  delete: (id: string) =>
+    client.delete<ApiResponse<{ message: string }>>(`/posts/${id}`).then(r => r.data),
+
+  deleteComment: (postId: string, commentId: string) =>
+    client
+      .delete<ApiResponse<{ message: string }>>(`/posts/${postId}/comment/${commentId}`)
+      .then(r => r.data),
 };

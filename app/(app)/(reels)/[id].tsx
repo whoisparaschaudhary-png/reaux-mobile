@@ -11,7 +11,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
@@ -25,17 +25,21 @@ import { formatRelative, formatNumber } from '../../../src/utils/formatters';
 import { STORE_URLS } from '../../../src/utils/constants';
 import { colors, fontFamily, spacing, borderRadius } from '../../../src/theme';
 import { useUIStore } from '../../../src/stores/useUIStore';
-import type { Reel, User, Comment } from '../../../src/types/models';
+import type { Reel, User } from '../../../src/types/models';
 
 export default function ReelDetailScreen() {
   const { id: idParam } = useLocalSearchParams<{ id: string }>();
   const id = typeof idParam === 'string' ? idParam : idParam?.[0];
   const router = useRouter();
   const likeReel = useReelStore((s) => s.likeReel);
+  const comments = useReelStore((s) => s.comments);
+  const commentsLoading = useReelStore((s) => s.commentsLoading);
+  const fetchComments = useReelStore((s) => s.fetchComments);
+  const addComment = useReelStore((s) => s.addComment);
+  const clearComments = useReelStore((s) => s.clearComments);
   const showToast = useUIStore((s) => s.showToast);
 
   const [reel, setReel] = useState<Reel | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [isSendingComment, setIsSendingComment] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,18 +50,25 @@ export default function ReelDetailScreen() {
     try {
       const response = await reelsApi.getById(id);
       setReel(response.data);
-      setComments(response.data.comments ?? []);
     } catch {
       setReel(null);
-      setComments([]);
     } finally {
       setIsLoading(false);
     }
   }, [id]);
 
-  useEffect(() => {
-    loadReel();
-  }, [loadReel]);
+  useFocusEffect(
+    useCallback(() => {
+      loadReel();
+      if (id) {
+        clearComments();
+        fetchComments(id);
+      }
+      return () => {
+        clearComments();
+      };
+    }, [id, loadReel, fetchComments, clearComments])
+  );
 
   const handleLike = useCallback(async () => {
     if (!id) return;
@@ -82,21 +93,15 @@ export default function ReelDetailScreen() {
     if (!id || !commentText.trim()) return;
     setIsSendingComment(true);
     try {
-      const response = await reelsApi.comment(id, commentText.trim());
-      const newComment = response.data ?? (response as { comment?: Comment }).comment;
-      if (newComment && typeof newComment === 'object' && '_id' in newComment) {
-        setComments((prev) => [...prev, newComment]);
-        setCommentText('');
-      } else {
-        showToast("Couldn't post comment. Try again.", 'error');
-      }
+      await addComment(id, commentText.trim());
+      setCommentText('');
     } catch (err: any) {
       const message = err?.message || err?.response?.data?.message;
       showToast(message || "Couldn't post comment. Try again.", 'error');
     } finally {
       setIsSendingComment(false);
     }
-  }, [id, commentText, showToast]);
+  }, [id, commentText, addComment, showToast]);
 
   if (isLoading) {
     return (
@@ -173,7 +178,11 @@ export default function ReelDetailScreen() {
           </View>
           <View style={styles.commentsSection}>
             <Text style={styles.commentsTitle}>Comments</Text>
-            {comments.length === 0 ? (
+            {commentsLoading && comments.length === 0 ? (
+              <View style={styles.emptyComments}>
+                <ActivityIndicator size="small" color={colors.primary.yellow} />
+              </View>
+            ) : comments.length === 0 ? (
               <View style={styles.emptyComments}>
                 <Text style={styles.emptyText}>No comments yet. Be the first to comment.</Text>
               </View>

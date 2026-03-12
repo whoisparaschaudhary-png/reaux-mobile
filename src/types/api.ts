@@ -1,4 +1,4 @@
-import type { Gender, DietCategory, DiscountType, ChallengeType } from './models';
+import type { Gender, DietCategory, DietType, DiscountType, ChallengeType } from './models';
 
 export interface LoginRequest {
   email: string;
@@ -38,6 +38,7 @@ export interface CreatePostRequest {
 export interface CreateDietRequest {
   title: string;
   category: DietCategory;
+  dietType?: DietType;
   description?: string;
   meals?: any[];
   image?: string;

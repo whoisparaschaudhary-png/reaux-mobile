@@ -35,6 +35,7 @@ interface FeedState {
   refreshPosts: (category?: string) => Promise<void>;
   likePost: (id: string) => Promise<void>;
   createPost: (data: CreatePostRequest, currentUser?: User | null) => Promise<void>;
+  deletePost: (id: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -162,6 +163,26 @@ export const useFeedStore = create<FeedState>((set, get) => ({
     } catch (err: any) {
       const message = err.message || 'Failed to create post';
       set({ error: message, isLoading: false });
+      throw new Error(message);
+    }
+  },
+
+  deletePost: async (id: string) => {
+    try {
+      await postsApi.delete(id);
+      set((state) => {
+        const next: Record<string, CategoryCache> = {};
+        for (const [k, cache] of Object.entries(state.postsByCategory)) {
+          next[k] = {
+            ...cache,
+            posts: cache.posts.filter((p) => p._id !== id),
+          };
+        }
+        return { postsByCategory: next };
+      });
+    } catch (err: any) {
+      const message = err.message || 'Failed to delete post';
+      set({ error: message });
       throw new Error(message);
     }
   },

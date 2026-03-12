@@ -1222,6 +1222,157 @@ function escapeHtml(text: string): string {
 }
 
 /**
+ * Export all users as PDF
+ */
+export const exportUsersPDF = async (users: User[]) => {
+  const currentDate = formatDate(new Date().toISOString());
+
+  const userRows = users.map((user, index) => {
+    const gymName = user.gymId && typeof user.gymId === 'object' ? (user.gymId as any).name : '—';
+    const doj = user.dateOfJoining ? formatDate(user.dateOfJoining) : (user.createdAt ? formatDate(user.createdAt) : '—');
+    const isActive = user.status === 'active';
+
+    return `
+      <tr>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e4; text-align: center;">${index + 1}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e4; font-weight: 500;">${escapeHtml(user.name)}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e4; font-size: 12px;">${escapeHtml(user.email)}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e4; font-size: 12px;">${user.phone || '—'}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e4; text-align: center;">
+          <span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${user.role === 'superadmin' ? '#fee2e2' : user.role === 'admin' ? '#fef3c7' : '#f0f0f0'}; color: ${user.role === 'superadmin' ? '#ef4444' : user.role === 'admin' ? '#f59e0b' : '#666'};">${user.role}</span>
+        </td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e4; font-size: 12px;">${gymName}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e4; font-size: 12px;">${doj}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e4; text-align: center;">
+          <span style="color: ${isActive ? '#22c55e' : '#ef4444'}; font-weight: 600; font-size: 12px;">● ${isActive ? 'Active' : 'Disabled'}</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  const activeCount = users.filter(u => u.status === 'active').length;
+  const disabledCount = users.length - activeCount;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px;
+            color: #1c1c0d;
+            background: #ffffff;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #f9f506;
+          }
+          .logo { font-size: 32px; font-weight: 700; color: #f9f506; margin-bottom: 8px; }
+          .title { font-size: 24px; font-weight: 600; color: #1c1c0d; margin-bottom: 4px; }
+          .date { font-size: 14px; color: #666; }
+          .summary-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+          }
+          .summary-card {
+            flex: 1;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e4e4e4;
+          }
+          .summary-label { font-size: 13px; color: #666; margin-bottom: 4px; }
+          .summary-value { font-size: 28px; font-weight: 700; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th {
+            background: #1c1c0d;
+            color: #ffffff;
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+          }
+          tr:nth-child(even) { background: #fafafa; }
+          .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e4e4e4;
+            font-size: 12px;
+            color: #999;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo">REAUX LABS</div>
+          <div class="title">Members Report</div>
+          <div class="date">Generated on ${currentDate}</div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-card">
+            <div class="summary-label">Total Members</div>
+            <div class="summary-value" style="color: #1c1c0d;">${users.length}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Active</div>
+            <div class="summary-value" style="color: #22c55e;">${activeCount}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Disabled</div>
+            <div class="summary-value" style="color: #ef4444;">${disabledCount}</div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align: center;">#</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th style="text-align: center;">Role</th>
+              <th>Gym</th>
+              <th>Date of Joining</th>
+              <th style="text-align: center;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${userRows || '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #999;">No users found</td></tr>'}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          REAUX Labs · Members Report · ${currentDate}
+        </div>
+      </body>
+    </html>
+  `;
+
+  try {
+    const { uri } = await Print.printToFileAsync({ html });
+    if (Platform.OS === 'ios') {
+      await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+    } else {
+      await Sharing.shareAsync(uri);
+    }
+    return true;
+  } catch (error) {
+    console.error('PDF Export Error:', error);
+    throw new Error('Failed to export PDF');
+  }
+};
+
+/**
  * Export generic data as PDF with custom HTML
  */
 export const exportPDF = async (html: string, filename: string = 'export.pdf') => {

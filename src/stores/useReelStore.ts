@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { reelsApi } from '../api/endpoints/reels';
-import type { Reel, User } from '../types/models';
+import type { Reel, ReelComment, User } from '../types/models';
 
 interface Pagination {
   page: number;
@@ -16,9 +16,17 @@ interface ReelState {
   error: string | null;
   pagination: Pagination;
 
+  // Comments
+  comments: ReelComment[];
+  commentsLoading: boolean;
+  commentsPagination: Pagination;
+
   fetchReels: (page?: number) => Promise<void>;
   refreshReels: () => Promise<void>;
   likeReel: (id: string) => Promise<void>;
+  fetchComments: (reelId: string, page?: number) => Promise<void>;
+  addComment: (reelId: string, content: string) => Promise<ReelComment>;
+  clearComments: () => void;
   clearError: () => void;
 }
 
@@ -28,6 +36,10 @@ export const useReelStore = create<ReelState>((set, get) => ({
   isRefreshing: false,
   error: null,
   pagination: { page: 1, limit: 10, total: 0, pages: 0 },
+
+  comments: [],
+  commentsLoading: false,
+  commentsPagination: { page: 1, limit: 20, total: 0, pages: 0 },
 
   fetchReels: async (page = 1) => {
     set({ isLoading: true, error: null });
@@ -61,7 +73,6 @@ export const useReelStore = create<ReelState>((set, get) => ({
 
   likeReel: async (id: string) => {
     const { reels } = get();
-    // Optimistic update: toggle isLiked and count
     const updatedReels = reels.map((reel) => {
       if (reel._id !== id) return reel;
       return {
@@ -86,10 +97,38 @@ export const useReelStore = create<ReelState>((set, get) => ({
         }),
       }));
     } catch {
-      // Revert on failure
       set({ reels });
     }
   },
+
+  fetchComments: async (reelId, page = 1) => {
+    set({ commentsLoading: true });
+    try {
+      const response = await reelsApi.getComments(reelId, { page, limit: 20 });
+      set((state) => ({
+        comments: page === 1 ? response.data : [...state.comments, ...response.data],
+        commentsPagination: response.pagination,
+        commentsLoading: false,
+      }));
+    } catch {
+      set({ commentsLoading: false });
+    }
+  },
+
+  addComment: async (reelId, content) => {
+    const response = await reelsApi.addComment(reelId, content);
+    const newComment = response.data;
+    set((state) => ({
+      comments: [newComment, ...state.comments],
+      reels: state.reels.map((r) =>
+        r._id === reelId ? { ...r, commentsCount: (r.commentsCount ?? 0) + 1 } : r,
+      ),
+    }));
+    return newComment;
+  },
+
+  clearComments: () =>
+    set({ comments: [], commentsPagination: { page: 1, limit: 20, total: 0, pages: 0 } }),
 
   clearError: () => set({ error: null }),
 }));

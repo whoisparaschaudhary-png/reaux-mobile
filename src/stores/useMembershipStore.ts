@@ -5,6 +5,7 @@ import {
   type CreateMembershipPlanRequest,
   type UpdateMembershipPlanRequest,
   type AssignMembershipRequest,
+  type RecordFeesRequest,
 } from '../api/endpoints/memberships';
 import type { MembershipPlan, Membership } from '../types/models';
 
@@ -47,6 +48,7 @@ interface MembershipState {
   fetchMyMemberships: (page?: number) => Promise<void>;
   fetchMembershipById: (id: string) => Promise<void>;
   cancelMembership: (id: string) => Promise<void>;
+  recordFees: (id: string, data: RecordFeesRequest) => Promise<void>;
 
   // Utility actions
   clearPlansError: () => void;
@@ -275,6 +277,29 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
         myMemberships: prevMyMemberships,
         selectedMembership: prevSelected,
         membershipsError: err.message || 'Failed to cancel membership',
+      });
+      throw err;
+    }
+  },
+
+  recordFees: async (id: string, data: RecordFeesRequest) => {
+    set({ membershipsLoading: true, membershipsError: null });
+    try {
+      const response = await membershipsApi.recordFees(id, data);
+      set((state) => ({
+        memberships: state.memberships.map((m) =>
+          m._id === id ? response.data : m
+        ),
+        selectedMembership:
+          state.selectedMembership?._id === id
+            ? response.data
+            : state.selectedMembership,
+        membershipsLoading: false,
+      }));
+    } catch (err: any) {
+      set({
+        membershipsError: err.message || 'Failed to record fee payment',
+        membershipsLoading: false,
       });
       throw err;
     }

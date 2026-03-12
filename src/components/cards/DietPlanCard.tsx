@@ -17,9 +17,8 @@ interface DietPlanCardProps {
 const categoryBadgeVariant: Record<DietCategory, { variant: 'primary' | 'success' | 'error' | 'warning' | 'info' | 'default'; label: string }> = {
   'weight-loss': { variant: 'error', label: 'Weight Loss' },
   'muscle-gain': { variant: 'success', label: 'Muscle Gain' },
-  'maintenance': { variant: 'info', label: 'Maintenance' },
-  'keto': { variant: 'warning', label: 'Keto' },
-  'vegan': { variant: 'success', label: 'Vegan' },
+  'bulking': { variant: 'warning', label: 'Bulking' },
+  'cutting': { variant: 'info', label: 'Cutting' },
   'other': { variant: 'default', label: 'Other' },
 };
 

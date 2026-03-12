@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/stores/useAuthStore';
 import { colors, fontFamily, layout } from '../../src/theme';
@@ -10,7 +10,6 @@ function debugLog(p: { location: string; message: string; data?: Record<string, 
 }
 
 export default function AppLayout() {
-  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
@@ -43,9 +42,9 @@ export default function AppLayout() {
       <Tabs.Screen
         name="(feed)"
         options={{
-          title: 'Feed',
+          title: isAdmin ? 'Members' : 'Feed',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name={isAdmin ? 'people-outline' : 'home-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -74,13 +73,6 @@ export default function AppLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="heart-outline" size={size} color={color} />
           ),
-          ...({
-            listeners: {
-              tabPress: () => {
-                router.replace('/(app)/(health)' as any);
-              },
-            },
-          } as any),
         }}
       />
       <Tabs.Screen

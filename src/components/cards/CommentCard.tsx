@@ -1,15 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fontFamily, spacing } from '../../theme';
 import { Avatar } from '../ui/Avatar';
 import { formatRelative } from '../../utils/formatters';
-import type { Comment, User } from '../../types/models';
+import type { Comment, ReelComment, User } from '../../types/models';
 
 interface CommentCardProps {
-  comment: Comment;
+  comment: Comment | ReelComment;
+  showDelete?: boolean;
+  onDelete?: (commentId: string) => void;
 }
 
-export const CommentCard: React.FC<CommentCardProps> = ({ comment }) => {
+export const CommentCard: React.FC<CommentCardProps> = ({ comment, showDelete, onDelete }) => {
   const author =
     typeof comment.author === 'object' ? (comment.author as User) : null;
   const authorName = author?.name ?? 'User';
@@ -26,6 +29,15 @@ export const CommentCard: React.FC<CommentCardProps> = ({ comment }) => {
           <Text style={styles.timestamp}>
             {formatRelative(comment.createdAt)}
           </Text>
+          {showDelete && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(comment._id)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={styles.deleteButton}
+            >
+              <Ionicons name="trash-outline" size={16} color={colors.status.error} />
+            </TouchableOpacity>
+          )}
         </View>
         <Text style={styles.content}>{comment.content}</Text>
       </View>
@@ -61,6 +73,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     color: colors.text.light,
+  },
+  deleteButton: {
+    marginLeft: 'auto',
   },
   content: {
     fontFamily: fontFamily.regular,

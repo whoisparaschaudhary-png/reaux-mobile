@@ -28,6 +28,11 @@ export interface AssignMembershipRequest {
   startDate: string;
 }
 
+export interface RecordFeesRequest {
+  amount: number;
+  note?: string;
+}
+
 // ─── Plans API ───────────────────────────────────────────────────────
 
 export const membershipPlansApi = {
@@ -114,5 +119,13 @@ export const membershipsApi = {
   cancel: (id: string) =>
     client
       .patch<ApiResponse<Membership>>(`/memberships/${id}/cancel`)
+      .then((r) => r.data),
+
+  /**
+   * Record a fee payment for a membership (admin/superadmin)
+   */
+  recordFees: (id: string, data: RecordFeesRequest) =>
+    client
+      .put<ApiResponse<Membership>>(`/memberships/${id}/fees`, data)
       .then((r) => r.data),
 };

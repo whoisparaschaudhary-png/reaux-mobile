@@ -79,6 +79,22 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
           </Text>
         )}
 
+        {/* Show order metadata if available */}
+        {type === 'order' && notification.metadata && (
+          <View style={styles.metadataRow}>
+            {notification.metadata.orderId && (
+              <Text style={styles.metadataText}>
+                Order #{notification.metadata.orderId.slice(-6).toUpperCase()}
+              </Text>
+            )}
+            {notification.metadata.amount != null && (
+              <Text style={styles.metadataText}>
+                {'\u20B9'}{notification.metadata.amount}
+              </Text>
+            )}
+          </View>
+        )}
+
         <Text style={styles.timestamp}>{formatRelative(createdAt)}</Text>
       </View>
 
@@ -143,6 +159,17 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: colors.text.secondary,
     marginTop: 2,
+  },
+  metadataRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: 2,
+  },
+  metadataText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 12,
+    lineHeight: 16,
+    color: colors.status.info,
   },
   timestamp: {
     fontFamily: fontFamily.regular,

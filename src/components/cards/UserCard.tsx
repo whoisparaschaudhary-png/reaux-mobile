@@ -5,6 +5,7 @@ import { Avatar } from '../ui/Avatar';
 import { Badge } from '../ui/Badge';
 import { Card } from '../ui/Card';
 import { colors, fontFamily, spacing } from '../../theme';
+import { formatDate } from '../../utils/formatters';
 import type { User } from '../../types/models';
 
 interface UserCardProps {
@@ -49,6 +50,11 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onDeactivate, onPress 
           <Text style={styles.email} numberOfLines={1}>
             {user.email}
           </Text>
+          {(user.dateOfJoining || user.createdAt) && (
+            <Text style={styles.doj} numberOfLines={1}>
+              DOJ: {formatDate(user.dateOfJoining || user.createdAt)}
+            </Text>
+          )}
         </View>
 
         <View style={styles.rightSection}>
@@ -115,6 +121,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     color: colors.text.secondary,
+  },
+  doj: {
+    fontFamily: fontFamily.regular,
+    fontSize: 11,
+    lineHeight: 16,
+    color: colors.text.light,
+    marginTop: 1,
   },
   rightSection: {
     alignItems: 'flex-end',

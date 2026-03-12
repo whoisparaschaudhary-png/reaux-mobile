@@ -21,6 +21,7 @@ interface CreateUserPayload {
   gymId?: string;
   gender: Gender;
   dateOfBirth: string;
+  dateOfJoining?: string;
   status?: UserStatus;
 }
 

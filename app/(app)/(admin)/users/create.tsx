@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
@@ -20,7 +21,7 @@ import { usersApi } from '../../../../src/api/endpoints/users';
 import { gymsApi } from '../../../../src/api/endpoints/gyms';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { useUIStore } from '../../../../src/stores/useUIStore';
-import { isValidEmail, isValidIndianPhone, isValidName, isValidPassword, isValidDateOfBirth } from '../../../../src/utils/validators';
+import { isValidEmail, isValidIndianPhone, isValidName, isValidPassword } from '../../../../src/utils/validators';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
 import type { Role, UserStatus, Gender, Gym } from '../../../../src/types/models';
 
@@ -47,13 +48,17 @@ export default function CreateUserScreen() {
   const currentUser = useAuthStore((s) => s.user);
   const isSuperAdmin = currentUser?.role === 'superadmin';
 
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [selectedRole, setSelectedRole] = useState<Role>('user');
   const [selectedGender, setSelectedGender] = useState<Gender>('male');
-  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [dob, setDob] = useState<Date | null>(null);
+  const [showDobPicker, setShowDobPicker] = useState(false);
+  const [dateOfJoining, setDateOfJoining] = useState<Date>(new Date());
+  const [showDojPicker, setShowDojPicker] = useState(false);
   const [selectedGymId, setSelectedGymId] = useState<string>('');
   const [gyms, setGyms] = useState<Gym[]>([]);
   const [isLoadingGyms, setIsLoadingGyms] = useState(false);
@@ -101,8 +106,42 @@ export default function CreateUserScreen() {
       ? adminGymName || 'Your Gym'
       : gyms.find((g) => g._id === selectedGymId)?.name || '';
 
+  const formatDateDisplay = (date: Date) => {
+    const d = date.getDate().toString().padStart(2, '0');
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const y = date.getFullYear();
+    return `${d}/${m}/${y}`;
+  };
+
+  const formatDateISO = (date: Date) => {
+    const d = date.getDate().toString().padStart(2, '0');
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const y = date.getFullYear();
+    return `${y}-${m}-${d}`;
+  };
+
+  const handleDobChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS === 'android') setShowDobPicker(false);
+    if (selectedDate) setDob(selectedDate);
+  };
+
+  const handleDojChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS === 'android') setShowDojPicker(false);
+    if (selectedDate) setDateOfJoining(selectedDate);
+  };
+
+  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+
   const handleCreate = async () => {
-    if (!isValidName(name)) {
+    if (!firstName.trim()) {
+      showToast('First name is required', 'error');
+      return;
+    }
+    if (!lastName.trim()) {
+      showToast('Last name is required', 'error');
+      return;
+    }
+    if (!isValidName(fullName)) {
       showToast('Name must be at least 2 characters', 'error');
       return;
     }
@@ -126,8 +165,8 @@ export default function CreateUserScreen() {
       return;
     }
 
-    if (!isValidDateOfBirth(dateOfBirth)) {
-      showToast('Please enter a valid date of birth (YYYY-MM-DD)', 'error');
+    if (!dob) {
+      showToast('Please select date of birth', 'error');
       return;
     }
 
@@ -139,15 +178,16 @@ export default function CreateUserScreen() {
     setIsLoading(true);
     try {
       await usersApi.createUser({
-        name: name.trim(),
+        name: fullName,
         email: email.trim(),
         password,
         phone: phone.trim() || undefined,
         role: isSuperAdmin ? selectedRole : 'user',
         gender: selectedGender,
-        dateOfBirth: dateOfBirth.trim(),
+        dateOfBirth: formatDateISO(dob),
         gymId: selectedGymId,
         status: selectedStatus,
+        dateOfJoining: formatDateISO(dateOfJoining),
       });
       showToast('User created successfully', 'success');
       router.back();
@@ -196,13 +236,26 @@ export default function CreateUserScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>User Information</Text>
 
-              <Input
-                label="FULL NAME *"
-                placeholder="Enter full name"
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-              />
+              <View style={styles.nameRow}>
+                <View style={styles.nameField}>
+                  <Input
+                    label="FIRST NAME *"
+                    placeholder="First name"
+                    value={firstName}
+                    onChangeText={setFirstName}
+                    autoCapitalize="words"
+                  />
+                </View>
+                <View style={styles.nameField}>
+                  <Input
+                    label="LAST NAME *"
+                    placeholder="Last name"
+                    value={lastName}
+                    onChangeText={setLastName}
+                    autoCapitalize="words"
+                  />
+                </View>
+              </View>
 
               <View style={styles.inputSpacing} />
 
@@ -265,13 +318,58 @@ export default function CreateUserScreen() {
 
               <View style={styles.inputSpacing} />
 
-              <Input
-                label="DATE OF BIRTH *"
-                placeholder="YYYY-MM-DD"
-                value={dateOfBirth}
-                onChangeText={setDateOfBirth}
-                keyboardType="numbers-and-punctuation"
-              />
+              <Text style={styles.fieldLabel}>DATE OF BIRTH *</Text>
+              <TouchableOpacity
+                style={styles.dateSelector}
+                onPress={() => setShowDobPicker(true)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="calendar-outline" size={20} color={dob ? colors.text.primary : colors.text.light} style={{ marginRight: spacing.sm }} />
+                <Text style={[styles.dateSelectorText, !dob && styles.dateSelectorPlaceholder]}>
+                  {dob ? formatDateDisplay(dob) : 'Select date of birth'}
+                </Text>
+              </TouchableOpacity>
+              {showDobPicker && (
+                <DateTimePicker
+                  value={dob || new Date(2000, 0, 1)}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  maximumDate={new Date()}
+                  onChange={handleDobChange}
+                />
+              )}
+              {Platform.OS === 'ios' && showDobPicker && (
+                <TouchableOpacity style={styles.pickerDone} onPress={() => setShowDobPicker(false)}>
+                  <Text style={styles.pickerDoneText}>Done</Text>
+                </TouchableOpacity>
+              )}
+
+              <View style={styles.inputSpacing} />
+
+              <Text style={styles.fieldLabel}>DATE OF JOINING</Text>
+              <TouchableOpacity
+                style={styles.dateSelector}
+                onPress={() => setShowDojPicker(true)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="calendar-outline" size={20} color={colors.text.primary} style={{ marginRight: spacing.sm }} />
+                <Text style={styles.dateSelectorText}>
+                  {formatDateDisplay(dateOfJoining)}
+                </Text>
+              </TouchableOpacity>
+              {showDojPicker && (
+                <DateTimePicker
+                  value={dateOfJoining}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleDojChange}
+                />
+              )}
+              {Platform.OS === 'ios' && showDojPicker && (
+                <TouchableOpacity style={styles.pickerDone} onPress={() => setShowDojPicker(false)}>
+                  <Text style={styles.pickerDoneText}>Done</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Role selector — only for superadmin (admins can only create regular users) */}
@@ -325,7 +423,7 @@ export default function CreateUserScreen() {
                   <Ionicons
                     name="fitness-outline"
                     size={20}
-                    color={colors.primary.dark}
+                    color={colors.primary.yellowDark}
                     style={{ marginRight: spacing.md }}
                   />
                   <View style={{ flex: 1 }}>
@@ -523,8 +621,44 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
+  nameRow: {
+    flexDirection: 'row' as const,
+    gap: spacing.md,
+  },
+  nameField: {
+    flex: 1,
+  },
   inputSpacing: {
     height: spacing.md,
+  },
+  dateSelector: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    padding: spacing.lg,
+    backgroundColor: colors.background.card,
+    borderRadius: borderRadius.card,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  dateSelectorText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 15,
+    color: colors.text.primary,
+    flex: 1,
+  },
+  dateSelectorPlaceholder: {
+    color: colors.text.light,
+  },
+  pickerDone: {
+    alignSelf: 'flex-end' as const,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xs,
+  },
+  pickerDoneText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 16,
+    color: colors.primary.yellow,
   },
   roleGrid: {
     gap: spacing.md,

@@ -19,19 +19,27 @@ import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDietStore } from '../../../src/stores/useDietStore';
 import { useRefreshOnFocus } from '../../../src/hooks/useRefreshOnFocus';
 import { colors, fontFamily, typography, spacing, borderRadius } from '../../../src/theme';
-import type { DietCategory, DietPlan } from '../../../src/types/models';
+import type { DietCategory, DietType, DietPlan } from '../../../src/types/models';
 
 const CATEGORIES: { label: string; value: DietCategory | undefined }[] = [
   { label: 'All', value: undefined },
   { label: 'Weight Loss', value: 'weight-loss' },
   { label: 'Muscle Gain', value: 'muscle-gain' },
-  { label: 'Keto', value: 'keto' },
-  { label: 'Vegan', value: 'vegan' },
-  { label: 'Maintenance', value: 'maintenance' },
+  { label: 'Bulking', value: 'bulking' },
+  { label: 'Cutting', value: 'cutting' },
+  { label: 'Other', value: 'other' },
+];
+
+const DIET_TYPES: { label: string; value: DietType | undefined }[] = [
+  { label: 'All', value: undefined },
+  { label: 'Veg', value: 'veg' },
+  { label: 'Non-Veg', value: 'non-veg' },
+  { label: 'Both', value: 'both' },
 ];
 
 export default function DietScreen() {
   const [selectedCategory, setSelectedCategory] = useState<DietCategory | undefined>(undefined);
+  const [selectedDietType, setSelectedDietType] = useState<DietType | undefined>(undefined);
 
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
@@ -137,6 +145,40 @@ export default function DietScreen() {
               />
             </View>
 
+            {/* Diet Type filter (Veg / Non-Veg) */}
+            <View style={styles.categoryRow}>
+              <FlashList
+                data={DIET_TYPES}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.categoryChip,
+                      styles.dietTypeChip,
+                      selectedDietType === item.value && styles.categoryChipActive,
+                      item.value === undefined && selectedDietType === undefined && styles.categoryChipActive,
+                    ]}
+                    onPress={() => setSelectedDietType(item.value)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        (selectedDietType === item.value ||
+                          (item.value === undefined && selectedDietType === undefined)) &&
+                          styles.categoryChipTextActive,
+                      ]}
+                    >
+                      {item.value === 'veg' ? '🟢 ' : item.value === 'non-veg' ? '🔴 ' : ''}{item.label}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(item) => item.label}
+              />
+            </View>
+
             {/* Plans list */}
             <View style={styles.listContainer}>
               <FlashList
@@ -229,6 +271,10 @@ const styles = StyleSheet.create({
   },
   categoryChipActive: {
     backgroundColor: colors.primary.yellow,
+  },
+  dietTypeChip: {
+    borderWidth: 1,
+    borderColor: colors.border.gray,
   },
   categoryChipText: {
     fontFamily: fontFamily.medium,

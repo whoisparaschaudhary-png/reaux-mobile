@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Share,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -38,6 +39,8 @@ export default function PostDetailScreen() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const likePost = useFeedStore((s) => s.likePost);
+  const deletePost = useFeedStore((s) => s.deletePost);
+  const isSuperAdmin = user?.role === 'superadmin';
 
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -92,6 +95,54 @@ export default function PostDetailScreen() {
       setIsSending(false);
     }
   }, [id, commentText]);
+
+  const handleDelete = useCallback(() => {
+    if (!id) return;
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deletePost(id);
+              router.back();
+            } catch {
+              Alert.alert('Error', 'Failed to delete post. Please try again.');
+            }
+          },
+        },
+      ],
+    );
+  }, [id, deletePost, router]);
+
+  const handleDeleteComment = useCallback(
+    (commentId: string) => {
+      if (!id) return;
+      Alert.alert('Delete Comment', 'Are you sure you want to delete this comment?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await postsApi.deleteComment(id, commentId);
+              setComments((prev) => prev.filter((c) => c._id !== commentId));
+              setPost((prev) =>
+                prev ? { ...prev, commentsCount: Math.max(0, prev.commentsCount - 1) } : prev,
+              );
+            } catch {
+              Alert.alert('Error', 'Failed to delete comment. Please try again.');
+            }
+          },
+        },
+      ]);
+    },
+    [id],
+  );
 
   if (isLoading) {
     return (
@@ -236,7 +287,21 @@ export default function PostDetailScreen() {
 
   return (
     <SafeScreen>
-      <Header title="Post" showBack onBack={() => router.back()} />
+      <Header
+        title="Post"
+        showBack
+        onBack={() => router.back()}
+        rightAction={
+          isSuperAdmin ? (
+            <TouchableOpacity
+              onPress={handleDelete}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="trash-outline" size={22} color={colors.status.error} />
+            </TouchableOpacity>
+          ) : undefined
+        }
+      />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -246,7 +311,13 @@ export default function PostDetailScreen() {
         <FlatList
           data={comments}
           keyExtractor={(item) => item._id}
-          renderItem={({ item }) => <CommentCard comment={item} />}
+          renderItem={({ item }) => (
+            <CommentCard
+              comment={item}
+              showDelete={isSuperAdmin}
+              onDelete={handleDeleteComment}
+            />
+          )}
           ListHeaderComponent={renderHeader}
           ListEmptyComponent={
             <View style={styles.emptyComments}>
