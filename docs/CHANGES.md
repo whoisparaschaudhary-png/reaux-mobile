@@ -84,6 +84,48 @@ Backend `credit` field is used if available; otherwise auto-computed from overpa
 
 ---
 
+## Backend Requirements
+
+The following features require backend endpoints that **must be implemented or verified** before the app features will work correctly.
+
+### Reel Comments
+| Endpoint | Method | Status |
+|----------|--------|--------|
+| `/reels/:id/comments` | `GET` | Required — fetch paginated comments for a reel |
+| `/reels/:id/comment` | `POST` | Required — post a comment `{ content: string }` |
+
+Response shape expected:
+```json
+// GET /reels/:id/comments
+{ "success": true, "data": [...], "pagination": { "page": 1, "limit": 20, "total": 10, "pages": 1 } }
+
+// POST /reels/:id/comment
+{ "success": true, "data": { "_id": "...", "reelId": "...", "author": {...}, "content": "...", "createdAt": "..." } }
+```
+
+### Birthdays Tab
+| Endpoint | Method | Status |
+|----------|--------|--------|
+| `/users/birthdays/today` | `GET` | Required — users with birthday today |
+| `/users/birthdays/upcoming?days=30` | `GET` | Required — users with birthday in next N days |
+
+Response shape expected:
+```json
+{ "success": true, "data": [{ "_id": "...", "name": "...", "email": "...", "dateOfBirth": "...", "gymId": {...} }] }
+```
+
+### Credit Field on Membership
+| Field | Type | Status |
+|-------|------|--------|
+| `credit` | `number` | Optional — if backend stores computed credit, expose it on the `Membership` object |
+
+If the backend does not have a `credit` field, the app will auto-compute it as `feesPaid - feesAmount` when the member has overpaid. No backend change is strictly required for this, but storing it server-side improves accuracy.
+
+### Record Fees (Credit Adjustment)
+The credit edit modal calls the existing `POST /memberships/:id/record-fees` endpoint with `{ amount, note }`. When `amount` is negative (reducing credit), ensure the backend handles negative payment adjustments without errors.
+
+---
+
 ## 4. Other Improvements
 
 | Area | Change |
