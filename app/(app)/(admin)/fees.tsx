@@ -121,7 +121,7 @@ export default function FeesScreen() {
       const feesDue = m.feesDue ?? (totalFee - paidAmount);
 
       // Credit = amount overpaid (from backend field or computed)
-      const credit = m.credit ?? (paidAmount > totalFee && feesDue <= 0 ? paidAmount - totalFee : 0);
+      const credit = m.advanceCredit ?? (paidAmount > totalFee && feesDue <= 0 ? paidAmount - totalFee : 0);
 
       collectedSum += paidAmount;
 
@@ -184,10 +184,10 @@ export default function FeesScreen() {
     const totalFee = membership.feesAmount ?? getPlanPrice(membership);
     const paidAmount = membership.feesPaid ?? 0;
     const due = membership.feesDue ?? (totalFee - paidAmount);
-    const currentCredit = membership.credit ?? (paidAmount > totalFee && due <= 0 ? paidAmount - totalFee : 0);
+    const currentCredit = membership.advanceCredit ?? (paidAmount > totalFee && due <= 0 ? paidAmount - totalFee : 0);
     setCreditModal({
       membership,
-      amount: currentCredit > 0 ? String(currentCredit) : '',
+      amount: '',
       note: '',
     });
   }, []);
@@ -195,27 +195,18 @@ export default function FeesScreen() {
   const handleSubmitCredit = useCallback(async () => {
     if (!creditModal) return;
     const creditAmount = parseFloat(creditModal.amount);
-    if (isNaN(creditAmount) || creditAmount < 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid credit amount.');
+    if (isNaN(creditAmount) || creditAmount <= 0) {
+      Alert.alert('Invalid Amount', 'Enter a positive amount to add as credit.');
       return;
     }
 
     setRecording(true);
     try {
-      // Record credit adjustment via recordFees with a note indicating credit update
-      const m = creditModal.membership;
-      const totalFee = m.feesAmount ?? getPlanPrice(m);
-      const paidAmount = m.feesPaid ?? 0;
-      const currentCredit = m.credit ?? (paidAmount > totalFee && (m.feesDue ?? (totalFee - paidAmount)) <= 0 ? paidAmount - totalFee : 0);
-
-      // Calculate the adjustment needed: if new credit differs from current, record the difference as payment
-      const diff = creditAmount - currentCredit;
-      if (diff !== 0) {
-        await recordFees(creditModal.membership._id, {
-          amount: diff,
-          note: creditModal.note || `Credit adjustment: ${formatCurrency(currentCredit)} → ${formatCurrency(creditAmount)}`,
-        });
-      }
+      // Backend is additive — recording a payment that exceeds feesAmount stores surplus as advanceCredit
+      await recordFees(creditModal.membership._id, {
+        amount: creditAmount,
+        note: creditModal.note || `Advance credit added: ${formatCurrency(creditAmount)}`,
+      });
       setCreditModal(null);
       await fetchMemberships(1, { status: 'active' });
     } catch {
@@ -233,7 +224,7 @@ export default function FeesScreen() {
       const totalFee = membership.feesAmount ?? getPlanPrice(membership);
       const paidAmount = membership.feesPaid ?? 0;
       const due = membership.feesDue ?? (totalFee - paidAmount);
-      const credit = membership.credit ?? (paidAmount > totalFee && due <= 0 ? paidAmount - totalFee : 0);
+      const credit = membership.advanceCredit ?? (paidAmount > totalFee && due <= 0 ? paidAmount - totalFee : 0);
 
       return (
         <View key={membership._id} style={styles.feeRow}>
@@ -280,7 +271,7 @@ export default function FeesScreen() {
           )}
           {showCreditInfo && (
             <Button
-              title="Edit"
+              title="Add"
               onPress={() => handleEditCredit(membership)}
               variant="outline"
               size="sm"
@@ -293,7 +284,7 @@ export default function FeesScreen() {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Ionicons name="wallet-outline" size={16} color={colors.status.info} />
-              <Text style={styles.addCreditText}>{credit > 0 ? 'Edit' : 'Add'} Credit</Text>
+              <Text style={styles.addCreditText}>Add Credit</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -472,16 +463,7 @@ export default function FeesScreen() {
               activeOpacity={1}
               onPress={() => {}}
             >
-              <Text style={styles.modalTitle}>
-                {(() => {
-                  const m = creditModal.membership;
-                  const totalFee = m.feesAmount ?? getPlanPrice(m);
-                  const paidAmount = m.feesPaid ?? 0;
-                  const due = m.feesDue ?? (totalFee - paidAmount);
-                  const currentCredit = m.credit ?? (paidAmount > totalFee && due <= 0 ? paidAmount - totalFee : 0);
-                  return currentCredit > 0 ? 'Edit Credit' : 'Add Credit';
-                })()}
-              </Text>
+              <Text style={styles.modalTitle}>Add Advance Credit</Text>
               <Text style={styles.modalSubtitle}>
                 {getUserName(creditModal.membership)} — {getPlanName(creditModal.membership)}
               </Text>
@@ -492,7 +474,7 @@ export default function FeesScreen() {
                 const totalFee = m.feesAmount ?? getPlanPrice(m);
                 const paidAmount = m.feesPaid ?? 0;
                 const due = m.feesDue ?? (totalFee - paidAmount);
-                const currentCredit = m.credit ?? (paidAmount > totalFee && due <= 0 ? paidAmount - totalFee : 0);
+                const currentCredit = m.advanceCredit ?? (paidAmount > totalFee && due <= 0 ? paidAmount - totalFee : 0);
                 const autoCredit = paidAmount > totalFee ? paidAmount - totalFee : 0;
 
                 return (
@@ -521,9 +503,16 @@ export default function FeesScreen() {
                 );
               })()}
 
+              <View style={styles.creditNotice}>
+                <Ionicons name="information-circle" size={16} color={colors.status.info} />
+                <Text style={styles.creditNoticeText}>
+                  Amount is added on top of existing credit. Credit builds when total paid exceeds the fee.
+                </Text>
+              </View>
+
               <Input
-                label="Credit Amount (₹)"
-                placeholder="Enter credit amount"
+                label="Amount to Add (₹)"
+                placeholder="e.g. 500"
                 value={creditModal.amount}
                 onChangeText={(text: string) =>
                   setCreditModal((prev) => prev ? { ...prev, amount: text } : null)
@@ -582,7 +571,7 @@ export default function FeesScreen() {
                 const totalFee = m.feesAmount ?? getPlanPrice(m);
                 const paidAmount = m.feesPaid ?? 0;
                 const due = m.feesDue ?? (totalFee - paidAmount);
-                const credit = m.credit ?? (paidAmount > totalFee && due <= 0 ? paidAmount - totalFee : 0);
+                const credit = m.advanceCredit ?? (paidAmount > totalFee && due <= 0 ? paidAmount - totalFee : 0);
                 const enteredAmount = parseFloat(paymentModal.amount) || 0;
                 const willCredit = due > 0 && enteredAmount > due ? enteredAmount - due : 0;
 

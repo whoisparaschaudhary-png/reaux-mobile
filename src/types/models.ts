@@ -372,7 +372,7 @@ export interface Membership {
   feesAmount?: number;
   feesPaid?: number;
   feesDue?: number;
-  credit?: number;
+  advanceCredit?: number;
   lastPaymentDate?: string;
   paymentHistory?: FeePayment[];
   assignedBy: string | User;
