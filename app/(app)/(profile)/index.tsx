@@ -283,7 +283,7 @@ export default function ProfileScreen() {
         {isAdmin && (
           <Card
             style={styles.linkCard}
-            onPress={() => router.push('/(app)/(admin)/users')}
+            onPress={() => router.push({ pathname: '/(app)/(admin)/users', params: { backRoute: 'profile' } })}
           >
             <View style={styles.linkCardContent}>
               <View style={styles.linkCardLeft}>
@@ -312,7 +312,7 @@ export default function ProfileScreen() {
         {isAdmin && !isSuperadmin && gym && (
           <Card
             style={styles.linkCard}
-            onPress={() => router.push(`/(app)/(admin)/gyms/${gym._id}`)}
+            onPress={() => router.push({ pathname: '/(app)/(admin)/gyms/[id]', params: { id: gym._id, backRoute: 'profile' } })}
           >
             <View style={styles.linkCardContent}>
               <View style={styles.linkCardLeft}>
@@ -341,7 +341,7 @@ export default function ProfileScreen() {
         {isAdmin && (
           <Card
             style={styles.linkCard}
-            onPress={() => router.push('/(app)/(shop)/orders')}
+            onPress={() => router.push({ pathname: '/(app)/(shop)/orders', params: { backRoute: 'profile' } })}
           >
             <View style={styles.linkCardContent}>
               <View style={styles.linkCardLeft}>
@@ -397,7 +397,7 @@ export default function ProfileScreen() {
         {isAdmin && (
           <Card
             style={styles.linkCard}
-            onPress={() => router.push('/(app)/(admin)/manage-memberships')}
+            onPress={() => router.push({ pathname: '/(app)/(admin)/manage-memberships', params: { backRoute: 'profile' } })}
           >
             <View style={styles.linkCardContent}>
               <View style={styles.linkCardLeft}>

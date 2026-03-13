@@ -33,7 +33,8 @@ const CATEGORIES = [
 
 export default function EditProductScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, backRoute } = useLocalSearchParams<{ id: string; backRoute?: string }>();
+  const handleBack = () => backRoute === 'shop' ? router.navigate('/(app)/(shop)') : router.back();
   const { pickImage } = useImagePicker();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -108,7 +109,7 @@ export default function EditProductScreen() {
         }
       } catch (err: any) {
         showAppAlert('Error', err.message || 'Failed to load product');
-        router.back();
+        handleBack();
       } finally {
         setIsLoading(false);
       }
@@ -170,7 +171,7 @@ export default function EditProductScreen() {
       }
 
       showAppAlert('Success', 'Product updated successfully', [
-        { text: 'OK', onPress: () => router.back() },
+        { text: 'OK', onPress: handleBack },
       ]);
     } catch (error: any) {
       console.error('Error updating product:', error);
@@ -184,7 +185,7 @@ export default function EditProductScreen() {
   if (isLoading) {
     return (
       <SafeScreen>
-        <Header title="Edit Product" showBack onBack={() => router.back()} />
+        <Header title="Edit Product" showBack onBack={handleBack} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary.yellow} />
         </View>
@@ -195,7 +196,7 @@ export default function EditProductScreen() {
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
       <SafeScreen>
-        <Header title="Edit Product" showBack onBack={() => router.back()} />
+        <Header title="Edit Product" showBack onBack={handleBack} />
 
         <ScrollView
           style={styles.scroll}

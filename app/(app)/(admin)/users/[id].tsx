@@ -18,10 +18,12 @@ import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { usersApi } from '../../../../src/api/endpoints/users';
 import { gymsApi } from '../../../../src/api/endpoints/gyms';
+import { membershipsApi } from '../../../../src/api/endpoints/memberships';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, typography } from '../../../../src/theme';
-import type { User, Role, Gym } from '../../../../src/types/models';
+import { formatCurrency } from '../../../../src/utils/formatters';
+import type { User, Role, Gym, Membership, MembershipPlan } from '../../../../src/types/models';
 
 const ROLES: { value: Role; label: string }[] = [
   { value: 'user', label: 'User' },
@@ -41,8 +43,9 @@ const getRoleBadgeVariant = (role: string) => {
 };
 
 export default function UserDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, backRoute } = useLocalSearchParams<{ id: string; backRoute?: string }>();
   const router = useRouter();
+  const handleBack = () => backRoute === 'feed' ? router.navigate('/(app)/(feed)') : router.back();
   const showToast = useUIStore((s) => s.showToast);
   const currentUser = useAuthStore((s) => s.user);
   const isSuperAdmin = currentUser?.role === 'superadmin';
@@ -50,6 +53,7 @@ export default function UserDetailScreen() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [membership, setMembership] = useState<Membership | null>(null);
 
   // Editable fields
   const [selectedRole, setSelectedRole] = useState<Role>('user');
@@ -63,13 +67,19 @@ export default function UserDetailScreen() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const res = await usersApi.getUserById(id);
-        const u = res.data;
+        const [userRes, membershipRes] = await Promise.all([
+          usersApi.getUserById(id),
+          membershipsApi.list({ userId: id, limit: 1 }).catch(() => null),
+        ]);
+        const u = userRes.data;
         setUser(u);
         setSelectedRole(u.role);
         setSelectedGymId(
           u.gymId ? (typeof u.gymId === 'string' ? u.gymId : u.gymId._id) : '',
         );
+        if (membershipRes?.data?.length) {
+          setMembership(membershipRes.data[0]);
+        }
       } catch {
         showToast('Failed to load user', 'error');
       } finally {
@@ -174,7 +184,7 @@ export default function UserDetailScreen() {
     return (
       <RoleGuard allowedRoles={['admin', 'superadmin']}>
         <SafeScreen>
-          <Header title="User Details" showBack onBack={() => router.back()} />
+          <Header title="User Details" showBack onBack={handleBack} />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary.yellow} />
           </View>
@@ -187,7 +197,7 @@ export default function UserDetailScreen() {
     return (
       <RoleGuard allowedRoles={['admin', 'superadmin']}>
         <SafeScreen>
-          <Header title="User Details" showBack onBack={() => router.back()} />
+          <Header title="User Details" showBack onBack={handleBack} />
           <View style={styles.loadingContainer}>
             <Text style={styles.errorText}>User not found</Text>
           </View>
@@ -201,7 +211,7 @@ export default function UserDetailScreen() {
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
       <SafeScreen>
-        <Header title="User Details" showBack onBack={() => router.back()} />
+        <Header title="User Details" showBack onBack={handleBack} />
 
         <ScrollView
           style={styles.scroll}
@@ -271,6 +281,94 @@ export default function UserDetailScreen() {
                 value={userGymName}
               />
             </View>
+          </View>
+
+          {/* Membership & Fees */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Membership & Fees</Text>
+            {membership ? (() => {
+              const plan = membership.planId && typeof membership.planId !== 'string'
+                ? membership.planId as MembershipPlan
+                : null;
+              const totalFee = membership.feesAmount ?? plan?.price ?? 0;
+              const paid = membership.feesPaid ?? 0;
+              const due = membership.feesDue ?? Math.max(0, totalFee - paid);
+              const credit = membership.advanceCredit ?? 0;
+              const statusColor =
+                membership.status === 'active' ? colors.status.success :
+                membership.status === 'expired' ? colors.status.warning :
+                colors.status.error;
+              return (
+                <View style={styles.infoCard}>
+                  {plan && (
+                    <>
+                      <InfoRow label="Plan" value={plan.name} />
+                      <View style={styles.infoDivider} />
+                    </>
+                  )}
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Status</Text>
+                    <View style={[styles.membershipStatusBadge, { backgroundColor: statusColor + '22' }]}>
+                      <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+                      <Text style={[styles.membershipStatusText, { color: statusColor }]}>
+                        {membership.status.charAt(0).toUpperCase() + membership.status.slice(1)}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.infoDivider} />
+                  <InfoRow
+                    label="Start Date"
+                    value={new Date(membership.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  />
+                  <View style={styles.infoDivider} />
+                  <InfoRow
+                    label="End Date"
+                    value={new Date(membership.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  />
+                  <View style={styles.infoDivider} />
+                  <InfoRow label="Total Fee" value={formatCurrency(totalFee)} />
+                  <View style={styles.infoDivider} />
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Fees Paid</Text>
+                    <Text style={[styles.infoValue, { color: colors.status.success }]}>
+                      {formatCurrency(paid)}
+                    </Text>
+                  </View>
+                  <View style={styles.infoDivider} />
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Fees Pending</Text>
+                    <Text style={[styles.infoValue, { color: due > 0 ? colors.status.error : colors.text.primary }]}>
+                      {formatCurrency(due)}
+                    </Text>
+                  </View>
+                  {credit > 0 && (
+                    <>
+                      <View style={styles.infoDivider} />
+                      <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Advance Credit</Text>
+                        <Text style={[styles.infoValue, { color: colors.status.info }]}>
+                          {formatCurrency(credit)}
+                        </Text>
+                      </View>
+                    </>
+                  )}
+                  {membership.lastPaymentDate && (
+                    <>
+                      <View style={styles.infoDivider} />
+                      <InfoRow
+                        label="Last Payment"
+                        value={new Date(membership.lastPaymentDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      />
+                    </>
+                  )}
+                </View>
+              );
+            })() : (
+              <View style={styles.noMembershipCard}>
+                <Ionicons name="card-outline" size={32} color={colors.text.light} />
+                <Text style={styles.noMembershipText}>No active membership</Text>
+              </View>
+            )}
           </View>
 
           {/* Gym Assignment - Superadmin only */}
@@ -667,5 +765,30 @@ const styles = StyleSheet.create({
   },
   statusSection: {
     marginBottom: spacing.xxl,
+  },
+  membershipStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.pill,
+  },
+  membershipStatusText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 12,
+  },
+  noMembershipCard: {
+    backgroundColor: colors.background.card,
+    borderRadius: borderRadius.card,
+    padding: spacing.xxl,
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  noMembershipText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: colors.text.light,
   },
 });

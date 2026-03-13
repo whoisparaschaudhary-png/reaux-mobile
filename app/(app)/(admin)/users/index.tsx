@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../src/components/layout/Header';
@@ -27,6 +27,8 @@ const SUPERADMIN_TABS: { key: TabFilter; label: string }[] = [
 
 export default function UsersScreen() {
   const router = useRouter();
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { users, isLoading, pagination, fetchUsers, updateUserStatus } = useAdminStore();
   const currentUser = useAuthStore((s) => s.user);
   const isSuperAdmin = currentUser?.role === 'superadmin';
@@ -69,7 +71,7 @@ export default function UsersScreen() {
   }, [router]);
 
   const handleUserPress = useCallback((user: User) => {
-    router.push(`/(app)/(admin)/users/${user._id}`);
+    router.push({ pathname: '/(app)/(admin)/users/[id]', params: { id: user._id, backRoute: 'admin' } });
   }, [router]);
 
   const renderItem = useCallback(
@@ -106,10 +108,10 @@ export default function UsersScreen() {
         <Header
           title="Users"
           showBack
-          onBack={() => router.back()}
+          onBack={handleBack}
           rightAction={
             <TouchableOpacity
-              onPress={() => router.push('/(app)/(admin)/users/create')}
+              onPress={() => router.push({ pathname: '/(app)/(admin)/users/create', params: { backRoute: 'admin' } })}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Ionicons

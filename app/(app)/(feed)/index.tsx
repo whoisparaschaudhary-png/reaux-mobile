@@ -410,7 +410,7 @@ export default function FeedScreen() {
             )}
             <TouchableOpacity
               onPress={activeCategory === 'Members'
-                ? () => router.push('/(app)/(admin)/users/create')
+                ? () => router.push({ pathname: '/(app)/(admin)/users/create', params: { backRoute: 'feed' } })
                 : handleAdminAdd
               }
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -459,7 +459,7 @@ export default function FeedScreen() {
               <TouchableOpacity
                 style={[styles.feeSummaryCard, styles.feeSummaryCardPending]}
                 activeOpacity={0.7}
-                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'pending' } })}
+                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'pending', backRoute: 'feed' } })}
               >
                 <Ionicons name="alert-circle-outline" size={22} color={colors.status.error} />
                 <Text style={styles.feeSummaryLabel}>Pending</Text>
@@ -470,7 +470,7 @@ export default function FeedScreen() {
               <TouchableOpacity
                 style={[styles.feeSummaryCard, styles.feeSummaryCardPaid]}
                 activeOpacity={0.7}
-                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'paid' } })}
+                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'paid', backRoute: 'feed' } })}
               >
                 <Ionicons name="checkmark-circle-outline" size={22} color={colors.status.success} />
                 <Text style={styles.feeSummaryLabel}>Collected</Text>
@@ -481,7 +481,7 @@ export default function FeedScreen() {
               <TouchableOpacity
                 style={[styles.feeSummaryCard, styles.feeSummaryCardUpcoming]}
                 activeOpacity={0.7}
-                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'upcoming' } })}
+                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'upcoming', backRoute: 'feed' } })}
               >
                 <Ionicons name="time-outline" size={22} color={colors.status.warning} />
                 <Text style={styles.feeSummaryLabel}>Upcoming</Text>
@@ -495,7 +495,7 @@ export default function FeedScreen() {
               <TouchableOpacity
                 style={styles.creditSummaryBanner}
                 activeOpacity={0.7}
-                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'credit' } })}
+                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'credit', backRoute: 'feed' } })}
               >
                 <Ionicons name="wallet-outline" size={20} color={colors.status.info} />
                 <Text style={styles.creditSummaryLabel}>Member Credit</Text>
@@ -527,7 +527,7 @@ export default function FeedScreen() {
                 renderItem={({ item }: { item: User }) => (
                   <UserCard
                     user={item}
-                    onPress={(u: User) => router.push(`/(app)/(admin)/users/${u._id}`)}
+                    onPress={(u: User) => router.push({ pathname: '/(app)/(admin)/users/[id]', params: { id: u._id, backRoute: 'feed' } })}
                   />
                 )}
                 contentContainerStyle={styles.membersListContent}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
@@ -21,10 +21,12 @@ const MenuItem: React.FC<MenuItemProps> = ({ label, onPress }) => (
 
 function ManageMembershipsContent() {
   const router = useRouter();
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
 
   return (
     <SafeScreen>
-      <Header title="Manage Memberships" showBack onBack={() => router.back()} />
+      <Header title="Manage Memberships" showBack onBack={handleBack} />
 
       <View style={styles.container}>
         <View style={styles.menuCard}>

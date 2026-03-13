@@ -28,7 +28,8 @@ import type { User, Gym } from '../../../../src/types/models';
 
 export default function EditGymScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, backRoute } = useLocalSearchParams<{ id: string; backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { pickImage } = useImagePicker();
   const currentUser = useAuthStore((s) => s.user);
   const isSuperAdmin = currentUser?.role === 'superadmin';
@@ -95,7 +96,7 @@ export default function EditGymScreen() {
       }
     } catch (err: any) {
       showAppAlert('Error', err.message || 'Failed to load gym');
-      router.back();
+      handleBack();
     } finally {
       setIsLoadingGym(false);
     }
@@ -248,7 +249,7 @@ export default function EditGymScreen() {
             showAppAlert(
               'Partial Success',
               `Gym updated successfully, but admin assignment failed: ${assignErrorMsg}`,
-              [{ text: 'OK', onPress: () => router.back() }]
+              [{ text: 'OK', onPress: handleBack }]
             );
             return;
           }
@@ -256,7 +257,7 @@ export default function EditGymScreen() {
       }
 
       showAppAlert('Success', 'Gym updated successfully', [
-        { text: 'OK', onPress: () => router.back() },
+        { text: 'OK', onPress: handleBack },
       ]);
     } catch (error: any) {
       console.error('Error updating gym:', error);
@@ -271,7 +272,7 @@ export default function EditGymScreen() {
     return (
       <RoleGuard allowedRoles={['admin', 'superadmin']}>
         <SafeScreen>
-          <Header title="Edit Gym" showBack onBack={() => router.back()} />
+          <Header title="Edit Gym" showBack onBack={handleBack} />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary.yellow} />
             <Text style={styles.loadingText}>Loading gym...</Text>
@@ -285,7 +286,7 @@ export default function EditGymScreen() {
     return (
       <RoleGuard allowedRoles={['admin', 'superadmin']}>
         <SafeScreen>
-          <Header title="Edit Gym" showBack onBack={() => router.back()} />
+          <Header title="Edit Gym" showBack onBack={handleBack} />
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Gym not found</Text>
           </View>
@@ -297,7 +298,7 @@ export default function EditGymScreen() {
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
       <SafeScreen>
-        <Header title="Edit Gym" showBack onBack={() => router.back()} />
+        <Header title="Edit Gym" showBack onBack={handleBack} />
 
         <ScrollView
           style={styles.scroll}

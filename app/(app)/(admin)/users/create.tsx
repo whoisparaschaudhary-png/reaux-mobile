@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../src/components/layout/Header';
 import { Input } from '../../../../src/components/ui/Input';
@@ -44,6 +44,8 @@ const STATUSES: { value: UserStatus; label: string; description: string }[] = [
 
 export default function CreateUserScreen() {
   const router = useRouter();
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'feed' ? router.navigate('/(app)/(feed)') : router.back();
   const showToast = useUIStore((s) => s.showToast);
   const currentUser = useAuthStore((s) => s.user);
   const isSuperAdmin = currentUser?.role === 'superadmin';
@@ -190,7 +192,7 @@ export default function CreateUserScreen() {
         dateOfJoining: formatDateISO(dateOfJoining),
       });
       showToast('User created successfully', 'success');
-      router.back();
+      handleBack();
     } catch (error: any) {
       showToast(error.message || 'Failed to create user', 'error');
     } finally {
@@ -204,7 +206,7 @@ export default function CreateUserScreen() {
         <Header
           title="Create User"
           showBack
-          onBack={() => router.back()}
+          onBack={handleBack}
           rightAction={
             <TouchableOpacity
               onPress={handleCreate}

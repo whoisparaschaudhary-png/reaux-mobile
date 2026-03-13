@@ -204,7 +204,7 @@ export default function ProductDetailScreen() {
               {isAdmin && (
                 <TouchableOpacity
                   style={styles.secondaryBtn}
-                  onPress={() => router.push(`/(app)/(admin)/products/edit?id=${product._id}`)}
+                  onPress={() => router.push({ pathname: '/(app)/(admin)/products/edit', params: { id: product._id, backRoute: 'shop' } })}
                   activeOpacity={0.7}
                 >
                   <Ionicons

@@ -64,7 +64,7 @@ const FEE_TABS: { key: FeeTab; label: string }[] = [
 
 export default function FeesScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ tab?: string }>();
+  const params = useLocalSearchParams<{ tab?: string; backRoute?: string }>();
   const {
     memberships,
     membershipsLoading,
@@ -301,7 +301,7 @@ export default function FeesScreen() {
         <Header
           title="Fees"
           showBack
-          onBack={() => router.back()}
+          onBack={() => params.backRoute === 'feed' ? router.navigate('/(app)/(feed)') : router.back()}
         />
 
         {membershipsLoading && memberships.length === 0 ? (
