@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { login, register, getMe, updateProfile, uploadAvatar } from '../api/endpoints/auth';
 import type { UpdateProfileParams } from '../api/endpoints/auth';
 import { getToken, setToken, removeToken } from '../utils/storage';
+import { resetAllStores } from './resetAllStores';
 import type { User } from '../types/models';
 
 interface AuthState {
@@ -35,6 +36,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await login(email, password);
       const { token: authToken, user } = response.data;
       await setToken(authToken);
+      // Clear all store data before setting new user — prevents stale data from previous session
+      resetAllStores();
       set({ user: user as unknown as User, token: authToken, isAuthenticated: true, isLoading: false });
 
       // Register device token immediately after login
@@ -87,6 +90,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await removeToken();
+    resetAllStores();
     set({ user: null, token: null, isAuthenticated: false, error: null });
   },
 

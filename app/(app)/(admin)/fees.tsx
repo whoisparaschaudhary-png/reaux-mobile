@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Alert,
   StyleSheet,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
@@ -88,9 +88,11 @@ export default function FeesScreen() {
   } | null>(null);
   const [recording, setRecording] = useState(false);
 
-  useEffect(() => {
-    fetchMemberships(1, { status: 'active' });
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchMemberships(1, { status: 'active' });
+    }, [fetchMemberships])
+  );
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
