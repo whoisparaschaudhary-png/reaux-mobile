@@ -1,3 +1,15 @@
+// SavedAddress (user profile addresses)
+export interface SavedAddress {
+  _id: string;
+  label: string; // e.g. "Home", "Work"
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+  isDefault: boolean;
+}
+
 // Role types
 export type Role = 'user' | 'admin' | 'superadmin';
 export type UserStatus = 'active' | 'disabled';

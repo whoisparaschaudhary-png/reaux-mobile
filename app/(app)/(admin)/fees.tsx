@@ -53,6 +53,7 @@ function getPlanPrice(membership: Membership): number {
 }
 
 type FeeTab = 'all' | 'pending' | 'paid' | 'credit' | 'upcoming';
+type SortOption = 'default' | 'endDate' | 'feesDue';
 
 const FEE_TABS: { key: FeeTab; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -75,6 +76,7 @@ export default function FeesScreen() {
   const initialTab = (params.tab as FeeTab) || 'all';
   const [activeTab, setActiveTab] = useState<FeeTab>(initialTab);
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('default');
   const [refreshing, setRefreshing] = useState(false);
   const [paymentModal, setPaymentModal] = useState<{
     membership: Membership;
@@ -88,17 +90,29 @@ export default function FeesScreen() {
   } | null>(null);
   const [recording, setRecording] = useState(false);
 
+  const fetchWithSort = useCallback((sort: SortOption) => {
+    const sortParams: Record<string, string> = { status: 'active' };
+    if (sort === 'endDate') { sortParams.sortBy = 'endDate'; sortParams.order = 'asc'; }
+    else if (sort === 'feesDue') { sortParams.sortBy = 'feesDue'; sortParams.order = 'desc'; }
+    fetchMemberships(1, sortParams as any);
+  }, [fetchMemberships]);
+
   useFocusEffect(
     useCallback(() => {
-      fetchMemberships(1, { status: 'active' });
-    }, [fetchMemberships])
+      fetchWithSort(sortBy);
+    }, [fetchWithSort, sortBy])
   );
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchMemberships(1, { status: 'active' });
+    await fetchWithSort(sortBy);
     setRefreshing(false);
-  }, [fetchMemberships]);
+  }, [fetchWithSort, sortBy]);
+
+  const handleSortChange = useCallback((newSort: SortOption) => {
+    setSortBy(newSort);
+    fetchWithSort(newSort);
+  }, [fetchWithSort]);
 
   const { duePending, fullyPaid, withCredit, upcoming, totalDue, totalCollected, totalCredit } = useMemo(() => {
     const filtered = memberships.filter((m) => {
@@ -393,13 +407,31 @@ export default function FeesScreen() {
               })}
             </ScrollView>
 
-            {/* Search */}
-            <View style={styles.searchContainer}>
-              <SearchBar
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Search members..."
-              />
+            {/* Sort + Search row */}
+            <View style={styles.sortSearchRow}>
+              <View style={styles.searchFlex}>
+                <SearchBar
+                  value={search}
+                  onChangeText={setSearch}
+                  placeholder="Search members..."
+                />
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sortChips}>
+                {([
+                  { key: 'default', label: 'Default' },
+                  { key: 'endDate', label: 'Renewal' },
+                  { key: 'feesDue', label: 'Dues ↓' },
+                ] as { key: SortOption; label: string }[]).map((s) => (
+                  <TouchableOpacity
+                    key={s.key}
+                    style={[styles.sortChip, sortBy === s.key && styles.sortChipActive]}
+                    onPress={() => handleSortChange(s.key)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.sortChipText, sortBy === s.key && styles.sortChipTextActive]}>{s.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
 
             {/* Tab Content */}
@@ -729,6 +761,35 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     marginBottom: spacing.xl,
+  },
+  sortSearchRow: {
+    marginBottom: spacing.xl,
+    gap: spacing.sm,
+  },
+  searchFlex: {
+    marginBottom: spacing.sm,
+  },
+  sortChips: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingRight: spacing.md,
+  },
+  sortChip: {
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.pill,
+    backgroundColor: colors.border.light,
+  },
+  sortChipActive: {
+    backgroundColor: colors.primary.yellow,
+  },
+  sortChipText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 12,
+    color: colors.text.secondary,
+  },
+  sortChipTextActive: {
+    color: colors.text.onPrimary,
   },
   section: {
     marginBottom: spacing.xxl,

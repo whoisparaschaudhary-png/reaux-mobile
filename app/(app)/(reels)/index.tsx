@@ -92,7 +92,7 @@ export default function ReelsScreen() {
         isVisible={item._id === visibleId}
         onLike={() => likeReel(item._id)}
         onComment={() => router.push(`/(app)/(reels)/${item._id}`)}
-        onShare={() => handleShareReel(item)}
+        onShare={() => handleShareReel()}
         height={reelHeight}
       />
     ),

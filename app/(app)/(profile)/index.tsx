@@ -520,6 +520,29 @@ export default function ProfileScreen() {
           </View>
         </Card>
 
+        {/* Contact Us */}
+        <Card
+          style={styles.linkCard}
+          onPress={() => router.push('/(app)/(profile)/contact')}
+        >
+          <View style={styles.linkCardContent}>
+            <View style={styles.linkCardLeft}>
+              <Ionicons
+                name="mail-outline"
+                size={22}
+                color={colors.text.primary}
+              />
+              <View style={styles.linkCardText}>
+                <Text style={styles.linkCardTitle}>Contact Us</Text>
+                <Text style={styles.linkCardSubtitle}>
+                  Send us a message or feedback
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.text.light} />
+          </View>
+        </Card>
+
         {/* Save Changes Button */}
         {hasChanges && (
           <View style={styles.saveButtonContainer}>

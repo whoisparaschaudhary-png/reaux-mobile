@@ -19,6 +19,8 @@ interface InputProps {
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   multiline?: boolean;
+  numberOfLines?: number;
+  maxLength?: number;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   style?: ViewStyle;
@@ -34,6 +36,8 @@ export const Input: React.FC<InputProps> = ({
   keyboardType = 'default',
   autoCapitalize,
   multiline = false,
+  numberOfLines,
+  maxLength,
   leftIcon,
   rightIcon,
   style,
@@ -67,6 +71,8 @@ export const Input: React.FC<InputProps> = ({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           multiline={multiline}
+          numberOfLines={numberOfLines}
+          maxLength={maxLength}
           textAlignVertical={multiline ? 'top' : 'center'}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}

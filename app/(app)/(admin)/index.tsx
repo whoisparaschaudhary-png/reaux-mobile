@@ -190,6 +190,11 @@ export default function AdminDashboardScreen() {
               />
               <View style={styles.divider} />
               <MenuItem
+                label="Gym Members"
+                onPress={() => router.push('/(app)/(admin)/memberships/gym-members')}
+              />
+              <View style={styles.divider} />
+              <MenuItem
                 label="Manage Memberships"
                 onPress={() => router.push('/(app)/(admin)/manage-memberships')}
               />
@@ -207,6 +212,11 @@ export default function AdminDashboardScreen() {
               <MenuItem
                 label="Promo Banners"
                 onPress={() => router.push('/(app)/(admin)/promo/past')}
+              />
+              <View style={styles.divider} />
+              <MenuItem
+                label="Contact Us"
+                onPress={() => router.push('/(app)/(profile)/contact')}
               />
             </View>
           </View>

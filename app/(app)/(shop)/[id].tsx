@@ -169,17 +169,17 @@ export default function ProductDetailScreen() {
                     product.nutrition.fat != null && { label: 'Fat', value: `${product.nutrition.fat}g` },
                     product.nutrition.sugar != null && { label: 'Sugar', value: `${product.nutrition.sugar}g` },
                   ]
-                    .filter(Boolean)
+                    .filter((row): row is { label: string; value: string } => Boolean(row))
                     .map((row, index) => (
                       <View
-                        key={row!.label}
+                        key={row.label}
                         style={[
                           styles.nutritionRow,
                           index % 2 === 0 && styles.nutritionRowAlt,
                         ]}
                       >
-                        <Text style={styles.nutritionLabel}>{row!.label}</Text>
-                        <Text style={styles.nutritionValue}>{row!.value}</Text>
+                        <Text style={styles.nutritionLabel}>{row.label}</Text>
+                        <Text style={styles.nutritionValue}>{row.value}</Text>
                       </View>
                     ))}
                 </View>

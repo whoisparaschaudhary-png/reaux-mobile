@@ -352,7 +352,7 @@ export default function MembershipDetailScreen() {
             {(selectedMembership.paymentHistory?.length ?? 0) > 0 && (
               <View style={styles.historyContainer}>
                 <Text style={styles.historyTitle}>Payment History</Text>
-                {selectedMembership.paymentHistory!.map((p, i) => (
+                {selectedMembership.paymentHistory?.map((p, i) => (
                   <View key={i} style={styles.historyRow}>
                     <View style={styles.historyLeft}>
                       <Ionicons

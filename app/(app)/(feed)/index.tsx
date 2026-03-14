@@ -210,7 +210,7 @@ export default function FeedScreen() {
       const totalFee = m.feesAmount ?? planPrice;
       const paid = m.feesPaid ?? 0;
       const due = m.feesDue ?? (totalFee - paid);
-      const credit = m.credit ?? (paid > totalFee && due <= 0 ? paid - totalFee : 0);
+      const credit = m.advanceCredit ?? (paid > totalFee && due <= 0 ? paid - totalFee : 0);
 
       totalPaid += paid;
       if (due > 0) totalPending += due;
@@ -263,12 +263,6 @@ export default function FeedScreen() {
     const category = workoutCategory === 'all' ? undefined : workoutCategory;
     fetchWorkouts({ page: 1, category });
   }, [activeCategory, workoutCategory]);
-
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7927/ingest/9dae40e1-b3fb-4628-a12e-08648e00da2b', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '1c7f0b' }, body: JSON.stringify({ sessionId: '1c7f0b', runId: 'run1', hypothesisId: 'E', location: 'app/(app)/(feed)/index.tsx:FeedScreen', message: 'Feed screen mounted', data: { activeCategory }, timestamp: Date.now() }) }).catch(() => {});
-  }, [activeCategory]);
-  // #endregion
 
   const handleRefresh = useCallback(() => {
     if (activeCategory === 'Workouts') {
@@ -373,8 +367,8 @@ export default function FeedScreen() {
         onComment={() => router.push(`/(app)/(feed)/${item._id}`)}
         onShare={() => {
           Share.share({
-            message: item.caption
-              ? `${item.caption} — shared from REAUX Labs`
+            message: item.content
+              ? `${item.content} — shared from REAUX Labs`
               : 'Check out this post on REAUX Labs!',
           });
         }}

@@ -55,6 +55,7 @@ export interface CreateProductRequest {
   images?: string[];
   category?: string;
   stock?: number;
+  isActive?: boolean;
 }
 
 export interface AddToCartRequest {

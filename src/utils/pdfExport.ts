@@ -8,7 +8,7 @@ import type { SalesReport, User, Product, Order, DietPlan, Meal, MealItem, Worko
  * Export sales report as PDF
  */
 export const exportSalesReportPDF = async (salesReport: SalesReport) => {
-  const currentDate = formatDate(new Date());
+  const currentDate = formatDate(new Date().toISOString());
 
   const monthlyRows = salesReport.monthlyBreakdown?.map((month) => `
     <tr>
@@ -194,7 +194,7 @@ export const exportSalesReportPDF = async (salesReport: SalesReport) => {
  * Export users list as PDF
  */
 export const exportUsersListPDF = async (users: User[]) => {
-  const currentDate = formatDate(new Date());
+  const currentDate = formatDate(new Date().toISOString());
 
   const userRows = users.map((user, index) => `
     <tr>
@@ -383,7 +383,7 @@ export const exportUsersListPDF = async (users: User[]) => {
  * Export products list as PDF
  */
 export const exportProductsListPDF = async (products: Product[]) => {
-  const currentDate = formatDate(new Date());
+  const currentDate = formatDate(new Date().toISOString());
 
   const productRows = products.map((product, index) => `
     <tr>
@@ -561,7 +561,7 @@ export const exportProductsListPDF = async (products: Product[]) => {
  * Export orders list as PDF
  */
 export const exportOrdersListPDF = async (orders: Order[]) => {
-  const currentDate = formatDate(new Date());
+  const currentDate = formatDate(new Date().toISOString());
 
   const orderRows = orders.map((order, index) => {
     const customerName = typeof order.userId === 'object' && order.userId !== null
@@ -1011,7 +1011,7 @@ export const exportSingleOrderPDF = async (order: Order) => {
  * Export diet plan as PDF (for plans created by admin)
  */
 export const exportDietPlanPDF = async (plan: DietPlan) => {
-  const currentDate = formatDate(new Date());
+  const currentDate = formatDate(new Date().toISOString());
   const categoryLabel = plan.category ? String(plan.category).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '';
 
   const mealSections = (plan.meals ?? []).map((meal) => {
@@ -1109,7 +1109,7 @@ export const exportDietPlanPDF = async (plan: DietPlan) => {
  * Export workout plan as PDF (for plans created by admin)
  */
 export const exportWorkoutPlanPDF = async (workout: Workout) => {
-  const currentDate = formatDate(new Date());
+  const currentDate = formatDate(new Date().toISOString());
   const categoryLabel = workout.category ? String(workout.category).replace(/\b\w/g, (c) => c.toUpperCase()) : '';
   const difficultyLabel = workout.difficulty ? String(workout.difficulty).replace(/\b\w/g, (c) => c.toUpperCase()) : '';
 

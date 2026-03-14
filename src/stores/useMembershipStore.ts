@@ -43,7 +43,7 @@ interface MembershipState {
   assignMembership: (data: AssignMembershipRequest) => Promise<void>;
   fetchMemberships: (
     page?: number,
-    filters?: { userId?: string; gymId?: string; status?: string }
+    filters?: { userId?: string; gymId?: string; status?: string; sortBy?: string; order?: 'asc' | 'desc' }
   ) => Promise<void>;
   fetchMyMemberships: (page?: number) => Promise<void>;
   fetchMembershipById: (id: string) => Promise<void>;
@@ -183,7 +183,7 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
 
   fetchMemberships: async (
     page = 1,
-    filters?: { userId?: string; gymId?: string; status?: string }
+    filters?: { userId?: string; gymId?: string; status?: string; sortBy?: string; order?: 'asc' | 'desc' }
   ) => {
     set({ membershipsLoading: true, membershipsError: null });
     try {

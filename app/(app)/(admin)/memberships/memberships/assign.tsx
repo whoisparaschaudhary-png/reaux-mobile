@@ -35,6 +35,8 @@ export default function AssignMembershipScreen() {
   const [selectedUserId, setSelectedUserId] = useState(preselectedUserId ?? '');
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [startDate, setStartDate] = useState('');
+  const [feesAmount, setFeesAmount] = useState('');
+  const [feesPaid, setFeesPaid] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -70,6 +72,13 @@ export default function AssignMembershipScreen() {
   const selectedUser = users.find((u) => u._id === selectedUserId);
   const selectedPlan = plans.find((p) => p._id === selectedPlanId);
 
+  // Auto-fill feesAmount when plan is selected
+  React.useEffect(() => {
+    if (selectedPlan && !feesAmount) {
+      setFeesAmount(String(selectedPlan.price));
+    }
+  }, [selectedPlanId]);
+
   const handleSubmit = async () => {
     if (!selectedUserId) {
       showAppAlert('Validation', 'Please select a user');
@@ -85,10 +94,14 @@ export default function AssignMembershipScreen() {
     }
 
     try {
+      const feesAmountNum = feesAmount ? parseFloat(feesAmount) : undefined;
+      const feesPaidNum = feesPaid ? parseFloat(feesPaid) : undefined;
       await assignMembership({
         userId: selectedUserId,
         planId: selectedPlanId,
         startDate,
+        ...(feesAmountNum !== undefined && !isNaN(feesAmountNum) ? { feesAmount: feesAmountNum } : {}),
+        ...(feesPaidNum !== undefined && !isNaN(feesPaidNum) ? { feesPaid: feesPaidNum } : {}),
       });
 
       showAppAlert('Success', 'Membership assigned successfully', [
@@ -237,6 +250,27 @@ export default function AssignMembershipScreen() {
               />
             </View>
 
+            {/* Fee Details */}
+            <Text style={styles.sectionTitle}>Fee Details</Text>
+            <View style={styles.field}>
+              <Input
+                label="Total Fee Amount (₹)"
+                placeholder={selectedPlan ? String(selectedPlan.price) : 'e.g. 1500'}
+                value={feesAmount}
+                onChangeText={setFeesAmount}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={styles.field}>
+              <Input
+                label="Amount Paid Now (₹) — optional"
+                placeholder="0"
+                value={feesPaid}
+                onChangeText={setFeesPaid}
+                keyboardType="numeric"
+              />
+            </View>
+
             {/* Summary */}
             {selectedUser && selectedPlan && (
               <View style={styles.summary}>
@@ -250,11 +284,19 @@ export default function AssignMembershipScreen() {
                   <Text style={styles.summaryValue}>{selectedPlan.name}</Text>
                 </View>
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Amount</Text>
+                  <Text style={styles.summaryLabel}>Total Fee</Text>
                   <Text style={styles.summaryValue}>
-                    {formatCurrency(selectedPlan.price)}
+                    {formatCurrency(feesAmount ? parseFloat(feesAmount) || selectedPlan.price : selectedPlan.price)}
                   </Text>
                 </View>
+                {feesPaid ? (
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Paid Now</Text>
+                    <Text style={[styles.summaryValue, { color: colors.status.success }]}>
+                      {formatCurrency(parseFloat(feesPaid) || 0)}
+                    </Text>
+                  </View>
+                ) : null}
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>Start Date</Text>
                   <Text style={styles.summaryValue}>{startDate || 'Not set'}</Text>

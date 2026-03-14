@@ -119,7 +119,7 @@ export default function WorkoutDetailScreen() {
         {/* Stats Row */}
         <View style={[styles.statsCard, shadows.card]}>
           <View style={styles.statItem}>
-            <Ionicons name="time-outline" size={22} color={colors.primary.dark} />
+            <Ionicons name="time-outline" size={22} color={colors.primary.yellowDark} />
             <Text style={styles.statValue}>{workout.duration}</Text>
             <Text style={styles.statLabel}>min</Text>
           </View>

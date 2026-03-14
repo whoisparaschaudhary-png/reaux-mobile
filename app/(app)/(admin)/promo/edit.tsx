@@ -169,7 +169,7 @@ export default function EditPromoScreen() {
                 activeOpacity={0.7}
               >
                 <Ionicons
-                  name="percent-outline"
+                  name="pricetag-outline"
                   size={18}
                   color={
                     discountType === 'percentage'

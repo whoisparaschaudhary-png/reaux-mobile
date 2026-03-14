@@ -25,14 +25,13 @@ const PAYMENT_METHODS = [
 ];
 
 export default function CartScreen() {
-  const { cart, isLoading, fetchCart, removeFromCart, cartTotal, selectedAddress, loadSavedAddress } = useCartStore();
+  const { cart, isLoading, fetchCart, removeFromCart, cartTotal, selectedAddress } = useCartStore();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState('cod');
 
   useEffect(() => {
     fetchCart();
-    loadSavedAddress();
-  }, [fetchCart, loadSavedAddress]);
+  }, [fetchCart]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

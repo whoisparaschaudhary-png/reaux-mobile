@@ -10,6 +10,18 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeScreen } from '../../../src/components/layout/SafeScreen';
+import { Header } from '../../../src/components/layout/Header';
+import { Button } from '../../../src/components/ui/Button';
+import { Input } from '../../../src/components/ui/Input';
+import { useCartStore } from '../../../src/stores/useCartStore';
+import { useOrderStore } from '../../../src/stores/useOrderStore';
+import { addressesApi } from '../../../src/api/endpoints/users';
+import { showAppAlert } from '../../../src/stores/useUIStore';
+import { formatCurrency } from '../../../src/utils/formatters';
+import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
+import type { Product, SavedAddress } from '../../../src/types/models';
+import type { ShippingAddressState } from '../../../src/stores/useCartStore';
 
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -21,17 +33,6 @@ const INDIAN_STATES = [
   'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
   'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry',
 ];
-import { SafeScreen } from '../../../src/components/layout/SafeScreen';
-import { Header } from '../../../src/components/layout/Header';
-import { Button } from '../../../src/components/ui/Button';
-import { Input } from '../../../src/components/ui/Input';
-import { useCartStore } from '../../../src/stores/useCartStore';
-import { useOrderStore } from '../../../src/stores/useOrderStore';
-import { showAppAlert } from '../../../src/stores/useUIStore';
-import { formatCurrency } from '../../../src/utils/formatters';
-import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
-import type { Product } from '../../../src/types/models';
-import type { ShippingAddressState } from '../../../src/stores/useCartStore';
 
 const emptyAddress: ShippingAddressState = {
   street: '',
@@ -42,18 +43,28 @@ const emptyAddress: ShippingAddressState = {
 };
 
 export default function CheckoutScreen() {
-  const { cart, cartTotal, fetchCart, selectedAddress, loadSavedAddress } = useCartStore();
+  const { cart, cartTotal, fetchCart, selectedAddress } = useCartStore();
   const { createOrder, isLoading: orderLoading } = useOrderStore();
 
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [address, setAddress] = useState<ShippingAddressState>(emptyAddress);
   const [showStatePicker, setShowStatePicker] = useState(false);
+  const [showAddressPicker, setShowAddressPicker] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
 
-  // Load persisted address and prefill when user has already saved one
+  // Load saved addresses from API + prefill default
   useEffect(() => {
-    loadSavedAddress();
-  }, [loadSavedAddress]);
+    addressesApi.list().then((res) => {
+      const list = res.data ?? [];
+      setSavedAddresses(list);
+      const defaultAddr = list.find((a) => a.isDefault) ?? list[0];
+      if (defaultAddr && !selectedAddress) {
+        setAddress({ street: defaultAddr.street, city: defaultAddr.city, state: defaultAddr.state, pincode: defaultAddr.pincode, phone: defaultAddr.phone });
+      }
+    }).catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (selectedAddress) setAddress(selectedAddress);
   }, [selectedAddress]);
@@ -164,12 +175,23 @@ export default function CheckoutScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Shipping Address</Text>
-              <TouchableOpacity
-                onPress={() => router.push('/(app)/(shop)/address')}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.changeLink}>Add New</Text>
-              </TouchableOpacity>
+              <View style={styles.addressActions}>
+                {savedAddresses.length > 1 && (
+                  <TouchableOpacity
+                    onPress={() => setShowAddressPicker(true)}
+                    activeOpacity={0.7}
+                    style={styles.addressActionBtn}
+                  >
+                    <Text style={styles.changeLink}>Saved ({savedAddresses.length})</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  onPress={() => router.push('/(app)/(shop)/address')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.changeLink}>Add New</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <Input
@@ -267,6 +289,53 @@ export default function CheckoutScreen() {
         </View>
       </View>
 
+      {/* Saved Address Picker Modal */}
+      <Modal
+        visible={showAddressPicker}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAddressPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowAddressPicker(false)}
+        >
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Select Saved Address</Text>
+            <FlatList
+              data={savedAddresses}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.addressOption,
+                    address.street === item.street && address.pincode === item.pincode && styles.addressOptionActive,
+                  ]}
+                  onPress={() => {
+                    setAddress({ street: item.street, city: item.city, state: item.state, pincode: item.pincode, phone: item.phone });
+                    setShowAddressPicker(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="location-outline" size={18} color={colors.primary.yellowDark} />
+                  <View style={styles.addressOptionText}>
+                    <Text style={styles.addressOptionStreet} numberOfLines={1}>{item.label} — {item.street}</Text>
+                    <Text style={styles.addressOptionDetail}>{item.city}, {item.state} - {item.pincode}</Text>
+                    <Text style={styles.addressOptionPhone}>{item.phone}</Text>
+                  </View>
+                  {address.street === item.street && address.pincode === item.pincode && (
+                    <Ionicons name="checkmark-circle" size={20} color={colors.primary.yellowDark} />
+                  )}
+                </TouchableOpacity>
+              )}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* State Picker Modal */}
       <Modal
         visible={showStatePicker}
@@ -329,6 +398,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  addressActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    alignItems: 'center',
+  },
+  addressActionBtn: {},
+  addressOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  addressOptionActive: {
+    backgroundColor: colors.primary.yellowLight,
+  },
+  addressOptionText: {
+    flex: 1,
+  },
+  addressOptionStreet: {
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    color: colors.text.primary,
+  },
+  addressOptionDetail: {
+    fontFamily: fontFamily.regular,
+    fontSize: 13,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  addressOptionPhone: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: colors.text.light,
+    marginTop: 2,
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,

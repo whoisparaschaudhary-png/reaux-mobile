@@ -214,9 +214,7 @@ export default function PostDetailScreen() {
   const hasImage = post.mediaType === 'image' && post.mediaUrl;
 
   // Check if current user has liked this post
-  const isLiked = user && post.isLiked !== undefined
-    ? post.isLiked
-    : user && post.likes?.includes(user._id);
+  const isLiked = post.isLiked;
 
   const renderHeader = () => (
     <View>
@@ -302,8 +300,8 @@ export default function PostDetailScreen() {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           onPress={() => {
             Share.share({
-              message: post.caption
-                ? `${post.caption} — shared from REAUX Labs`
+              message: post.content
+                ? `${post.content} — shared from REAUX Labs`
                 : 'Check out this post on REAUX Labs!',
             });
           }}

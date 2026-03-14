@@ -551,7 +551,7 @@ export default function HealthScreen() {
         >
           <View style={styles.workoutCardContent}>
             <View style={styles.workoutCardIcon}>
-              <Ionicons name="barbell-outline" size={28} color={colors.primary.dark} />
+              <Ionicons name="barbell-outline" size={28} color={colors.primary.yellowDark} />
             </View>
             <View style={styles.workoutCardTextBlock}>
               <Text style={styles.workoutCardTitle}>Explore Workouts</Text>
@@ -951,7 +951,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.primary.light,
+    backgroundColor: colors.primary.yellowLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,

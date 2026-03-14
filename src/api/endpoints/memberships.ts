@@ -26,6 +26,8 @@ export interface AssignMembershipRequest {
   userId: string;
   planId: string;
   startDate: string;
+  feesAmount?: number;
+  feesPaid?: number;
 }
 
 export interface RecordFeesRequest {
