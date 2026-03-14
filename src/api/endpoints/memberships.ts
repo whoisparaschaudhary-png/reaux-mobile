@@ -128,4 +128,13 @@ export const membershipsApi = {
     client
       .put<ApiResponse<Membership>>(`/memberships/${id}/fees`, data)
       .then((r) => r.data),
+
+  /**
+   * Apply advance credit toward pending fees (admin/superadmin)
+   * feesPaid += amount, advanceCredit -= amount, capped at min(amount, advanceCredit)
+   */
+  applyCredit: (id: string, amount: number) =>
+    client
+      .post<ApiResponse<Membership>>(`/memberships/${id}/apply-credit`, { amount })
+      .then((r) => r.data),
 };

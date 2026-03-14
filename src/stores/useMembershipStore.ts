@@ -49,6 +49,7 @@ interface MembershipState {
   fetchMembershipById: (id: string) => Promise<void>;
   cancelMembership: (id: string) => Promise<void>;
   recordFees: (id: string, data: RecordFeesRequest) => Promise<void>;
+  applyCredit: (id: string, amount: number) => Promise<void>;
 
   // Utility actions
   clearPlansError: () => void;
@@ -301,6 +302,22 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
         membershipsError: err.message || 'Failed to record fee payment',
         membershipsLoading: false,
       });
+      throw err;
+    }
+  },
+
+  applyCredit: async (id: string, amount: number) => {
+    set({ membershipsLoading: true, membershipsError: null });
+    try {
+      const response = await membershipsApi.applyCredit(id, amount);
+      set((state) => ({
+        memberships: state.memberships.map((m) => (m._id === id ? response.data : m)),
+        selectedMembership:
+          state.selectedMembership?._id === id ? response.data : state.selectedMembership,
+        membershipsLoading: false,
+      }));
+    } catch (err: any) {
+      set({ membershipsError: err.message || 'Failed to apply credit', membershipsLoading: false });
       throw err;
     }
   },

@@ -12,6 +12,7 @@ import {
 import { Link, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../src/components/layout/SafeScreen';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
@@ -23,6 +24,7 @@ import { colors, fontFamily, spacing } from '../../src/theme';
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const login = useAuthStore((s) => s.login);
   const isLoading = useAuthStore((s) => s.isLoading);
@@ -119,15 +121,22 @@ export default function LoginScreen() {
                 placeholder="Enter your password"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 rightIcon={
-                  <Link href="/(auth)/forgot-password" asChild>
-                    <TouchableOpacity>
-                      <Text style={styles.forgotText}>Forgot?</Text>
-                    </TouchableOpacity>
-                  </Link>
+                  <TouchableOpacity onPress={() => setShowPassword((v) => !v)}>
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={20}
+                      color={colors.text.light}
+                    />
+                  </TouchableOpacity>
                 }
               />
+              <Link href="/(auth)/forgot-password" asChild>
+                <TouchableOpacity style={styles.forgotRow}>
+                  <Text style={styles.forgotText}>Forgot Password?</Text>
+                </TouchableOpacity>
+              </Link>
             </FadeInView>
 
             <SlideInUpView delay={400}>
@@ -263,6 +272,11 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: 14,
     color: colors.text.primary,
+  },
+  forgotRow: {
+    alignSelf: 'flex-end',
+    marginTop: -spacing.sm,
+    marginBottom: spacing.lg,
   },
   forgotText: {
     fontFamily: fontFamily.medium,
