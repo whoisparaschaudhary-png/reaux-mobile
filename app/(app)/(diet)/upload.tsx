@@ -90,7 +90,7 @@ export default function UploadDietScreen() {
         if (description.trim()) form.append('description', description.trim());
         if (caloriesNum > 0) form.append('totalCalories', String(caloriesNum));
         if (meals.length > 0) form.append('meals', JSON.stringify(meals));
-        form.append('isPublished', 'false');
+        form.append('isPublished', 'true');
 
         // React Native FormData requires proper typing
         const imageFile: any = {
@@ -110,7 +110,7 @@ export default function UploadDietScreen() {
             description: description.trim() || undefined,
             totalCalories: caloriesNum > 0 ? caloriesNum : undefined,
             meals,
-            isPublished: false,
+            isPublished: true,
           },
           user ?? undefined
         );

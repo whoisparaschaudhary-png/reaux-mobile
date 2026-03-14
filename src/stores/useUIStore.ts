@@ -6,6 +6,8 @@ export type AlertButtonStyle = 'default' | 'cancel' | 'destructive';
 
 export interface AlertButton {
   text: string;
+  subtitle?: string;
+  icon?: string;
   onPress?: () => void;
   style?: AlertButtonStyle;
 }

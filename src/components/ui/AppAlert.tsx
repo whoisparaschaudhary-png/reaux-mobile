@@ -7,9 +7,10 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useUIStore } from '../../stores/useUIStore';
 import type { AlertButton } from '../../stores/useUIStore';
-import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../theme';
+import { colors, fontFamily, spacing, borderRadius } from '../../theme';
 
 export function AppAlert() {
   const alert = useUIStore((s) => s.alert);
@@ -22,56 +23,82 @@ export function AppAlert() {
     hideAlert();
   };
 
+  const cancelButton = alert.buttons.find((b) => b.style === 'cancel');
+  const actionButtons = alert.buttons.filter((b) => b.style !== 'cancel');
+
   return (
     <Modal
       visible={!!alert}
       transparent
-      animationType="fade"
+      animationType="slide"
       onRequestClose={hideAlert}
       statusBarTranslucent
     >
       <Pressable style={styles.overlay} onPress={hideAlert}>
-        <Pressable style={styles.card} onPress={(e) => e.stopPropagation()}>
-          {alert.title ? (
-            <Text style={styles.title} numberOfLines={1}>
-              {alert.title}
-            </Text>
-          ) : null}
-          {alert.message ? (
-            <Text style={styles.message} numberOfLines={5}>
-              {alert.message}
-            </Text>
-          ) : null}
-          <View style={styles.buttons}>
-            {alert.buttons.map((btn, index) => {
-              const isCancel = btn.style === 'cancel';
+        <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+          {/* Handle bar */}
+          <View style={styles.handle} />
+
+          {/* Header */}
+          {(alert.title || alert.message) && (
+            <View style={styles.header}>
+              {alert.title ? (
+                <Text style={styles.title}>{alert.title}</Text>
+              ) : null}
+              {alert.message ? (
+                <Text style={styles.message}>{alert.message}</Text>
+              ) : null}
+            </View>
+          )}
+
+          {/* Action buttons */}
+          <View style={styles.actions}>
+            {actionButtons.map((btn, index) => {
               const isDestructive = btn.style === 'destructive';
               return (
                 <TouchableOpacity
                   key={index}
                   style={[
-                    styles.button,
-                    isCancel && styles.buttonCancel,
-                    isDestructive && styles.buttonDestructive,
-                    !isCancel && !isDestructive && styles.buttonPrimary,
+                    styles.actionButton,
+                    isDestructive && styles.actionButtonDestructive,
+                    index < actionButtons.length - 1 && styles.actionButtonBorder,
                   ]}
                   onPress={() => handlePress(btn)}
                   activeOpacity={0.7}
                 >
-                  <Text
-                    style={[
-                      styles.buttonText,
-                      isCancel && styles.buttonTextCancel,
-                      isDestructive && styles.buttonTextDestructive,
-                      !isCancel && !isDestructive && styles.buttonTextPrimary,
-                    ]}
-                  >
-                    {btn.text}
-                  </Text>
+                  {btn.icon ? (
+                    <View style={[styles.iconBox, isDestructive && styles.iconBoxDestructive]}>
+                      <Ionicons
+                        name={btn.icon as any}
+                        size={22}
+                        color={isDestructive ? colors.status.error : colors.text.primary}
+                      />
+                    </View>
+                  ) : null}
+                  <View style={styles.actionTextGroup}>
+                    <Text style={[styles.actionText, isDestructive && styles.actionTextDestructive]}>
+                      {btn.text}
+                    </Text>
+                    {btn.subtitle ? (
+                      <Text style={styles.actionSubtitle}>{btn.subtitle}</Text>
+                    ) : null}
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.text.light} />
                 </TouchableOpacity>
               );
             })}
           </View>
+
+          {/* Cancel button */}
+          {cancelButton && (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => handlePress(cancelButton)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.cancelText}>{cancelButton.text}</Text>
+            </TouchableOpacity>
+          )}
         </Pressable>
       </Pressable>
     </Modal>
@@ -81,65 +108,102 @@ export function AppAlert() {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: colors.overlay.medium,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
   },
-  card: {
-    width: '100%',
-    maxWidth: 340,
+  sheet: {
     backgroundColor: colors.background.white,
-    borderRadius: borderRadius.card,
-    padding: spacing.xxl,
-    ...shadows.large,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: spacing.xxxl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border.gray,
+    alignSelf: 'center',
+    marginBottom: spacing.lg,
+  },
+  header: {
+    marginBottom: spacing.lg,
   },
   title: {
-    ...typography.h3,
+    fontFamily: fontFamily.bold,
+    fontSize: 20,
+    lineHeight: 26,
     color: colors.text.primary,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   message: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 20,
     color: colors.text.secondary,
-    marginBottom: spacing.xxl,
   },
-  buttons: {
+  actions: {
+    borderWidth: 1.5,
+    borderColor: colors.border.light,
+    borderRadius: borderRadius.card,
+    overflow: 'hidden',
+    marginBottom: spacing.md,
+  },
+  actionButton: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
     alignItems: 'center',
-    gap: spacing.sm,
-    flexWrap: 'wrap',
-  },
-  button: {
-    paddingVertical: spacing.md,
+    gap: spacing.md,
+    paddingVertical: spacing.lg,
     paddingHorizontal: spacing.lg,
+    backgroundColor: colors.background.white,
+  },
+  actionButtonBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  actionButtonDestructive: {
+    backgroundColor: '#fff5f5',
+  },
+  iconBox: {
+    width: 40,
+    height: 40,
     borderRadius: borderRadius.md,
-    minWidth: 80,
+    backgroundColor: colors.border.light,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  buttonPrimary: {
-    backgroundColor: colors.primary.yellow,
+  iconBoxDestructive: {
+    backgroundColor: '#ffe4e4',
   },
-  buttonCancel: {
+  actionTextGroup: {
+    flex: 1,
+  },
+  actionText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 16,
+    lineHeight: 22,
+    color: colors.text.primary,
+  },
+  actionTextDestructive: {
+    color: colors.status.error,
+  },
+  actionSubtitle: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    lineHeight: 16,
+    color: colors.text.light,
+    marginTop: 2,
+  },
+  cancelButton: {
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.card,
     backgroundColor: colors.border.light,
   },
-  buttonDestructive: {
-    backgroundColor: colors.status.error,
-  },
-  buttonText: {
+  cancelText: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-  },
-  buttonTextPrimary: {
-    color: colors.text.onPrimary,
-  },
-  buttonTextCancel: {
+    fontSize: 16,
     color: colors.text.secondary,
-  },
-  buttonTextDestructive: {
-    color: colors.text.white,
   },
 });

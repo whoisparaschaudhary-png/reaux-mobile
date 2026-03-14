@@ -153,11 +153,21 @@ export default function FeedScreen() {
   const handleAdminAdd = useCallback(() => {
     const buttons = [
       { text: 'Cancel', style: 'cancel' as const },
-      { text: 'New Workout Plan', onPress: () => router.push('/(app)/(health)/workout/create' as any) },
+      {
+        text: 'New Workout Plan',
+        subtitle: 'Create a structured training program',
+        icon: 'barbell-outline',
+        onPress: () => router.push('/(app)/(health)/workout/create' as any),
+      },
     ];
     // Super admin can post; admin cannot (admin only sees New Workout Plan)
     if (!isAdmin || user?.role === 'superadmin') {
-      buttons.push({ text: 'New Post', onPress: () => router.push('/(app)/(feed)/upload') });
+      buttons.push({
+        text: 'New Post',
+        subtitle: 'Share updates, tips or media',
+        icon: 'create-outline',
+        onPress: () => router.push('/(app)/(feed)/upload'),
+      } as any);
     }
     showAppAlert('Add content', 'What would you like to create?', buttons);
   }, [router, isAdmin, user?.role]);

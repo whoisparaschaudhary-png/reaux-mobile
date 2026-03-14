@@ -47,27 +47,35 @@ export default function DietScreen() {
   const { plans, isLoading, pagination, fetchPlans } = useDietStore();
 
   const loadPlans = useCallback(() => {
-    fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin });
-  }, [fetchPlans, selectedCategory, isAdmin]);
+    fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin, dietType: selectedDietType });
+  }, [fetchPlans, selectedCategory, selectedDietType, isAdmin]);
 
   useRefreshOnFocus(loadPlans);
 
   const handleRefresh = useCallback(() => {
-    fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin });
-  }, [fetchPlans, selectedCategory, isAdmin]);
+    fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin, dietType: selectedDietType });
+  }, [fetchPlans, selectedCategory, selectedDietType, isAdmin]);
 
   const handleLoadMore = useCallback(() => {
     if (pagination.page < pagination.pages && !isLoading) {
-      fetchPlans(pagination.page + 1, selectedCategory, { includeUnpublished: isAdmin });
+      fetchPlans(pagination.page + 1, selectedCategory, { includeUnpublished: isAdmin, dietType: selectedDietType });
     }
-  }, [fetchPlans, pagination, isLoading, selectedCategory, isAdmin]);
+  }, [fetchPlans, pagination, isLoading, selectedCategory, selectedDietType, isAdmin]);
 
   const handleCategorySelect = useCallback(
     (category: DietCategory | undefined) => {
       setSelectedCategory(category);
-      fetchPlans(1, category, { includeUnpublished: isAdmin });
+      fetchPlans(1, category, { includeUnpublished: isAdmin, dietType: selectedDietType });
     },
-    [fetchPlans, isAdmin],
+    [fetchPlans, isAdmin, selectedDietType],
+  );
+
+  const handleDietTypeSelect = useCallback(
+    (dietType: DietType | undefined) => {
+      setSelectedDietType(dietType);
+      fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin, dietType });
+    },
+    [fetchPlans, isAdmin, selectedCategory],
   );
 
   const handlePlanPress = useCallback((plan: DietPlan) => {
@@ -160,7 +168,7 @@ export default function DietScreen() {
                       selectedDietType === item.value && styles.categoryChipActive,
                       item.value === undefined && selectedDietType === undefined && styles.categoryChipActive,
                     ]}
-                    onPress={() => setSelectedDietType(item.value)}
+                    onPress={() => handleDietTypeSelect(item.value)}
                     activeOpacity={0.7}
                   >
                     <Text
