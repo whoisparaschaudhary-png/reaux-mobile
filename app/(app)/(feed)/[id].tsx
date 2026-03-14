@@ -34,6 +34,55 @@ import {
 } from '../../../src/theme';
 import type { Post, Comment, User, Role } from '../../../src/types/models';
 
+interface CommentInputProps {
+  onSend: (text: string) => Promise<void>;
+}
+
+const CommentInput = React.memo(({ onSend }: CommentInputProps) => {
+  const [text, setText] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSend = useCallback(async () => {
+    if (!text.trim()) return;
+    setIsSending(true);
+    try {
+      await onSend(text.trim());
+      setText('');
+    } finally {
+      setIsSending(false);
+    }
+  }, [text, onSend]);
+
+  return (
+    <View style={styles.commentInputContainer}>
+      <TextInput
+        style={styles.commentInput}
+        placeholder="Write a comment..."
+        placeholderTextColor={colors.text.light}
+        value={text}
+        onChangeText={setText}
+        multiline
+        maxLength={500}
+      />
+      <TouchableOpacity
+        onPress={handleSend}
+        disabled={!text.trim() || isSending}
+        style={[
+          styles.sendButton,
+          (!text.trim() || isSending) && styles.sendButtonDisabled,
+        ]}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        {isSending ? (
+          <ActivityIndicator size="small" color={colors.text.onPrimary} />
+        ) : (
+          <Ionicons name="send" size={20} color={colors.text.onPrimary} />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+});
+
 export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -45,8 +94,6 @@ export default function PostDetailScreen() {
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [commentText, setCommentText] = useState('');
-  const [isSending, setIsSending] = useState(false);
 
   const loadPost = useCallback(async () => {
     if (!id) return;
@@ -78,23 +125,14 @@ export default function PostDetailScreen() {
     }
   }, [id, likePost]);
 
-  const handleSendComment = useCallback(async () => {
-    if (!id || !commentText.trim()) return;
-    setIsSending(true);
-    try {
-      const response = await postsApi.comment(id, commentText.trim());
-      setComments((prev) => [...prev, response.data]);
-      setCommentText('');
-      // Update comment count on post
-      setPost((prev) =>
-        prev ? { ...prev, commentsCount: prev.commentsCount + 1 } : prev,
-      );
-    } catch {
-      // Error handled silently
-    } finally {
-      setIsSending(false);
-    }
-  }, [id, commentText]);
+  const handleSendComment = useCallback(async (text: string) => {
+    if (!id) return;
+    const response = await postsApi.comment(id, text);
+    setComments((prev) => [...prev, response.data]);
+    setPost((prev) =>
+      prev ? { ...prev, commentsCount: prev.commentsCount + 1 } : prev,
+    );
+  }, [id]);
 
   const handleDelete = useCallback(() => {
     if (!id) return;
@@ -330,37 +368,7 @@ export default function PostDetailScreen() {
           showsVerticalScrollIndicator={false}
         />
 
-        {/* Comment input */}
-        <View style={styles.commentInputContainer}>
-          <TextInput
-            style={styles.commentInput}
-            placeholder="Write a comment..."
-            placeholderTextColor={colors.text.light}
-            value={commentText}
-            onChangeText={setCommentText}
-            multiline
-            maxLength={500}
-          />
-          <TouchableOpacity
-            onPress={handleSendComment}
-            disabled={!commentText.trim() || isSending}
-            style={[
-              styles.sendButton,
-              (!commentText.trim() || isSending) && styles.sendButtonDisabled,
-            ]}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            {isSending ? (
-              <ActivityIndicator size="small" color={colors.text.onPrimary} />
-            ) : (
-              <Ionicons
-                name="send"
-                size={20}
-                color={colors.text.onPrimary}
-              />
-            )}
-          </TouchableOpacity>
-        </View>
+        <CommentInput onSend={handleSendComment} />
       </KeyboardAvoidingView>
     </SafeScreen>
   );

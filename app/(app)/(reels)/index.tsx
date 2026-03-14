@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -42,19 +42,14 @@ export default function ReelsScreen() {
     likeReel,
   } = useReelStore();
 
-  useEffect(() => {
-    fetchReels(1);
-  }, []);
-
-  // Pause all videos when navigating away from reels screen
+  // Refresh reels on every focus, pause videos on unfocus
   useFocusEffect(
     useCallback(() => {
-      // Screen is focused - do nothing special
+      fetchReels(1);
       return () => {
-        // Screen is unfocused - pause all videos
         setVisibleId(null);
       };
-    }, [])
+    }, [fetchReels])
   );
 
   const handleRefresh = useCallback(() => {

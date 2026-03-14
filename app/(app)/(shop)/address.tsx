@@ -6,15 +6,30 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
 import { Button } from '../../../src/components/ui/Button';
 import { Input } from '../../../src/components/ui/Input';
 import { useCartStore } from '../../../src/stores/useCartStore';
 import { showAppAlert } from '../../../src/stores/useUIStore';
-import { colors, fontFamily, spacing } from '../../../src/theme';
+import { colors, fontFamily, spacing, borderRadius } from '../../../src/theme';
+
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+  'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry',
+];
 
 export default function AddressScreen() {
   const [form, setForm] = useState({
@@ -28,6 +43,7 @@ export default function AddressScreen() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showStatePicker, setShowStatePicker] = useState(false);
 
   const updateField = useCallback((field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -42,6 +58,7 @@ export default function AddressScreen() {
     if (!form.state.trim()) newErrors.state = 'State is required';
     if (!form.pincode.trim()) newErrors.pincode = 'Pincode is required';
     if (!form.phone.trim()) newErrors.phone = 'Phone number is required';
+    else if (form.phone.trim().length !== 10) newErrors.phone = 'Enter a valid 10-digit number';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [form]);
@@ -119,13 +136,18 @@ export default function AddressScreen() {
               />
             </View>
             <View style={styles.halfInput}>
-              <Input
-                label="State / Province"
-                placeholder="Karnataka"
-                value={form.state}
-                onChangeText={(t) => updateField('state', t)}
-                error={errors.state}
-              />
+              <Text style={styles.fieldLabel}>State</Text>
+              <TouchableOpacity
+                style={[styles.stateDropdown, errors.state ? styles.stateDropdownError : null]}
+                onPress={() => setShowStatePicker(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.stateDropdownText, !form.state && styles.statePlaceholder]}>
+                  {form.state || 'Select State'}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={colors.text.light} />
+              </TouchableOpacity>
+              {errors.state ? <Text style={styles.errorText}>{errors.state}</Text> : null}
             </View>
           </View>
           <View style={styles.spacer} />
@@ -133,7 +155,7 @@ export default function AddressScreen() {
           <View style={styles.row}>
             <View style={styles.halfInput}>
               <Input
-                label="Zip / Postal Code"
+                label="Pincode"
                 placeholder="560001"
                 value={form.pincode}
                 onChangeText={(t) => updateField('pincode', t)}
@@ -143,11 +165,12 @@ export default function AddressScreen() {
             </View>
             <View style={styles.halfInput}>
               <Input
-                label="Phone Number"
-                placeholder="+91 98765 43210"
+                label="Phone (10 digits)"
+                placeholder="9876543210"
                 value={form.phone}
-                onChangeText={(t) => updateField('phone', t)}
-                keyboardType="phone-pad"
+                onChangeText={(t) => updateField('phone', t.replace(/\D/g, ''))}
+                keyboardType="number-pad"
+                maxLength={10}
                 error={errors.phone}
               />
             </View>
@@ -163,6 +186,47 @@ export default function AddressScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* State Picker Modal */}
+      <Modal
+        visible={showStatePicker}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowStatePicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowStatePicker(false)}
+        >
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Select State</Text>
+            <FlatList
+              data={INDIAN_STATES}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.stateOption, form.state === item && styles.stateOptionActive]}
+                  onPress={() => {
+                    updateField('state', item);
+                    setShowStatePicker(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.stateOptionText, form.state === item && styles.stateOptionTextActive]}>
+                    {item}
+                  </Text>
+                  {form.state === item && (
+                    <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />
+                  )}
+                </TouchableOpacity>
+              )}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeScreen>
   );
 }
@@ -192,7 +256,91 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
   },
+  fieldLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+  },
+  stateDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: colors.border.gray,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background.white,
+    paddingHorizontal: spacing.md,
+    height: 48,
+  },
+  stateDropdownError: {
+    borderColor: colors.status.error,
+  },
+  stateDropdownText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 15,
+    color: colors.text.primary,
+    flex: 1,
+  },
+  statePlaceholder: {
+    color: colors.text.light,
+  },
+  errorText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: colors.status.error,
+    marginTop: spacing.xs,
+  },
   buttonWrap: {
     marginTop: spacing.xxxl,
+  },
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: colors.background.white,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxxl,
+    maxHeight: '70%',
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: colors.border.gray,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  modalTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: 17,
+    color: colors.text.primary,
+    marginBottom: spacing.md,
+  },
+  stateOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  stateOptionActive: {
+    backgroundColor: colors.primary.yellowLight,
+  },
+  stateOptionText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 15,
+    color: colors.text.primary,
+  },
+  stateOptionTextActive: {
+    fontFamily: fontFamily.medium,
   },
 });

@@ -8,6 +8,7 @@ import {
   Platform,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -179,7 +180,7 @@ export default function CreateUserScreen() {
 
     setIsLoading(true);
     try {
-      await usersApi.createUser({
+      const response = await usersApi.createUser({
         name: fullName,
         email: email.trim(),
         password,
@@ -192,7 +193,30 @@ export default function CreateUserScreen() {
         dateOfJoining: formatDateISO(dateOfJoining),
       });
       showToast('User created successfully', 'success');
-      handleBack();
+      const newUserId = response.data?._id;
+      if (newUserId) {
+        Alert.alert(
+          'Assign Membership?',
+          `Would you like to assign a membership plan to ${fullName}?`,
+          [
+            {
+              text: 'Skip',
+              style: 'cancel',
+              onPress: handleBack,
+            },
+            {
+              text: 'Assign',
+              onPress: () =>
+                router.replace({
+                  pathname: '/(app)/(admin)/memberships/memberships/assign',
+                  params: { preselectedUserId: newUserId, preselectedUserName: fullName },
+                }),
+            },
+          ],
+        );
+      } else {
+        handleBack();
+      }
     } catch (error: any) {
       showToast(error.message || 'Failed to create user', 'error');
     } finally {

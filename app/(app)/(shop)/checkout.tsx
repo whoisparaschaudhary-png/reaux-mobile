@@ -5,9 +5,22 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+  'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry',
+];
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
 import { Button } from '../../../src/components/ui/Button';
@@ -35,6 +48,7 @@ export default function CheckoutScreen() {
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [address, setAddress] = useState<ShippingAddressState>(emptyAddress);
+  const [showStatePicker, setShowStatePicker] = useState(false);
 
   // Load persisted address and prefill when user has already saved one
   useEffect(() => {
@@ -175,12 +189,17 @@ export default function CheckoutScreen() {
                 />
               </View>
               <View style={styles.halfInput}>
-                <Input
-                  label="State"
-                  placeholder="State"
-                  value={address.state}
-                  onChangeText={(t) => setAddress((a) => ({ ...a, state: t }))}
-                />
+                <Text style={styles.fieldLabel}>State</Text>
+                <TouchableOpacity
+                  style={styles.stateDropdown}
+                  onPress={() => setShowStatePicker(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.stateDropdownText, !address.state && styles.statePlaceholder]}>
+                    {address.state || 'Select State'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={colors.text.light} />
+                </TouchableOpacity>
               </View>
             </View>
             <View style={styles.inputSpacer} />
@@ -196,11 +215,12 @@ export default function CheckoutScreen() {
               </View>
               <View style={styles.halfInput}>
                 <Input
-                  label="Phone"
-                  placeholder="+91 98765 43210"
+                  label="Phone (10 digits)"
+                  placeholder="9876543210"
                   value={address.phone}
-                  onChangeText={(t) => setAddress((a) => ({ ...a, phone: t }))}
-                  keyboardType="phone-pad"
+                  onChangeText={(t) => setAddress((a) => ({ ...a, phone: t.replace(/\D/g, '') }))}
+                  keyboardType="number-pad"
+                  maxLength={10}
                 />
               </View>
             </View>
@@ -246,6 +266,47 @@ export default function CheckoutScreen() {
           </View>
         </View>
       </View>
+
+      {/* State Picker Modal */}
+      <Modal
+        visible={showStatePicker}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowStatePicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowStatePicker(false)}
+        >
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Select State</Text>
+            <FlatList
+              data={INDIAN_STATES}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.stateOption, address.state === item && styles.stateOptionActive]}
+                  onPress={() => {
+                    setAddress((a) => ({ ...a, state: item }));
+                    setShowStatePicker(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.stateOptionText, address.state === item && styles.stateOptionTextActive]}>
+                    {item}
+                  </Text>
+                  {address.state === item && (
+                    <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />
+                  )}
+                </TouchableOpacity>
+              )}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeScreen>
   );
 }
@@ -431,5 +492,81 @@ const styles = StyleSheet.create({
   },
   placeOrderWrap: {
     flex: 1,
+  },
+  // State dropdown
+  fieldLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+  },
+  stateDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: colors.border.gray,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background.white,
+    paddingHorizontal: spacing.md,
+    height: 48,
+  },
+  stateDropdownText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 15,
+    color: colors.text.primary,
+    flex: 1,
+  },
+  statePlaceholder: {
+    color: colors.text.light,
+  },
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: colors.background.white,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxxl,
+    maxHeight: '70%',
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: colors.border.gray,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  modalTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: 17,
+    color: colors.text.primary,
+    marginBottom: spacing.md,
+  },
+  stateOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  stateOptionActive: {
+    backgroundColor: colors.primary.yellowLight,
+  },
+  stateOptionText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 15,
+    color: colors.text.primary,
+  },
+  stateOptionTextActive: {
+    fontFamily: fontFamily.medium,
   },
 });

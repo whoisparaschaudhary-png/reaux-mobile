@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../../src/components/layout/Header';
@@ -25,10 +25,14 @@ import type { User, MembershipPlan, Gym } from '../../../../../src/types/models'
 
 export default function AssignMembershipScreen() {
   const router = useRouter();
+  const { preselectedUserId, preselectedUserName } = useLocalSearchParams<{
+    preselectedUserId?: string;
+    preselectedUserName?: string;
+  }>();
   const { plans, assignMembership, membershipsLoading, fetchPlans } =
     useMembershipStore();
 
-  const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState(preselectedUserId ?? '');
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [startDate, setStartDate] = useState('');
   const [users, setUsers] = useState<User[]>([]);
@@ -98,7 +102,11 @@ export default function AssignMembershipScreen() {
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
       <SafeScreen>
-        <Header title="Assign Membership" showBack onBack={() => router.back()} />
+        <Header
+          title={preselectedUserName ? `Assign Membership` : 'Assign Membership'}
+          showBack
+          onBack={() => router.back()}
+        />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -110,6 +118,16 @@ export default function AssignMembershipScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
+            {/* Pre-selected user banner */}
+            {preselectedUserId && preselectedUserName && (
+              <View style={styles.preselectedBanner}>
+                <Ionicons name="person-circle-outline" size={20} color={colors.primary.yellowDark} />
+                <Text style={styles.preselectedBannerText}>
+                  Assigning membership to <Text style={styles.preselectedBannerName}>{preselectedUserName}</Text>
+                </Text>
+              </View>
+            )}
+
             {/* Select User */}
             <Text style={styles.sectionTitle}>Select User *</Text>
             <View style={styles.field}>
@@ -418,5 +436,23 @@ const styles = StyleSheet.create({
   },
   submitContainer: {
     marginTop: spacing.xxl,
+  },
+  preselectedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.primary.yellowLight,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  preselectedBannerText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: colors.text.primary,
+    flex: 1,
+  },
+  preselectedBannerName: {
+    fontFamily: fontFamily.bold,
   },
 });

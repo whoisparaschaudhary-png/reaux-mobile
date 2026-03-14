@@ -126,16 +126,28 @@ export default function ProfileScreen() {
       <Header
         title="Profile"
         rightAction={
-          <TouchableOpacity
-            onPress={() => router.push('/(app)/(profile)/edit')}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons
-              name="pencil-outline"
-              size={22}
-              color={colors.text.primary}
-            />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              onPress={() => router.push('/(app)/(profile)/notifications')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={styles.headerBellWrapper}
+            >
+              <Ionicons name="notifications-outline" size={22} color={colors.text.primary} />
+              {unreadCount > 0 && (
+                <View style={styles.headerBadge}>
+                  <Text style={styles.headerBadgeText}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push('/(app)/(profile)/edit')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="pencil-outline" size={22} color={colors.text.primary} />
+            </TouchableOpacity>
+          </View>
         }
       />
 
@@ -338,7 +350,7 @@ export default function ProfileScreen() {
         )}
 
         {/* My Orders */}
-        {isAdmin && (
+        {isAdmin && !isSuperadmin && (
           <Card
             style={styles.linkCard}
             onPress={() => router.push({ pathname: '/(app)/(shop)/orders', params: { backRoute: 'profile' } })}
@@ -366,8 +378,8 @@ export default function ProfileScreen() {
           </Card>
         )}
 
-        {/* My Membership - All Users */}
-        <Card
+        {/* My Membership - Regular users and admins only (not superadmin) */}
+        {!isSuperadmin && <Card
           style={styles.linkCard}
           onPress={() => router.push('/(app)/(profile)/memberships')}
         >
@@ -391,7 +403,7 @@ export default function ProfileScreen() {
               color={colors.text.light}
             />
           </View>
-        </Card>
+        </Card>}
 
         {/* Manage Memberships - Admin Only */}
         {isAdmin && (
@@ -689,6 +701,32 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: 11,
     lineHeight: 14,
+    color: colors.text.white,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  headerBellWrapper: {
+    position: 'relative',
+  },
+  headerBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    backgroundColor: colors.status.error,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  headerBadgeText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 9,
+    lineHeight: 12,
     color: colors.text.white,
   },
   saveButtonContainer: {

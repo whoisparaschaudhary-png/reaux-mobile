@@ -107,7 +107,7 @@ export const ReelCard: React.FC<ReelCardProps> = ({
         {onComment != null && (
           <TouchableOpacity onPress={onComment} style={styles.actionItem}>
             <Ionicons name="chatbubble-outline" size={26} color={colors.text.white} />
-            <Text style={styles.actionText}>Comment</Text>
+            <Text style={styles.actionText}>{formatNumber(reel.commentsCount ?? 0)}</Text>
           </TouchableOpacity>
         )}
         {onShare != null && (

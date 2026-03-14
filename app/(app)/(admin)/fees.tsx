@@ -229,7 +229,12 @@ export default function FeesScreen() {
       const credit = membership.advanceCredit ?? (paidAmount > totalFee && due <= 0 ? paidAmount - totalFee : 0);
 
       return (
-        <View key={membership._id} style={styles.feeRow}>
+        <TouchableOpacity
+          key={membership._id}
+          style={styles.feeRow}
+          onPress={() => router.push(`/(app)/(admin)/memberships/memberships/${membership._id}`)}
+          activeOpacity={0.7}
+        >
           <Avatar name={name} uri={avatar} size={40} />
           <View style={styles.feeInfo}>
             <Text style={styles.feeName} numberOfLines={1}>{name}</Text>
@@ -289,7 +294,8 @@ export default function FeesScreen() {
               <Text style={styles.addCreditText}>Add Credit</Text>
             </TouchableOpacity>
           )}
-        </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.text.light} style={{ marginLeft: 4 }} />
+        </TouchableOpacity>
       );
     },
     [handleRecordPayment, handleEditCredit],
