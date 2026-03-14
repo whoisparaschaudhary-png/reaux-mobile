@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { dietsApi } from '../api/endpoints/diets';
-import type { DietPlan, DietCategory, User } from '../types/models';
+import type { DietPlan, DietCategory, DietType, User } from '../types/models';
 import type { CreateDietRequest } from '../types/api';
 
 interface DietPagination {
@@ -18,10 +18,8 @@ interface DietState {
   error: string | null;
   pagination: DietPagination;
   suggestedPagination: DietPagination;
-  /** When true, next fetchPlans(1) will be skipped so newly created plan stays visible */
-  skipNextListRefresh: boolean;
 
-  fetchPlans: (page?: number, category?: DietCategory, options?: { includeUnpublished?: boolean }) => Promise<void>;
+  fetchPlans: (page?: number, category?: DietCategory, options?: { includeUnpublished?: boolean; dietType?: DietType }) => Promise<void>;
   getPlanById: (id: string) => Promise<void>;
   fetchSuggestedPlans: (page?: number) => Promise<void>;
   followPlan: (id: string) => Promise<void>;
@@ -41,23 +39,14 @@ export const useDietStore = create<DietState>((set, get) => ({
   error: null,
   pagination: { page: 1, limit: 10, total: 0, pages: 0 },
   suggestedPagination: { page: 1, limit: 10, total: 0, pages: 0 },
-  skipNextListRefresh: false,
 
   fetchPlans: async (page = 1, category?, options?) => {
-    const { skipNextListRefresh, plans } = get();
-    if (page === 1 && skipNextListRefresh && plans.length > 0) {
-      set({ skipNextListRefresh: false });
-      return;
-    }
-    if (page === 1 && skipNextListRefresh) set({ skipNextListRefresh: false });
     set({ isLoading: true, error: null });
     try {
       const params: Record<string, any> = { page, limit: 10 };
       if (category) params.category = category;
-      if (options?.includeUnpublished) params.includeUnpublished = true;
       const response = await dietsApi.list(params);
 
-      // Ensure count fields exist (initialize from arrays if not provided by backend)
       const currentPlans = get().plans;
       const plansWithCounts = response.data.map(plan => {
         const existing = currentPlans.find(p => p._id === plan._id);
@@ -67,28 +56,15 @@ export const useDietStore = create<DietState>((set, get) => ({
           ...plan,
           likesCount: plan.likesCount ?? plan.likes?.length ?? 0,
           followersCount: plan.followersCount ?? plan.followers?.length ?? 0,
-          // Preserve createdBy from existing plan if API returned unpopulated (avoids "Unknown" on card)
           createdBy: createdByPopulated ? plan.createdBy : (existing?.createdBy ?? plan.createdBy),
         };
       });
 
-      if (page === 1) {
-        const responseIds = new Set(plansWithCounts.map((p) => p._id));
-        const localOnlyPlans = currentPlans.filter(
-          (p) => !responseIds.has(p._id) && (!category || p.category === category)
-        );
-        set({
-          plans: [...localOnlyPlans, ...plansWithCounts],
-          pagination: response.pagination,
-          isLoading: false,
-        });
-      } else {
-        set({
-          plans: [...get().plans, ...plansWithCounts],
-          pagination: response.pagination,
-          isLoading: false,
-        });
-      }
+      set({
+        plans: page === 1 ? plansWithCounts : [...currentPlans, ...plansWithCounts],
+        pagination: response.pagination,
+        isLoading: false,
+      });
     } catch (err: any) {
       set({
         error: err.message || 'Failed to fetch diet plans',
@@ -251,7 +227,6 @@ export const useDietStore = create<DietState>((set, get) => ({
       set((state) => ({
         plans: [planToPrepend, ...state.plans],
         isLoading: false,
-        skipNextListRefresh: true,
       }));
     } catch (err: any) {
       set({
