@@ -8,8 +8,8 @@ import {
   FlatList,
   ViewToken,
   Dimensions,
-  Linking,
   Platform,
+  Share,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,7 +19,7 @@ import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { useReelStore } from '../../../src/stores/useReelStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { colors, fontFamily, typography, spacing, shadows } from '../../../src/theme';
-import { STORE_URLS } from '../../../src/utils/constants';
+import { STORE_URLS, INSTAGRAM_URL } from '../../../src/utils/constants';
 import type { Reel } from '../../../src/types/models';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -82,7 +82,9 @@ export default function ReelsScreen() {
 
   const handleShareReel = useCallback(() => {
     const storeUrl = Platform.OS === 'ios' ? STORE_URLS.ios : STORE_URLS.android;
-    Linking.openURL(storeUrl).catch(() => {});
+    Share.share({
+      message: `Check out REAUX Labs – your fitness community app!\n\nFollow us on Instagram: ${INSTAGRAM_URL}\n\nDownload the app: ${storeUrl}`,
+    }).catch(() => {});
   }, []);
 
   const renderReel = useCallback(

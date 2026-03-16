@@ -23,6 +23,7 @@ export default function ContactUsScreen() {
 
   const [name, setName] = useState(user?.name ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
+  const [phone, setPhone] = useState(user?.phone ?? '');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,8 @@ export default function ContactUsScreen() {
   const handleSubmit = async () => {
     if (!name.trim()) { showAppAlert('Validation', 'Please enter your name'); return; }
     if (!email.trim()) { showAppAlert('Validation', 'Please enter your email'); return; }
+    if (!phone.trim()) { showAppAlert('Validation', 'Please enter your phone number'); return; }
+    if (phone.trim().replace(/\D/g, '').length !== 10) { showAppAlert('Validation', 'Enter a valid 10-digit phone number'); return; }
     if (!subject.trim()) { showAppAlert('Validation', 'Please enter a subject'); return; }
     if (!message.trim()) { showAppAlert('Validation', 'Please enter your message'); return; }
 
@@ -38,6 +41,7 @@ export default function ContactUsScreen() {
       await client.post('/contact', {
         name: name.trim(),
         email: email.trim(),
+        phone: phone.trim().replace(/\D/g, ''),
         subject: subject.trim(),
         message: message.trim(),
       });
@@ -86,6 +90,16 @@ export default function ContactUsScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+            />
+          </View>
+          <View style={styles.field}>
+            <Input
+              label="Phone Number *"
+              placeholder="10-digit mobile number"
+              value={phone}
+              onChangeText={(t) => setPhone(t.replace(/\D/g, ''))}
+              keyboardType="phone-pad"
+              maxLength={10}
             />
           </View>
           <View style={styles.field}>

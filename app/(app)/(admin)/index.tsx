@@ -172,6 +172,11 @@ export default function AdminDashboardScreen() {
                 label="Manage Orders"
                 onPress={() => router.push('/(app)/(admin)/orders')}
               />
+              <View style={styles.divider} />
+              <MenuItem
+                label="Sales Report"
+                onPress={() => router.push('/(app)/(admin)/sales-report')}
+              />
             </View>
           </View>
 
@@ -182,11 +187,6 @@ export default function AdminDashboardScreen() {
               <MenuItem
                 label="Analytics"
                 onPress={() => router.push('/(app)/(admin)/analytics')}
-              />
-              <View style={styles.divider} />
-              <MenuItem
-                label="Sales Report"
-                onPress={() => router.push('/(app)/(admin)/sales-report')}
               />
               <View style={styles.divider} />
               <MenuItem

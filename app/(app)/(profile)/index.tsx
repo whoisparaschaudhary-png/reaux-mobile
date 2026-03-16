@@ -349,6 +349,58 @@ export default function ProfileScreen() {
           </Card>
         )}
 
+        {/* Shop Management - Superadmin Only */}
+        {isSuperadmin && (
+          <View>
+            <Text style={styles.sectionGroupTitle}>Shop</Text>
+            <Card
+              style={styles.linkCard}
+              onPress={() => router.push('/(app)/(admin)/products')}
+            >
+              <View style={styles.linkCardContent}>
+                <View style={styles.linkCardLeft}>
+                  <Ionicons name="cube-outline" size={22} color={colors.text.primary} />
+                  <View style={styles.linkCardText}>
+                    <Text style={styles.linkCardTitle}>Manage Products</Text>
+                    <Text style={styles.linkCardSubtitle}>Add and manage shop products</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.text.light} />
+              </View>
+            </Card>
+            <Card
+              style={styles.linkCard}
+              onPress={() => router.push('/(app)/(admin)/orders')}
+            >
+              <View style={styles.linkCardContent}>
+                <View style={styles.linkCardLeft}>
+                  <Ionicons name="receipt-outline" size={22} color={colors.text.primary} />
+                  <View style={styles.linkCardText}>
+                    <Text style={styles.linkCardTitle}>Manage Orders</Text>
+                    <Text style={styles.linkCardSubtitle}>View and update customer orders</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.text.light} />
+              </View>
+            </Card>
+            <Card
+              style={styles.linkCard}
+              onPress={() => router.push('/(app)/(admin)/sales-report')}
+            >
+              <View style={styles.linkCardContent}>
+                <View style={styles.linkCardLeft}>
+                  <Ionicons name="bar-chart-outline" size={22} color={colors.text.primary} />
+                  <View style={styles.linkCardText}>
+                    <Text style={styles.linkCardTitle}>Sales Report</Text>
+                    <Text style={styles.linkCardSubtitle}>Revenue, top products, monthly stats</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.text.light} />
+              </View>
+            </Card>
+          </View>
+        )}
+
         {/* My Orders */}
         {isAdmin && !isSuperadmin && (
           <Card
@@ -759,5 +811,12 @@ const styles = StyleSheet.create({
   logoutContainer: {
     marginTop: spacing.xxl,
     marginBottom: spacing.lg,
+  },
+  sectionGroupTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: 16,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+    marginTop: spacing.md,
   },
 });

@@ -9,6 +9,8 @@ export const STORE_URLS = {
   android: `https://play.google.com/store/apps/details?id=${PLAY_STORE_PACKAGE}`,
 } as const;
 
+export const INSTAGRAM_URL = 'https://www.instagram.com/reauxlabs/';
+
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth_token',
   USER_DATA: 'user_data',

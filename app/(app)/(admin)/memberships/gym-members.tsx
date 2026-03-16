@@ -210,9 +210,22 @@ export default function GymMembersScreen() {
           <Text style={styles.memberContact}>{u?.phone || u?.email || '—'}</Text>
           <Text style={styles.memberPlan}>{p?.name ?? '—'}</Text>
           <View style={styles.memberDates}>
-            <Text style={styles.memberDate}>
-              {formatDate(item.startDate)} → {formatDate(item.endDate)}
-            </Text>
+            {(() => {
+              const end = new Date(item.endDate);
+              const now = new Date();
+              const diffDays = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+              const isExpired = diffDays < 0;
+              const isExpiringSoon = diffDays >= 0 && diffDays <= 7;
+              return (
+                <Text style={[styles.memberDate, isExpired ? { color: colors.status.error, fontFamily: fontFamily.medium } : isExpiringSoon ? { color: colors.status.warning, fontFamily: fontFamily.medium } : null]}>
+                  {isExpired
+                    ? `Expired: ${formatDate(item.endDate)}`
+                    : isExpiringSoon
+                    ? `Expires in ${diffDays}d (${formatDate(item.endDate)})`
+                    : `Active till: ${formatDate(item.endDate)}`}
+                </Text>
+              );
+            })()}
           </View>
         </View>
         <View style={styles.memberRight}>

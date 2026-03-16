@@ -23,6 +23,16 @@ import { showAppAlert } from '../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../src/theme';
 import type { SavedAddress } from '../../../src/types/models';
 
+const MAJOR_CITIES = [
+  'Agra', 'Ahmedabad', 'Amritsar', 'Aurangabad', 'Bangalore', 'Bhopal', 'Bhubaneswar',
+  'Chandigarh', 'Chennai', 'Coimbatore', 'Dehradun', 'Delhi', 'Faridabad', 'Ghaziabad',
+  'Gurgaon', 'Guwahati', 'Howrah', 'Hyderabad', 'Indore', 'Jaipur', 'Jodhpur',
+  'Kanpur', 'Kochi', 'Kolkata', 'Lucknow', 'Ludhiana', 'Madurai', 'Meerut',
+  'Mumbai', 'Mysore', 'Nagpur', 'Nashik', 'Navi Mumbai', 'Noida', 'Patna', 'Pune',
+  'Raipur', 'Rajkot', 'Ranchi', 'Srinagar', 'Surat', 'Thane', 'Tiruchirappalli',
+  'Vadodara', 'Varanasi', 'Vijayawada', 'Visakhapatnam',
+];
+
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
   'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
@@ -38,6 +48,7 @@ export default function AddressScreen() {
   const [form, setForm] = useState({ label: 'Home', street: '', city: '', state: '', pincode: '', phone: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showStatePicker, setShowStatePicker] = useState(false);
+  const [showCityPicker, setShowCityPicker] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -166,7 +177,12 @@ export default function AddressScreen() {
 
           <View style={styles.row}>
             <View style={styles.halfInput}>
-              <Input label="City" placeholder="Bangalore" value={form.city} onChangeText={(t) => updateField('city', t)} error={errors.city} />
+              <Text style={styles.fieldLabel}>City</Text>
+              <TouchableOpacity style={[styles.stateDropdown, errors.city ? styles.stateDropdownError : null]} onPress={() => setShowCityPicker(true)} activeOpacity={0.7}>
+                <Text style={[styles.stateDropdownText, !form.city && styles.statePlaceholder]}>{form.city || 'Select City'}</Text>
+                <Ionicons name="chevron-down" size={16} color={colors.text.light} />
+              </TouchableOpacity>
+              {errors.city ? <Text style={styles.errorText}>{errors.city}</Text> : null}
             </View>
             <View style={styles.halfInput}>
               <Text style={styles.fieldLabel}>State</Text>
@@ -193,6 +209,26 @@ export default function AddressScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={showCityPicker} animationType="slide" transparent onRequestClose={() => setShowCityPicker(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCityPicker(false)}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Select City</Text>
+            <FlatList
+              data={MAJOR_CITIES}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={[styles.stateOption, form.city === item && styles.stateOptionActive]} onPress={() => { updateField('city', item); setShowCityPicker(false); }} activeOpacity={0.7}>
+                  <Text style={[styles.stateOptionText, form.city === item && styles.stateOptionTextActive]}>{item}</Text>
+                  {form.city === item && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
+                </TouchableOpacity>
+              )}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       <Modal visible={showStatePicker} animationType="slide" transparent onRequestClose={() => setShowStatePicker(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowStatePicker(false)}>
