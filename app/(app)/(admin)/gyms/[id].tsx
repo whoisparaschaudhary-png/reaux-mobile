@@ -30,7 +30,7 @@ export default function EditGymScreen() {
   const router = useRouter();
   const { id, backRoute } = useLocalSearchParams<{ id: string; backRoute?: string }>();
   const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
-  const { pickImage } = useImagePicker();
+  const { pickImageWithCamera } = useImagePicker();
   const currentUser = useAuthStore((s) => s.user);
   const isSuperAdmin = currentUser?.role === 'superadmin';
   const { users, fetchUsers, isLoading: isLoadingUsers } = useAdminStore();
@@ -113,7 +113,7 @@ export default function EditGymScreen() {
   const totalImagesCount = existingImages.length + newImageUris.length;
 
   const handlePickImage = async () => {
-    const result = await pickImage();
+    const result = await pickImageWithCamera();
     if (result) {
       setNewImageUris((prev) => [...prev, result.uri]);
     }
@@ -128,7 +128,7 @@ export default function EditGymScreen() {
   };
 
   const handlePickLogo = async () => {
-    const result = await pickImage();
+    const result = await pickImageWithCamera();
     if (result) {
       setNewLogoUri(result.uri);
       // Clear existing logo if new one is selected
