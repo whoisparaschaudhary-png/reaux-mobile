@@ -7,6 +7,7 @@ interface UpdateUserPayload {
   phone?: string;
   role?: Role;
   gymId?: string;
+  gymIds?: string[];
   gender?: Gender;
   dateOfBirth?: string;
   status?: UserStatus;
@@ -49,6 +50,11 @@ export const usersApi = {
 
   getUpcomingBirthdays: (days = 7) =>
     client.get<ApiResponse<UpcomingBirthdayUser[]>>('/users/birthdays/upcoming', { params: { days } }).then(r => r.data),
+};
+
+export const gymsAdminApi = {
+  assignAdmin: (gymId: string, userId: string) =>
+    client.post<ApiResponse<{ message: string }>>(`/gyms/${gymId}/assign-admin`, { userId }).then(r => r.data),
 };
 
 export const addressesApi = {

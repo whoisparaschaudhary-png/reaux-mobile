@@ -33,6 +33,7 @@ export interface AssignMembershipRequest {
 export interface RecordFeesRequest {
   amount: number;
   note?: string;
+  extendDays?: number;
 }
 
 // ─── Plans API ───────────────────────────────────────────────────────

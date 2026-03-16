@@ -12,7 +12,6 @@ import type { Post, User, Role } from '../../types/models';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_MARGIN = spacing.lg;
 const CARD_WIDTH = SCREEN_WIDTH - CARD_MARGIN * 2;
-const IMAGE_HEIGHT = 280;
 
 interface PostCardProps {
   post: Post;
@@ -219,7 +218,7 @@ const styles = StyleSheet.create({
   // Image section
   imageContainer: {
     width: '100%',
-    height: IMAGE_HEIGHT,
+    aspectRatio: 4 / 5,
     position: 'relative',
   },
   image: {

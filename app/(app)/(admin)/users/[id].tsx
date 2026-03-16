@@ -6,6 +6,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,12 +17,12 @@ import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../src/components/layout/Header';
 import { Avatar } from '../../../../src/components/ui/Avatar';
 import { Badge } from '../../../../src/components/ui/Badge';
-import { Input } from '../../../../src/components/ui/Input';
 import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { usersApi } from '../../../../src/api/endpoints/users';
 import { gymsApi } from '../../../../src/api/endpoints/gyms';
 import { membershipsApi } from '../../../../src/api/endpoints/memberships';
+import { useMembershipStore } from '../../../../src/stores/useMembershipStore';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, typography } from '../../../../src/theme';
@@ -56,11 +60,46 @@ export default function UserDetailScreen() {
   const [membership, setMembership] = useState<Membership | null>(null);
 
   // Editable fields
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
   const [selectedRole, setSelectedRole] = useState<Role>('user');
-  const [selectedGymId, setSelectedGymId] = useState<string>('');
+  const [selectedGymIds, setSelectedGymIds] = useState<string[]>([]);
   const [gyms, setGyms] = useState<Gym[]>([]);
   const [isLoadingGyms, setIsLoadingGyms] = useState(false);
-  const [showGymPicker, setShowGymPicker] = useState(false);
+  const [showFeeModal, setShowFeeModal] = useState(false);
+  const [feeAmount, setFeeAmount] = useState('');
+  const [feeNote, setFeeNote] = useState('');
+  const [feeExtendDays, setFeeExtendDays] = useState('');
+  const [feeExtend, setFeeExtend] = useState(false);
+  const [feeSubmitting, setFeeSubmitting] = useState(false);
+  const { recordFees } = useMembershipStore();
+
+  const handleRecordFee = async () => {
+    const amount = parseFloat(feeAmount);
+    if (!feeAmount || isNaN(amount) || amount <= 0) {
+      showAppAlert('Invalid Amount', 'Please enter a positive amount.');
+      return;
+    }
+    if (!membership) return;
+    setFeeSubmitting(true);
+    try {
+      const extendDays = feeExtend && feeExtendDays ? parseInt(feeExtendDays, 10) : undefined;
+      await recordFees(membership._id, { amount, note: feeNote.trim() || undefined, extendDays });
+      setShowFeeModal(false);
+      setFeeAmount('');
+      setFeeNote('');
+      setFeeExtendDays('');
+      setFeeExtend(false);
+      // Refresh membership data
+      const res = await membershipsApi.list({ userId: id, limit: 1 });
+      if (res.data?.length) setMembership(res.data[0]);
+      showAppAlert('Success', extendDays ? `Payment recorded. Membership extended by ${extendDays} days.` : 'Payment recorded successfully.');
+    } catch (err: any) {
+      showAppAlert('Error', err.message || 'Failed to record payment.');
+    } finally {
+      setFeeSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -73,10 +112,14 @@ export default function UserDetailScreen() {
         ]);
         const u = userRes.data;
         setUser(u);
+        setEditName(u.name);
+        setEditPhone(u.phone ?? '');
         setSelectedRole(u.role);
-        setSelectedGymId(
-          u.gymId ? (typeof u.gymId === 'string' ? u.gymId : u.gymId._id) : '',
-        );
+        // Initialize gymIds from gymIds array (multi-gym) or fall back to gymId
+        const ids: string[] = u.gymIds?.map((g) =>
+          typeof g === 'string' ? g : (g as Gym)._id
+        ) ?? (u.gymId ? [typeof u.gymId === 'string' ? u.gymId : u.gymId._id] : []);
+        setSelectedGymIds(ids);
         if (membershipRes?.data?.length) {
           setMembership(membershipRes.data[0]);
         }
@@ -106,43 +149,27 @@ export default function UserDetailScreen() {
     fetchGyms();
   }, [isSuperAdmin]);
 
-  const userGymName = user?.gymId
-    ? typeof user.gymId === 'string'
-      ? gyms.find((g) => g._id === user.gymId)?.name || 'Unknown Gym'
-      : (user.gymId as Gym).name
-    : 'No gym assigned';
-
-  const selectedGymName =
-    gyms.find((g) => g._id === selectedGymId)?.name ||
-    (user?.gymId && typeof user.gymId !== 'string'
-      ? (user.gymId as Gym).name
-      : '');
+  const originalGymIds: string[] = user?.gymIds?.map((g) =>
+    typeof g === 'string' ? g : (g as Gym)._id
+  ) ?? (user?.gymId ? [typeof user.gymId === 'string' ? user.gymId : (user.gymId as Gym)._id] : []);
 
   const hasChanges =
     user &&
-    (selectedRole !== user.role ||
-      selectedGymId !==
-        (user.gymId
-          ? typeof user.gymId === 'string'
-            ? user.gymId
-            : user.gymId._id
-          : ''));
+    (editName.trim() !== user.name ||
+      editPhone.trim() !== (user.phone ?? '') ||
+      selectedRole !== user.role ||
+      JSON.stringify([...selectedGymIds].sort()) !== JSON.stringify([...originalGymIds].sort()));
 
   const handleSave = async () => {
     if (!user || !id) return;
     setIsSaving(true);
     try {
-      const payload: Record<string, string> = {};
+      const payload: Record<string, any> = {};
+      if (editName.trim() !== user.name) payload.name = editName.trim();
+      if (editPhone.trim() !== (user.phone ?? '')) payload.phone = editPhone.trim();
       if (selectedRole !== user.role) payload.role = selectedRole;
-      if (
-        selectedGymId !==
-        (user.gymId
-          ? typeof user.gymId === 'string'
-            ? user.gymId
-            : user.gymId._id
-          : '')
-      ) {
-        payload.gymId = selectedGymId;
+      if (JSON.stringify([...selectedGymIds].sort()) !== JSON.stringify([...originalGymIds].sort())) {
+        payload.gymIds = selectedGymIds;
       }
       const res = await usersApi.updateUser(id, payload);
       setUser(res.data);
@@ -253,13 +280,11 @@ export default function UserDetailScreen() {
             </View>
           </View>
 
-          {/* User Info (read-only) */}
+          {/* User Info */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Information</Text>
             <View style={styles.infoCard}>
               <InfoRow label="Email" value={user.email} />
-              <View style={styles.infoDivider} />
-              <InfoRow label="Phone" value={user.phone || 'Not provided'} />
               <View style={styles.infoDivider} />
               <InfoRow label="Gender" value={user.gender || 'Not set'} />
               <View style={styles.infoDivider} />
@@ -275,12 +300,28 @@ export default function UserDetailScreen() {
                     : 'Not set'
                 }
               />
-              <View style={styles.infoDivider} />
-              <InfoRow
-                label="Current Gym"
-                value={userGymName}
-              />
             </View>
+            {isSuperAdmin && (
+              <>
+                <Text style={[styles.inputLabel, { marginTop: spacing.md }]}>Name</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={editName}
+                  onChangeText={setEditName}
+                  placeholder="Full name"
+                  placeholderTextColor={colors.text.light}
+                />
+                <Text style={styles.inputLabel}>Phone</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={editPhone}
+                  onChangeText={(v) => setEditPhone(v.replace(/[^0-9+\-\s]/g, ''))}
+                  placeholder="Phone number"
+                  placeholderTextColor={colors.text.light}
+                  keyboardType="phone-pad"
+                />
+              </>
+            )}
           </View>
 
           {/* Membership & Fees */}
@@ -361,6 +402,30 @@ export default function UserDetailScreen() {
                       />
                     </>
                   )}
+                  <View style={styles.membershipActions}>
+                    <TouchableOpacity
+                      style={styles.recordPaymentBtn}
+                      onPress={() => {
+                        const plan = membership.planId && typeof membership.planId !== 'string' ? membership.planId as MembershipPlan : null;
+                        const due = membership.feesDue ?? Math.max(0, (membership.feesAmount ?? plan?.price ?? 0) - (membership.feesPaid ?? 0));
+                        setFeeAmount(due > 0 ? String(due) : '');
+                        setFeeNote('');
+                        setShowFeeModal(true);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="cash-outline" size={15} color={colors.background.white} />
+                      <Text style={styles.recordPaymentBtnText}>Record Payment</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.viewHistoryBtn}
+                      onPress={() => router.push(`/(app)/(admin)/memberships/memberships/${membership._id}`)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="time-outline" size={15} color={colors.status.info} />
+                      <Text style={styles.viewHistoryBtnText}>Payment History</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               );
             })() : (
@@ -376,7 +441,7 @@ export default function UserDetailScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Gym Assignment</Text>
               <Text style={styles.sectionDescription}>
-                Change the gym this user belongs to
+                Select one or more gyms for this user (admins manage all assigned gyms)
               </Text>
 
               {isLoadingGyms ? (
@@ -385,91 +450,40 @@ export default function UserDetailScreen() {
                   <Text style={styles.gymLoadingText}>Loading gyms...</Text>
                 </View>
               ) : (
-                <>
-                  <TouchableOpacity
-                    style={[styles.gymSelector, showGymPicker && styles.gymSelectorActive]}
-                    onPress={() => setShowGymPicker(!showGymPicker)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons
-                      name="fitness-outline"
-                      size={20}
-                      color={selectedGymId ? colors.text.primary : colors.text.light}
-                      style={{ marginRight: spacing.md }}
-                    />
-                    <Text
-                      style={[
-                        styles.gymSelectorText,
-                        !selectedGymId && styles.gymSelectorPlaceholder,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {selectedGymName || 'Select a gym'}
-                    </Text>
-                    <Ionicons
-                      name={showGymPicker ? 'chevron-up' : 'chevron-down'}
-                      size={20}
-                      color={colors.text.secondary}
-                    />
-                  </TouchableOpacity>
-
-                  {showGymPicker && (
-                    <View style={styles.gymList}>
-                      {/* No gym option */}
+                <View style={styles.gymList}>
+                  {gyms.map((gym) => {
+                    const isChecked = selectedGymIds.includes(gym._id);
+                    return (
                       <TouchableOpacity
-                        style={[styles.gymItem, !selectedGymId && styles.gymItemActive]}
+                        key={gym._id}
+                        style={[styles.gymItem, isChecked && styles.gymItemActive]}
                         onPress={() => {
-                          setSelectedGymId('');
-                          setShowGymPicker(false);
+                          setSelectedGymIds((prev) =>
+                            isChecked ? prev.filter((gid) => gid !== gym._id) : [...prev, gym._id]
+                          );
                         }}
                         activeOpacity={0.7}
                       >
-                        <Text
-                          style={[
-                            styles.gymItemName,
-                            !selectedGymId && styles.gymItemNameActive,
-                          ]}
-                        >
-                          No gym
-                        </Text>
-                        {!selectedGymId && (
-                          <Ionicons name="checkmark-circle" size={20} color={colors.primary.yellow} />
-                        )}
-                      </TouchableOpacity>
-                      {gyms.map((gym) => (
-                        <TouchableOpacity
-                          key={gym._id}
-                          style={[
-                            styles.gymItem,
-                            selectedGymId === gym._id && styles.gymItemActive,
-                          ]}
-                          onPress={() => {
-                            setSelectedGymId(gym._id);
-                            setShowGymPicker(false);
-                          }}
-                          activeOpacity={0.7}
-                        >
-                          <View style={{ flex: 1 }}>
-                            <Text
-                              style={[
-                                styles.gymItemName,
-                                selectedGymId === gym._id && styles.gymItemNameActive,
-                              ]}
-                            >
-                              {gym.name}
-                            </Text>
-                            {gym.address?.city && (
-                              <Text style={styles.gymItemCity}>{gym.address.city}</Text>
-                            )}
-                          </View>
-                          {selectedGymId === gym._id && (
-                            <Ionicons name="checkmark-circle" size={20} color={colors.primary.yellow} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.gymItemName, isChecked && styles.gymItemNameActive]}>
+                            {gym.name}
+                          </Text>
+                          {gym.address?.city && (
+                            <Text style={styles.gymItemCity}>{gym.address.city}</Text>
                           )}
-                        </TouchableOpacity>
-                      ))}
+                        </View>
+                        <View style={[styles.gymCheckbox, isChecked && styles.gymCheckboxActive]}>
+                          {isChecked && <Ionicons name="checkmark" size={14} color={colors.text.onPrimary} />}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                  {gyms.length === 0 && (
+                    <View style={styles.gymLoadingContainer}>
+                      <Text style={styles.gymLoadingText}>No gyms found</Text>
                     </View>
                   )}
-                </>
+                </View>
               )}
             </View>
           )}
@@ -542,6 +556,69 @@ export default function UserDetailScreen() {
             />
           </View>
         </ScrollView>
+
+        {/* Record Payment Modal */}
+        <Modal visible={showFeeModal} transparent animationType="slide" onRequestClose={() => setShowFeeModal(false)}>
+          <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <View style={styles.modalSheet}>
+              <Text style={styles.modalTitle}>Record Payment</Text>
+              <Text style={styles.modalHint}>
+                {user?.name} — record a fee payment
+              </Text>
+              <Text style={styles.inputLabel}>Amount (₹) *</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="e.g. 1500"
+                placeholderTextColor={colors.text.light}
+                keyboardType="numeric"
+                value={feeAmount}
+                onChangeText={(v) => setFeeAmount(v.replace(/[^0-9.]/g, ''))}
+              />
+              <Text style={styles.inputLabel}>Note (optional)</Text>
+              <TextInput
+                style={[styles.textInput, styles.textInputMulti]}
+                placeholder="e.g. Monthly payment, Cash"
+                placeholderTextColor={colors.text.light}
+                value={feeNote}
+                onChangeText={setFeeNote}
+                multiline
+                numberOfLines={2}
+              />
+              {/* Extend membership toggle */}
+              <TouchableOpacity
+                style={styles.extendToggleRow}
+                onPress={() => setFeeExtend((v) => !v)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.toggleTrack, feeExtend && styles.toggleTrackActive]}>
+                  <View style={[styles.toggleThumb, feeExtend && styles.toggleThumbActive]} />
+                </View>
+                <Text style={styles.extendToggleLabel}>Extend membership end date</Text>
+              </TouchableOpacity>
+              {feeExtend && (
+                <>
+                  <Text style={styles.inputLabel}>Extend by (days)</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="e.g. 30"
+                    placeholderTextColor={colors.text.light}
+                    keyboardType="numeric"
+                    value={feeExtendDays}
+                    onChangeText={(v) => setFeeExtendDays(v.replace(/[^0-9]/g, ''))}
+                  />
+                </>
+              )}
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={[styles.modalBtn, styles.modalBtnCancel]} onPress={() => setShowFeeModal(false)} disabled={feeSubmitting}>
+                  <Text style={styles.modalBtnCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.modalBtn, styles.modalBtnConfirm]} onPress={handleRecordFee} disabled={feeSubmitting}>
+                  {feeSubmitting ? <ActivityIndicator size="small" color={colors.text.onPrimary} /> : <Text style={styles.modalBtnConfirmText}>Save</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
       </SafeScreen>
     </RoleGuard>
   );
@@ -718,18 +795,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  gymSelectorActive: {
-    borderColor: colors.primary.yellow,
-  },
-  gymSelectorText: {
-    flex: 1,
-    fontFamily: fontFamily.medium,
-    fontSize: 16,
-    color: colors.text.primary,
-  },
-  gymSelectorPlaceholder: {
-    color: colors.text.light,
-  },
   gymList: {
     marginTop: spacing.sm,
     backgroundColor: colors.background.card,
@@ -759,6 +824,50 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.text.secondary,
     marginTop: 2,
+  },
+  gymCheckbox: {
+    width: 22,
+    height: 22,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+    borderColor: colors.border.gray,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gymCheckboxActive: {
+    backgroundColor: colors.primary.yellow,
+    borderColor: colors.primary.yellow,
+  },
+  extendToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  extendToggleLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    color: colors.text.primary,
+  },
+  toggleTrack: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.border.gray,
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  toggleTrackActive: {
+    backgroundColor: colors.primary.yellow,
+  },
+  toggleThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.background.white,
+  },
+  toggleThumbActive: {
+    alignSelf: 'flex-end',
   },
   saveContainer: {
     marginBottom: spacing.lg,
@@ -790,5 +899,118 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     fontSize: 14,
     color: colors.text.light,
+  },
+  membershipActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+  },
+  recordPaymentBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.status.success,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.pill,
+  },
+  recordPaymentBtnText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 13,
+    color: colors.background.white,
+  },
+  viewHistoryBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.status.info,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.pill,
+  },
+  viewHistoryBtnText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 13,
+    color: colors.status.info,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalSheet: {
+    backgroundColor: colors.background.white,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    padding: spacing.xxl,
+    paddingBottom: 36,
+  },
+  modalTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: 18,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  modalHint: {
+    fontFamily: fontFamily.regular,
+    fontSize: 13,
+    color: colors.text.secondary,
+    marginBottom: spacing.lg,
+  },
+  inputLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: colors.border.gray,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontFamily: fontFamily.regular,
+    fontSize: 15,
+    color: colors.text.primary,
+    marginBottom: spacing.lg,
+  },
+  textInputMulti: {
+    height: 70,
+    textAlignVertical: 'top',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBtnCancel: {
+    borderWidth: 1,
+    borderColor: colors.border.gray,
+  },
+  modalBtnCancelText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 15,
+    color: colors.text.primary,
+  },
+  modalBtnConfirm: {
+    backgroundColor: colors.primary.yellow,
+  },
+  modalBtnConfirmText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 15,
+    color: colors.text.onPrimary,
   },
 });

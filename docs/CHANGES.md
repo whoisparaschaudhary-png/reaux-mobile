@@ -1,5 +1,107 @@
 # REAUX Labs Mobile — Changes & API Gap Analysis
 
+## Recent Changes (16 March 2026)
+
+### 1. Backend API Updates (from Anish Babbar)
+
+Four backend-side changes shipped on 16 March 2026:
+
+#### 1a. `PUT /api/memberships/:id/fees` — `extendDays` param
+
+The fees endpoint now accepts an optional `extendDays` integer. When provided:
+- Adds N days to the membership's `endDate`
+- Auto-reactivates memberships with status `expired` or `cancelled` back to `active`
+
+**New request shape:**
+```json
+{ "amount": 1499, "note": "April fees", "extendDays": 30 }
+```
+
+#### 1b. Contact phone mandatory on backend
+
+The `phone` field is now required when submitting the contact form on the backend. The frontend `contact.tsx` screen already collects phone, so no frontend change needed.
+
+#### 1c. Multiple gyms per admin — `gymIds` array
+
+The `User` model now has a `gymIds: [ObjectId]` array field in addition to the original `gymId`.
+
+- `POST /api/gyms/:id/assign-admin` adds to `gymIds` **non-destructively** (existing gyms are not removed)
+- All admin-scoped backend queries (memberships, fees, users) now check against **all gyms in `gymIds`**
+- `gymId` still exists for backwards compatibility
+
+#### 1d. `createOrder` push notification to superadmins
+
+When a customer places an order, the backend now sends a push notification to all superadmins. This is backend-only — no frontend changes required.
+
+---
+
+### 2. Frontend Changes
+
+#### 2a. `extendDays` in all Record Payment modals
+
+Three payment modals updated to include an "Extend membership end date" toggle + days input:
+
+- `app/(app)/(admin)/users/[id].tsx` — Record Payment modal in User Detail screen
+- `app/(app)/(admin)/fees.tsx` — Record Payment modal in Fees screen (pre-fills from plan's `durationDays`)
+- `app/(app)/(admin)/memberships/memberships/[id].tsx` — Record Payment modal in Membership Detail screen (pre-fills from plan's `durationDays`; only shown for payment mode, not advance/apply-credit modes)
+
+#### 2b. Multi-gym admin assignment in User Detail
+
+The Gym Assignment section in `app/(app)/(admin)/users/[id].tsx` was redesigned from a single-select dropdown to a **multi-select checkbox list**:
+- All gyms shown with a checkbox per gym
+- Tap to toggle assignment
+- On Save, passes `gymIds: string[]` to `PUT /api/users/:id`
+
+#### 2c. Editable name & phone in User Detail
+
+Admin/superadmin can now edit a user's name and phone directly in `users/[id].tsx`:
+- Name and phone `TextInput` fields shown below the read-only info card
+- Changes detected in `hasChanges` and submitted via `updateUser`
+
+#### 2d. Camera + gallery image picker for gym photos
+
+`app/(app)/(admin)/gyms/create.tsx` now uses `pickImageWithCamera()` (shows an Alert with Camera / Gallery options) instead of gallery-only picker.
+
+`src/hooks/useImagePicker.ts` was extended with:
+- `_launchCamera()` — uses `expo-image-picker` `launchCameraAsync`
+- `pickImageWithCamera()` — shows Alert dialog then calls camera or gallery
+
+`app.json` updated:
+- iOS `infoPlist`: `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`
+- Android `permissions`: `CAMERA`, `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`
+- `expo-image-picker` plugin added with permission strings
+
+#### 2e. Password reset deep link (Android)
+
+`app.json` now includes an Android `intentFilter` for `reauxlabs://reset-password` so the app opens the reset-password screen when users tap the email reset link on Android.
+
+#### 2f. Post images use aspect ratio instead of fixed height
+
+`src/components/cards/PostCard.tsx` and `app/(app)/(feed)/[id].tsx` changed image containers from `height: 280/300` (fixed) to `aspectRatio: 4/5` (portrait), so tall photos display correctly.
+
+#### 2g. BMI tab always opens calculator, not history
+
+`app/(app)/(health)/_layout.tsx` now exports `unstable_settings = { initialRouteName: 'index' }` so switching away from the History screen and back to the BMI tab always lands on the calculator.
+
+#### 2h. Numeric input sanitisation
+
+Fees/payment amount inputs in `fees.tsx`, `memberships/[id].tsx`, and `users/[id].tsx` use `.replace(/[^0-9.]/g, '')` in `onChangeText` to strip non-numeric characters on Android.
+
+---
+
+### 3. Bug Fixes
+
+#### 3a. Payment history crash — `FeePayment.paidAt` vs `date`
+
+The backend's `paymentHistory` entries return a `date` field, not `paidAt`. The TypeScript type had `paidAt: string` (required), causing `formatDate(undefined)` to throw "Invalid time value".
+
+**Fixes:**
+- `src/types/models.ts`: Changed `FeePayment.paidAt` to optional, added `date?: string` field
+- `src/utils/formatters.ts`: `formatDate`, `formatDateTime`, `formatRelative` are now null-safe — return `'—'` for undefined/null/invalid dates
+- Render site uses `p.date ?? p.paidAt ?? ''` as fallback chain
+
+---
+
 ## Recent Changes (March 2026)
 
 ### 1. Reel Comments Fix
@@ -46,9 +148,7 @@ Cross-referenced the official backend API docs against the mobile app implementa
 | `/auth/forgot-password` | POST | ✅ Implemented |
 | `/auth/reset-password` | POST | ⚠️ **API client exists, but NO screen** |
 
-**Gap:** `POST /auth/reset-password` is wired in `src/api/endpoints/auth.ts` but there is no reset-password screen in the app and no deep link handler. Users who receive the reset email link have nowhere to enter their new password.
-
-**Fix needed:** Create `app/(auth)/reset-password.tsx` screen + configure deep link `reaux-labs://reset-password?token=xxx` in `app.json`.
+**Gap (RESOLVED):** `POST /auth/reset-password` is wired in `src/api/endpoints/auth.ts`. Screen `app/(auth)/reset-password.tsx` exists and reads the `token` param. Android deep link (`reauxlabs://reset-password`) added to `app.json` `intentFilters`.
 
 ---
 
@@ -82,7 +182,7 @@ Expected response:
 | `POST /gyms` | POST | ✅ Implemented |
 | `PUT /gyms/:id` | PUT | ✅ Implemented |
 | `DELETE /gyms/:id` | DELETE | ✅ Implemented (soft delete) |
-| `POST /gyms/:id/assign-admin` | POST | ✅ Implemented |
+| `POST /gyms/:id/assign-admin` | POST | ✅ Implemented (now adds to `gymIds` array non-destructively) |
 
 ---
 
@@ -230,7 +330,7 @@ Expected response:
 | `GET /memberships/my` | GET | ✅ API client exists |
 | `GET /memberships/:id` | GET | ✅ Implemented |
 | `PATCH /memberships/:id/cancel` | PATCH | ✅ API client exists |
-| `PUT /memberships/:id/fees` | PUT | ✅ Implemented |
+| `PUT /memberships/:id/fees` | PUT | ✅ Implemented (now supports `extendDays`) |
 
 **Gap:** `GET /memberships/my` (My Memberships for the logged-in user) has an API client method but **no user-facing screen**. Regular users cannot see their own membership status, expiry date, or plan details anywhere in the app.
 
@@ -279,7 +379,7 @@ Expected response:
 
 | # | Feature | What's Missing | Effort |
 |---|---------|----------------|--------|
-| 1 | Password Reset | No reset-password screen, no deep link | Small — 1 screen + app.json config |
+| 1 | Password Reset | ~~No reset-password screen, no deep link~~ **✅ RESOLVED** (screen exists, deep link added to app.json) | — |
 | 2 | My Membership | Regular users can't see their own membership | Small — add card to Profile screen |
 | 3 | Diet Suggestions | BMI screen doesn't link to suggested diets | Small — add button to BMI result |
 

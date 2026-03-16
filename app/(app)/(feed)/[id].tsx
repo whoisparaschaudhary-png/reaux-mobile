@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -11,6 +10,7 @@ import {
   Platform,
   Share,
   Alert,
+  TextInput,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -216,7 +216,7 @@ export default function PostDetailScreen() {
   // Check if current user has liked this post
   const isLiked = post.isLiked;
 
-  const renderHeader = () => (
+  const renderHeader = useCallback(() => (
     <View>
       {/* Post image */}
       {hasImage && (
@@ -299,10 +299,13 @@ export default function PostDetailScreen() {
           style={styles.actionButton}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           onPress={() => {
+            const storeUrl = Platform.OS === 'ios'
+              ? 'https://apps.apple.com/app/id' + 'YOUR_APP_STORE_ID'
+              : 'https://play.google.com/store/apps/details?id=com.babbaranish.reauxlabsmobile';
             Share.share({
               message: post.content
-                ? `${post.content} — shared from REAUX Labs`
-                : 'Check out this post on REAUX Labs!',
+                ? `${post.content}\n\n— Shared from REAUX Labs\nFollow us: https://www.instagram.com/reauxlabs/\nDownload: ${storeUrl}`
+                : `Check out REAUX Labs – your fitness community!\nFollow us: https://www.instagram.com/reauxlabs/\nDownload: ${storeUrl}`,
             });
           }}
         >
@@ -319,7 +322,7 @@ export default function PostDetailScreen() {
         <Text style={styles.commentsTitle}>Comments</Text>
       </View>
     </View>
-  );
+  ), [post, isLiked, handleLike, handleDelete, isSuperAdmin]);
 
   return (
     <SafeScreen>
@@ -385,7 +388,7 @@ const styles = StyleSheet.create({
   // Post image
   postImage: {
     width: '100%',
-    height: 300,
+    aspectRatio: 4 / 5,
   },
 
   // Author

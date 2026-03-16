@@ -27,6 +27,8 @@
 17. [Notifications](#13-notifications)
 18. [Memberships](#14-memberships)
 19. [Analytics (Admin)](#15-analytics-admin)
+20. [Contact](#16-contact)
+21. [Workouts](#17-workouts)
 
 ---
 
@@ -1165,7 +1167,7 @@ POST /api/gyms/:id/assign-admin
 **Auth:** Bearer Token
 **Role:** `superadmin` only
 
-Promotes a user to the `admin` role and associates them with the specified gym.
+Promotes a user to the `admin` role and adds the gym to the user's `gymIds` array (non-destructive — existing gyms are preserved). All admin-scoped queries (memberships, fees, users) check against every gym in `gymIds`.
 
 **URL Parameters:**
 
@@ -1198,6 +1200,7 @@ Promotes a user to the `admin` role and associates them with the specified gym.
     "email": "priya@example.com",
     "role": "admin",
     "gymId": "665a1f2e3c4b5d6e7f8a9b0c",
+    "gymIds": ["665a1f2e3c4b5d6e7f8a9b0c", "665a1f2e3c4b5d6e7f8a9b0d"],
     "status": "active",
     "updatedAt": "2025-06-12T11:00:00.000Z"
   }
@@ -3672,6 +3675,223 @@ Sets membership status to `cancelled`. Cannot cancel an already-cancelled member
 
 ---
 
+### 14.11 Record Payment
+
+```
+PUT /api/memberships/:id/fees
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Records a payment. Pass a **positive** amount to add payment, or a **negative** amount to deduct from `advanceCredit`. `feesDue` and `advanceCredit` auto-recalculate. Amount cannot be 0.
+
+Optionally pass `extendDays` to extend the membership's `endDate` by N days. If the membership is `expired` or `cancelled`, it will be **auto-reactivated** to `active` when `extendDays` is provided.
+
+**Request Body:**
+
+| Field        | Type   | Required | Description                                                               |
+|--------------|--------|----------|---------------------------------------------------------------------------|
+| `amount`     | number | Yes      | Positive to add payment, negative to deduct credit (cannot be 0)         |
+| `note`       | string | No       | Optional note (e.g. "Cash payment", "April fees")                         |
+| `extendDays` | number | No       | Days to add to `endDate`. Auto-reactivates expired/cancelled memberships  |
+
+**Example — Record payment and extend by 30 days:**
+```json
+{ "amount": 1499, "note": "April fees", "extendDays": 30 }
+```
+
+**Example — Deduct ₹500 from advance credit:**
+```json
+{ "amount": -500, "note": "Used advance for this month" }
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Payment recorded",
+  "data": {
+    "_id": "...",
+    "feesAmount": 2000,
+    "feesPaid": 3500,
+    "feesDue": 0,
+    "advanceCredit": 1500,
+    "lastPaymentDate": "2026-03-13T10:00:00.000Z",
+    "paymentHistory": [
+      { "amount": 2000, "date": "2026-03-01T00:00:00.000Z", "note": "Initial payment" },
+      { "amount": 2000, "date": "2026-03-10T00:00:00.000Z", "note": "Extra payment" },
+      { "amount": -500, "date": "2026-03-13T10:00:00.000Z", "note": "Used advance for this month" }
+    ]
+  }
+}
+```
+
+---
+
+### 14.12 Apply Credit to Dues
+
+```
+POST /api/memberships/:id/apply-credit
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Transfers advance credit toward clearing pending dues. Applies `min(amount, advanceCredit)` — can never apply more than the available credit. Errors if `advanceCredit` is 0.
+
+**Request Body:**
+
+| Field    | Type   | Required | Description                                         |
+|----------|--------|----------|-----------------------------------------------------|
+| `amount` | number | Yes      | Amount to apply from credit (must be positive)      |
+| `note`   | string | No       | Optional note (auto-generated if omitted)           |
+
+**Example:**
+```json
+{ "amount": 1000, "note": "Clearing pending dues from advance credit" }
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Credit applied to dues",
+  "data": {
+    "_id": "...",
+    "feesAmount": 2000,
+    "feesPaid": 4000,
+    "feesDue": 0,
+    "advanceCredit": 1000,
+    "paymentHistory": [
+      { "amount": 1000, "date": "2026-03-13T10:00:00.000Z", "note": "Clearing pending dues from advance credit" }
+    ]
+  }
+}
+```
+
+**Error — No credit available (400):**
+```json
+{ "success": false, "message": "No advance credit available" }
+```
+
+---
+
+### 14.13 Adjust Fees (Override)
+
+```
+PATCH /api/memberships/:id/fees/adjust
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Directly override fees values for corrections. At least one of `feesAmount`, `feesPaid`, or `advanceCredit` is required. `feesDue` is always auto-recalculated.
+
+**Request Body:**
+
+| Field           | Type   | Required | Description                                         |
+|-----------------|--------|----------|-----------------------------------------------------|
+| `feesAmount`    | number | No       | Override total fees owed                            |
+| `feesPaid`      | number | No       | Override total amount paid                          |
+| `advanceCredit` | number | No       | Override advance credit directly                    |
+| `note`          | string | No       | Reason for adjustment (logged in paymentHistory)    |
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Fees adjusted",
+  "data": {
+    "_id": "...",
+    "feesAmount": 3000,
+    "feesPaid": 3000,
+    "feesDue": 0,
+    "advanceCredit": 0
+  }
+}
+```
+
+### 14.14 Fees Overview
+
+```
+GET /api/memberships/fees-overview
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Returns all active memberships grouped into 4 categories. Admin automatically scoped to their gym; superadmin can pass `?gymId=` to filter.
+
+**Query Parameters:**
+
+| Parameter | Type   | Required | Description                          |
+|-----------|--------|----------|--------------------------------------|
+| `gymId`   | string | No       | Filter by gym (superadmin only)      |
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "feesDue": [
+      {
+        "_id": "...",
+        "feesAmount": 4499,
+        "feesPaid": 2000,
+        "feesDue": 2499,
+        "advanceCredit": 0,
+        "endDate": "2025-06-10T00:00:00.000Z",
+        "status": "active",
+        "userId": { "_id": "...", "name": "Sneha Gupta", "email": "sneha@gmail.com", "avatar": null },
+        "planId": { "_id": "...", "name": "Premium Quarterly", "price": 4499 },
+        "gymId": { "_id": "...", "name": "REAUX Fitness Mumbai" }
+      }
+    ],
+    "fullyPaid": [
+      {
+        "_id": "...",
+        "feesAmount": 12999,
+        "feesPaid": 12999,
+        "feesDue": 0,
+        "advanceCredit": 0,
+        "status": "active"
+      }
+    ],
+    "credit": [
+      {
+        "_id": "...",
+        "feesAmount": 3999,
+        "feesPaid": 5000,
+        "feesDue": 0,
+        "advanceCredit": 1001,
+        "status": "active"
+      }
+    ],
+    "upcomingRenewals": [
+      {
+        "_id": "...",
+        "endDate": "2025-04-01T00:00:00.000Z",
+        "status": "active"
+      }
+    ]
+  }
+}
+```
+
+| Field              | Description                                                     |
+|--------------------|-----------------------------------------------------------------|
+| `feesDue`          | Active memberships with outstanding balance (`feesDue > 0`)     |
+| `fullyPaid`        | Active memberships with no balance and no credit                |
+| `credit`           | Active memberships with overpayment (`advanceCredit > 0`)       |
+| `upcomingRenewals` | Active memberships expiring within the next 30 days             |
+
+---
+
 ## 15. Analytics (Admin)
 
 Base path: `/api/admin`
@@ -3816,6 +4036,260 @@ Returns comprehensive sales analytics including overall stats, monthly breakdown
 
 ---
 
+## 16. Contact
+
+Base path: `/api/contact`
+
+### 16.1 Submit Contact Form
+
+```
+POST /api/contact
+```
+
+**Auth:** None (public)
+
+**Request Body:**
+
+| Field     | Type   | Required | Description              |
+|-----------|--------|----------|--------------------------|
+| `name`    | string | Yes      | Sender's name            |
+| `email`   | string | Yes      | Valid email address      |
+| `phone`   | string | No       | Phone number             |
+| `message` | string | Yes      | Message content          |
+
+**Success Response (201 Created):**
+
+```json
+{
+  "success": true,
+  "message": "Message submitted successfully",
+  "data": {
+    "_id": "...",
+    "name": "Arjun Sharma",
+    "email": "arjun@gmail.com",
+    "message": "I'd like to know more about your gym memberships.",
+    "status": "open",
+    "createdAt": "2026-03-13T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 16.2 List Contact Submissions
+
+```
+GET /api/contact
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Returns paginated list of contact form submissions.
+
+**Query Parameters:** `page`, `limit`
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "...",
+      "name": "Arjun Sharma",
+      "email": "arjun@gmail.com",
+      "message": "I'd like to know more about your gym memberships.",
+      "status": "open",
+      "createdAt": "2026-03-13T10:00:00.000Z"
+    }
+  ],
+  "pagination": { "page": 1, "limit": 10, "total": 5, "pages": 1 }
+}
+```
+
+---
+
+### 16.3 Resolve Contact Submission
+
+```
+PATCH /api/contact/:id/resolve
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Marks a contact submission as resolved.
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Marked as resolved",
+  "data": {
+    "_id": "...",
+    "status": "resolved"
+  }
+}
+```
+
+---
+
+## 17. Workouts
+
+Base path: `/api/workouts`
+
+Workout templates are created by admins/superadmins and publicly viewable.
+
+### 17.1 Create Workout
+
+```
+POST /api/workouts
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+**Request Body:**
+
+| Field          | Type     | Required | Values / Notes                                              |
+|----------------|----------|----------|-------------------------------------------------------------|
+| `title`        | string   | Yes      | Workout title                                               |
+| `description`  | string   | No       | Description                                                 |
+| `category`     | string   | Yes      | `strength`, `cardio`, `flexibility`, `hiit`, `yoga`, `crossfit`, `other` |
+| `difficulty`   | string   | Yes      | `beginner`, `intermediate`, `advanced`                      |
+| `duration`     | number   | No       | Duration in minutes                                         |
+| `caloriesBurn` | number   | No       | Estimated calories burned                                   |
+| `image`        | string   | No       | Image URL                                                   |
+| `tags`         | string[] | No       | e.g. `["chest", "upper-body"]`                              |
+| `exercises`    | array    | No       | List of exercises (see below)                               |
+
+**Exercise Object:**
+
+| Field      | Type   | Required | Notes                         |
+|------------|--------|----------|-------------------------------|
+| `name`     | string | Yes      | Exercise name                 |
+| `sets`     | number | No       | Number of sets                |
+| `reps`     | number | No       | Reps per set                  |
+| `weight`   | number | No       | Weight in kg                  |
+| `duration` | number | No       | Duration in seconds           |
+| `restTime` | number | No       | Rest time in seconds          |
+| `notes`    | string | No       | Additional notes              |
+
+**Success Response (201 Created):**
+
+```json
+{
+  "success": true,
+  "message": "Workout created",
+  "data": {
+    "_id": "...",
+    "title": "Full Body Strength",
+    "category": "strength",
+    "difficulty": "intermediate",
+    "duration": 45,
+    "caloriesBurn": 350,
+    "tags": ["full-body"],
+    "exercises": [
+      { "name": "Squat", "sets": 4, "reps": 10, "weight": 60, "restTime": 90 },
+      { "name": "Bench Press", "sets": 3, "reps": 8, "weight": 80, "restTime": 120 }
+    ],
+    "isPublished": true,
+    "createdAt": "2026-03-13T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 17.2 List Workouts
+
+```
+GET /api/workouts
+```
+
+**Auth:** None (public)
+
+**Query Parameters:**
+
+| Parameter    | Type   | Description                                     |
+|--------------|--------|-------------------------------------------------|
+| `category`   | string | Filter by category (e.g. `strength`)            |
+| `difficulty` | string | Filter by difficulty (e.g. `beginner`)          |
+| `tag`        | string | Filter by tag (e.g. `chest`)                    |
+| `page`       | number | Page number (default: 1)                        |
+| `limit`      | number | Results per page (default: 10, max: 100)        |
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": [ { "_id": "...", "title": "Full Body Strength", "category": "strength", "difficulty": "intermediate", "duration": 45 } ],
+  "pagination": { "page": 1, "limit": 10, "total": 8, "pages": 1 }
+}
+```
+
+---
+
+### 17.3 Get Workout by ID
+
+```
+GET /api/workouts/:id
+```
+
+**Auth:** None (public)
+
+Returns full workout details including exercises.
+
+---
+
+### 17.4 Update Workout
+
+```
+PUT /api/workouts/:id
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+All fields from Create are accepted as optional. Set `isPublished: false` to soft-delete.
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Workout updated",
+  "data": { "_id": "...", "title": "Updated Title", "isPublished": true }
+}
+```
+
+---
+
+### 17.5 Delete Workout (Soft Delete)
+
+```
+DELETE /api/workouts/:id
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Sets `isPublished: false`. The workout is excluded from list responses but not removed from the database.
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Workout deleted"
+}
+```
+
+---
+
 ## Appendix: Order Statuses
 
 | Status      | Description                                |
@@ -3849,14 +4323,15 @@ Returns comprehensive sales analytics including overall stats, monthly breakdown
 
 ## Appendix: Diet Plan Categories
 
-| Category       | Description                  |
-|----------------|------------------------------|
-| `weight-loss`  | Calorie-deficit plans        |
-| `muscle-gain`  | High-protein surplus plans   |
-| `maintenance`  | Balanced calorie plans       |
-| `keto`         | Ketogenic diet plans         |
-| `vegan`        | Plant-based diet plans       |
-| `other`        | Other/custom diet plans      |
+| Category      | Description                          |
+|---------------|--------------------------------------|
+| `weight-loss` | Calorie-deficit plans                |
+| `muscle-gain` | High-protein surplus plans           |
+| `bulking`     | High-calorie muscle-building plans   |
+| `cutting`     | Low-calorie fat-loss plans           |
+| `other`       | Other/custom diet plans              |
+
+**Diet Types:** `veg`, `non-veg`, `both` (default)
 
 ## Appendix: Membership Statuses
 

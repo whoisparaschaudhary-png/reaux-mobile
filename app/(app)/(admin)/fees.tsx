@@ -82,6 +82,8 @@ export default function FeesScreen() {
     membership: Membership;
     amount: string;
     note: string;
+    extendToggle: boolean;
+    extendDays: string;
   } | null>(null);
   const [creditModal, setCreditModal] = useState<{
     membership: Membership;
@@ -166,10 +168,15 @@ export default function FeesScreen() {
   const handleRecordPayment = useCallback((membership: Membership) => {
     const totalFee = membership.feesAmount ?? getPlanPrice(membership);
     const feesDue = membership.feesDue ?? (totalFee - (membership.feesPaid ?? 0));
+    const planDuration = typeof membership.planId === 'object' && membership.planId !== null
+      ? String((membership.planId as MembershipPlan).durationDays ?? '')
+      : '';
     setPaymentModal({
       membership,
       amount: feesDue > 0 ? String(feesDue) : '',
       note: '',
+      extendToggle: false,
+      extendDays: planDuration,
     });
   }, []);
 
@@ -180,12 +187,16 @@ export default function FeesScreen() {
       Alert.alert('Invalid Amount', 'Please enter a valid payment amount.');
       return;
     }
+    const extendDays = paymentModal.extendToggle && paymentModal.extendDays
+      ? parseInt(paymentModal.extendDays, 10)
+      : undefined;
 
     setRecording(true);
     try {
       await recordFees(paymentModal.membership._id, {
         amount,
         note: paymentModal.note || undefined,
+        extendDays,
       });
       setPaymentModal(null);
       await fetchMemberships(1, { status: 'active' });
@@ -276,6 +287,22 @@ export default function FeesScreen() {
                 Credit: {formatCurrency(credit)}
               </Text>
             )}
+            {membership.endDate && (() => {
+              const end = new Date(membership.endDate);
+              const now = new Date();
+              const diffDays = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+              const isExpired = diffDays < 0;
+              const isExpiringSoon = diffDays >= 0 && diffDays <= 7;
+              return (
+                <Text style={[styles.feeDate, isExpired ? { color: colors.status.error } : isExpiringSoon ? { color: colors.status.warning } : null]}>
+                  {isExpired
+                    ? `Expired: ${formatDate(membership.endDate)}`
+                    : isExpiringSoon
+                    ? `Expires in ${diffDays}d: ${formatDate(membership.endDate)}`
+                    : `Renews: ${formatDate(membership.endDate)}`}
+                </Text>
+              );
+            })()}
             {membership.lastPaymentDate && (
               <Text style={styles.feeDate}>
                 Last payment: {formatDate(membership.lastPaymentDate)}
@@ -554,8 +581,9 @@ export default function FeesScreen() {
                 label="Amount to Add (₹)"
                 placeholder="e.g. 500"
                 value={creditModal.amount}
+                keyboardType="numeric"
                 onChangeText={(text: string) =>
-                  setCreditModal((prev) => prev ? { ...prev, amount: text } : null)
+                  setCreditModal((prev) => prev ? { ...prev, amount: text.replace(/[^0-9.]/g, '') } : null)
                 }
               />
 
@@ -653,8 +681,9 @@ export default function FeesScreen() {
                 label="Amount (₹)"
                 placeholder="Enter payment amount"
                 value={paymentModal.amount}
+                keyboardType="numeric"
                 onChangeText={(text: string) =>
-                  setPaymentModal((prev) => prev ? { ...prev, amount: text } : null)
+                  setPaymentModal((prev) => prev ? { ...prev, amount: text.replace(/[^0-9.]/g, '') } : null)
                 }
               />
 
@@ -666,6 +695,29 @@ export default function FeesScreen() {
                   setPaymentModal((prev) => prev ? { ...prev, note: text } : null)
                 }
               />
+
+              {/* Extend membership toggle */}
+              <TouchableOpacity
+                style={styles.extendToggleRow}
+                onPress={() => setPaymentModal((prev) => prev ? { ...prev, extendToggle: !prev.extendToggle } : null)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.toggleTrack, paymentModal.extendToggle && styles.toggleTrackActive]}>
+                  <View style={[styles.toggleThumb, paymentModal.extendToggle && styles.toggleThumbActive]} />
+                </View>
+                <Text style={styles.extendToggleLabel}>Extend membership end date</Text>
+              </TouchableOpacity>
+              {paymentModal.extendToggle && (
+                <Input
+                  label="Extend by (days)"
+                  placeholder="e.g. 30"
+                  value={paymentModal.extendDays}
+                  keyboardType="numeric"
+                  onChangeText={(text: string) =>
+                    setPaymentModal((prev) => prev ? { ...prev, extendDays: text.replace(/[^0-9]/g, '') } : null)
+                  }
+                />
+              )}
 
               <View style={styles.modalButtons}>
                 <Button
@@ -971,5 +1023,36 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.medium,
     fontSize: 12,
     color: colors.status.info,
+  },
+  extendToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  extendToggleLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    color: colors.text.primary,
+  },
+  toggleTrack: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.border.gray,
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  toggleTrackActive: {
+    backgroundColor: colors.primary.yellow,
+  },
+  toggleThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.background.white,
+  },
+  toggleThumbActive: {
+    alignSelf: 'flex-end',
   },
 });

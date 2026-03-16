@@ -54,14 +54,29 @@ export default function MembershipDetailScreen() {
   const [feeModalMode, setFeeModalMode] = useState<'payment' | 'advance' | 'apply' | null>(null);
   const [feeAmount, setFeeAmount] = useState('');
   const [feeNote, setFeeNote] = useState('');
+  const [feeExtend, setFeeExtend] = useState(false);
+  const [feeExtendDays, setFeeExtendDays] = useState('');
   const [feeSubmitting, setFeeSubmitting] = useState(false);
 
   const openFeeModal = (mode: 'payment' | 'advance' | 'apply') => {
     setFeeAmount('');
     setFeeNote('');
+    setFeeExtend(false);
+    // Pre-fill extendDays with plan duration when recording a payment
+    const planObj = selectedMembership && typeof selectedMembership.planId === 'object'
+      ? (selectedMembership.planId as MembershipPlan)
+      : null;
+    const planDuration = planObj?.durationDays ? String(planObj.durationDays) : '';
+    setFeeExtendDays(mode === 'payment' ? planDuration : '');
     setFeeModalMode(mode);
   };
-  const closeFeeModal = () => { setFeeModalMode(null); setFeeAmount(''); setFeeNote(''); };
+  const closeFeeModal = () => {
+    setFeeModalMode(null);
+    setFeeAmount('');
+    setFeeNote('');
+    setFeeExtend(false);
+    setFeeExtendDays('');
+  };
 
   useEffect(() => {
     if (id) {
@@ -96,7 +111,10 @@ export default function MembershipDetailScreen() {
       } else {
         // 'advance' = use advance credit → negative amount per API spec
         const amount = feeModalMode === 'advance' ? -abs : abs;
-        await recordFees(id, { amount, note: feeNote.trim() || undefined });
+        const extendDays = feeModalMode === 'payment' && feeExtend && feeExtendDays
+          ? parseInt(feeExtendDays, 10)
+          : undefined;
+        await recordFees(id, { amount, note: feeNote.trim() || undefined, extendDays });
       }
       closeFeeModal();
       const msg = feeModalMode === 'payment' ? 'Payment recorded.'
@@ -176,6 +194,7 @@ export default function MembershipDetailScreen() {
       : null;
 
   const canCancel = selectedMembership.status === 'active';
+  const canRenew = selectedMembership.status === 'expired' || selectedMembership.status === 'cancelled';
 
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
@@ -369,7 +388,7 @@ export default function MembershipDetailScreen() {
                         ) : null}
                       </View>
                     </View>
-                    <Text style={styles.historyDate}>{formatDate(p.paidAt)}</Text>
+                    <Text style={styles.historyDate}>{formatDate(p.date ?? p.paidAt ?? '')}</Text>
                   </View>
                 ))}
               </View>
@@ -392,6 +411,30 @@ export default function MembershipDetailScreen() {
               </Text>
             </View>
           </View>
+
+          {/* Renew Button for expired/cancelled */}
+          {canRenew && user && (
+            <View style={styles.actionContainer}>
+              <Button
+                title="Renew Membership"
+                onPress={() => {
+                  const userId = typeof selectedMembership.userId === 'string'
+                    ? selectedMembership.userId
+                    : (selectedMembership.userId as User)._id;
+                  const userName = encodeURIComponent((selectedMembership.userId as User)?.name ?? '');
+                  router.push(
+                    `/(app)/(admin)/memberships/memberships/assign?preselectedUserId=${userId}&preselectedUserName=${userName}` as any
+                  );
+                }}
+                variant="primary"
+                size="lg"
+                fullWidth
+                leftIcon={
+                  <Ionicons name="refresh-outline" size={20} color={colors.text.onPrimary} />
+                }
+              />
+            </View>
+          )}
 
           {/* Cancel Button */}
           {canCancel && (
@@ -443,7 +486,7 @@ export default function MembershipDetailScreen() {
                 placeholderTextColor={colors.text.light}
                 keyboardType="numeric"
                 value={feeAmount}
-                onChangeText={setFeeAmount}
+                onChangeText={(v) => setFeeAmount(v.replace(/[^0-9.]/g, ''))}
               />
 
               <Text style={styles.inputLabel}>Note (optional)</Text>
@@ -456,6 +499,34 @@ export default function MembershipDetailScreen() {
                 multiline
                 numberOfLines={3}
               />
+
+              {feeModalMode === 'payment' && (
+                <>
+                  <TouchableOpacity
+                    style={styles.extendToggleRow}
+                    onPress={() => setFeeExtend((v) => !v)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.toggleTrack, feeExtend && styles.toggleTrackActive]}>
+                      <View style={[styles.toggleThumb, feeExtend && styles.toggleThumbActive]} />
+                    </View>
+                    <Text style={styles.extendToggleLabel}>Extend membership end date</Text>
+                  </TouchableOpacity>
+                  {feeExtend && (
+                    <>
+                      <Text style={styles.inputLabel}>Extend by (days)</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="e.g. 30"
+                        placeholderTextColor={colors.text.light}
+                        keyboardType="numeric"
+                        value={feeExtendDays}
+                        onChangeText={(v) => setFeeExtendDays(v.replace(/[^0-9]/g, ''))}
+                      />
+                    </>
+                  )}
+                </>
+              )}
 
               <View style={styles.modalActions}>
                 <TouchableOpacity
@@ -743,5 +814,36 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.medium,
     fontSize: 12,
     color: colors.status.info,
+  },
+  extendToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  extendToggleLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    color: colors.text.primary,
+  },
+  toggleTrack: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.border.gray,
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  toggleTrackActive: {
+    backgroundColor: colors.primary.yellow,
+  },
+  toggleThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.background.white,
+  },
+  toggleThumbActive: {
+    alignSelf: 'flex-end',
   },
 });

@@ -26,7 +26,7 @@ import type { User } from '../../../../src/types/models';
 
 export default function CreateGymScreen() {
   const router = useRouter();
-  const { pickImage } = useImagePicker();
+  const { pickImageWithCamera } = useImagePicker();
   const { users, fetchUsers, isLoading: isLoadingUsers } = useAdminStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,7 +57,7 @@ export default function CreateGymScreen() {
   const selectedAdminUser = adminUsers.find((u) => u._id === selectedAdmin);
 
   const handlePickImage = async () => {
-    const result = await pickImage();
+    const result = await pickImageWithCamera();
     if (result) {
       setImageUris((prev) => [...prev, result.uri]);
     }
@@ -68,7 +68,7 @@ export default function CreateGymScreen() {
   };
 
   const handlePickLogo = async () => {
-    const result = await pickImage();
+    const result = await pickImageWithCamera();
     if (result) {
       setLogoUri(result.uri);
     }

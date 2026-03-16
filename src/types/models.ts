@@ -34,6 +34,7 @@ export interface User {
   phone?: string;
   role: Role;
   gymId?: string | Gym;
+  gymIds?: (string | Gym)[];
   avatar?: string;
   height?: number;
   weight?: number;
@@ -368,8 +369,9 @@ export interface MembershipPlan {
 export interface FeePayment {
   amount: number;
   note?: string;
-  paidAt: string;
-  recordedBy: string | User;
+  paidAt?: string; // legacy alias
+  date?: string;   // API returns this field
+  recordedBy?: string | User;
 }
 
 // Membership

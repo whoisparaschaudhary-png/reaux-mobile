@@ -15,7 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.babbaranish.reauxlabsmobile"
+      "bundleIdentifier": "com.babbaranish.reauxlabsmobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "REAUX Labs needs camera access to upload gym photos.",
+        "NSPhotoLibraryUsageDescription": "REAUX Labs needs photo library access to upload images."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,9 +31,25 @@
       "package": "com.babbaranish.reauxlabsmobile",
       "permissions": [
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.VIBRATE"
+        "android.permission.VIBRATE",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "reauxlabs",
+              "host": "reset-password"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "notification": {
       "icon": "./assets/Example.png",
@@ -46,6 +66,13 @@
       "expo-secure-store",
       "@react-native-community/datetimepicker",
       "expo-video",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "REAUX Labs needs access to your photos to upload images.",
+          "cameraPermission": "REAUX Labs needs camera access to take photos."
+        }
+      ],
       [
         "expo-notifications",
         {
