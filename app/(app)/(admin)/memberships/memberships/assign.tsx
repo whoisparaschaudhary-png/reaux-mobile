@@ -7,7 +7,9 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../../../src/components/layout/SafeScreen';
@@ -40,6 +42,8 @@ export default function AssignMembershipScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     loadUsers();
@@ -241,14 +245,66 @@ export default function AssignMembershipScreen() {
 
             {/* Start Date */}
             <Text style={styles.sectionTitle}>Start Date *</Text>
-            <View style={styles.field}>
-              <Input
-                label="Start Date (YYYY-MM-DD)"
-                placeholder="2024-01-01"
-                value={startDate}
-                onChangeText={setStartDate}
+            <TouchableOpacity
+              style={styles.datePickerButton}
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="calendar-outline" size={20} color={colors.text.secondary} />
+              <Text style={styles.datePickerText}>
+                {startDate || 'Select start date'}
+              </Text>
+              <Ionicons name="chevron-down-outline" size={18} color={colors.text.light} />
+            </TouchableOpacity>
+
+            {Platform.OS === 'ios' ? (
+              <Modal
+                visible={showDatePicker}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowDatePicker(false)}
+              >
+                <TouchableOpacity
+                  style={styles.dateModalOverlay}
+                  activeOpacity={1}
+                  onPress={() => setShowDatePicker(false)}
+                >
+                  <View style={styles.dateModalContent}>
+                    <View style={styles.dateModalHeader}>
+                      <Text style={styles.dateModalTitle}>Select Start Date</Text>
+                      <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                        <Text style={styles.dateModalDone}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      value={selectedDate}
+                      mode="date"
+                      display="spinner"
+                      onChange={(_, date) => {
+                        if (date) {
+                          setSelectedDate(date);
+                          setStartDate(date.toISOString().split('T')[0]);
+                        }
+                      }}
+                      textColor={colors.text.primary}
+                    />
+                  </View>
+                </TouchableOpacity>
+              </Modal>
+            ) : showDatePicker ? (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="default"
+                onChange={(_, date) => {
+                  setShowDatePicker(false);
+                  if (date) {
+                    setSelectedDate(date);
+                    setStartDate(date.toISOString().split('T')[0]);
+                  }
+                }}
               />
-            </View>
+            ) : null}
 
             {/* Fee Details */}
             <Text style={styles.sectionTitle}>Fee Details</Text>
@@ -478,6 +534,57 @@ const styles = StyleSheet.create({
   },
   submitContainer: {
     marginTop: spacing.xxl,
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.background.card,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.gray,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+  },
+  datePickerText: {
+    flex: 1,
+    fontFamily: fontFamily.regular,
+    fontSize: 15,
+    lineHeight: 20,
+    color: colors.text.primary,
+  },
+  dateModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  dateModalContent: {
+    backgroundColor: colors.background.white,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    paddingBottom: 20,
+  },
+  dateModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  dateModalTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: 16,
+    lineHeight: 22,
+    color: colors.text.primary,
+  },
+  dateModalDone: {
+    fontFamily: fontFamily.bold,
+    fontSize: 16,
+    lineHeight: 22,
+    color: colors.primary.yellowDark,
   },
   preselectedBanner: {
     flexDirection: 'row',

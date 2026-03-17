@@ -355,7 +355,7 @@ export default function ProfileScreen() {
             <Text style={styles.sectionGroupTitle}>Shop</Text>
             <Card
               style={styles.linkCard}
-              onPress={() => router.push('/(app)/(admin)/products')}
+              onPress={() => router.push({ pathname: '/(app)/(admin)/products', params: { backRoute: 'profile' } })}
             >
               <View style={styles.linkCardContent}>
                 <View style={styles.linkCardLeft}>
@@ -370,7 +370,7 @@ export default function ProfileScreen() {
             </Card>
             <Card
               style={styles.linkCard}
-              onPress={() => router.push('/(app)/(admin)/orders')}
+              onPress={() => router.push({ pathname: '/(app)/(admin)/orders', params: { backRoute: 'profile' } })}
             >
               <View style={styles.linkCardContent}>
                 <View style={styles.linkCardLeft}>
@@ -385,7 +385,7 @@ export default function ProfileScreen() {
             </Card>
             <Card
               style={styles.linkCard}
-              onPress={() => router.push('/(app)/(admin)/sales-report')}
+              onPress={() => router.push({ pathname: '/(app)/(admin)/sales-report', params: { backRoute: 'profile' } })}
             >
               <View style={styles.linkCardContent}>
                 <View style={styles.linkCardLeft}>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
@@ -15,6 +15,8 @@ import { colors, fontFamily, spacing, borderRadius } from '../../../src/theme';
 
 export default function SalesReportScreen() {
   const router = useRouter();
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { salesReport, isLoading, fetchSalesReport } = useAdminStore();
   const showToast = useUIStore((s) => s.showToast);
   const [isExporting, setIsExporting] = useState(false);
@@ -53,7 +55,7 @@ export default function SalesReportScreen() {
         <Header
           title="Sales Report"
           showBack
-          onBack={() => router.back()}
+          onBack={handleBack}
         />
 
         {isLoading && !salesReport ? (

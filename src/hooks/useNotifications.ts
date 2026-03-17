@@ -11,6 +11,7 @@ import {
 } from '../services/notifications';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useNotificationStore } from '../stores/useNotificationStore';
+import { useUIStore } from '../stores/useUIStore';
 
 /**
  * Hook to manage push notifications throughout the app
@@ -19,6 +20,7 @@ export function useNotifications() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const getUnreadCount = useNotificationStore((s) => s.getUnreadCount);
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -82,8 +84,13 @@ export function useNotifications() {
     // Notification received while app is in foreground
     notificationListener.current = addNotificationReceivedListener(
       (notification) => {
-        console.log('📬 Notification received:', notification);
-        // You can show a toast or update UI here
+        const title = notification.request.content.title ?? '';
+        const body = notification.request.content.body ?? '';
+        const message = body || title;
+        if (message) {
+          useUIStore.getState().showToast(message, 'info');
+        }
+        getUnreadCount();
       }
     );
 

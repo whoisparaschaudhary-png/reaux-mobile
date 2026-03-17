@@ -130,7 +130,7 @@ export default function CreateWorkoutScreen() {
         user ?? undefined
       );
       showToast('Workout created successfully', 'success');
-      router.back();
+      router.navigate('/(app)/(health)/workouts');
     } catch (error: any) {
       showToast(error.message || 'Failed to create workout', 'error');
     } finally {
@@ -141,7 +141,7 @@ export default function CreateWorkoutScreen() {
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
       <SafeScreen>
-        <Header title="Create Workout" showBack onBack={() => router.back()} />
+        <Header title="Create Workout" showBack onBack={() => router.navigate('/(app)/(health)/workouts')} />
 
         <KeyboardAvoidingView
           style={styles.flex}

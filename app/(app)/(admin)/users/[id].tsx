@@ -301,27 +301,23 @@ export default function UserDetailScreen() {
                 }
               />
             </View>
-            {isSuperAdmin && (
-              <>
-                <Text style={[styles.inputLabel, { marginTop: spacing.md }]}>Name</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={editName}
-                  onChangeText={setEditName}
-                  placeholder="Full name"
-                  placeholderTextColor={colors.text.light}
-                />
-                <Text style={styles.inputLabel}>Phone</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={editPhone}
-                  onChangeText={(v) => setEditPhone(v.replace(/[^0-9+\-\s]/g, ''))}
-                  placeholder="Phone number"
-                  placeholderTextColor={colors.text.light}
-                  keyboardType="phone-pad"
-                />
-              </>
-            )}
+            <Text style={[styles.inputLabel, { marginTop: spacing.md }]}>Name</Text>
+            <TextInput
+              style={styles.textInput}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Full name"
+              placeholderTextColor={colors.text.light}
+            />
+            <Text style={styles.inputLabel}>Phone</Text>
+            <TextInput
+              style={styles.textInput}
+              value={editPhone}
+              onChangeText={(v) => setEditPhone(v.replace(/[^0-9+\-\s]/g, ''))}
+              placeholder="Phone number"
+              placeholderTextColor={colors.text.light}
+              keyboardType="phone-pad"
+            />
           </View>
 
           {/* Membership & Fees */}
@@ -432,6 +428,16 @@ export default function UserDetailScreen() {
               <View style={styles.noMembershipCard}>
                 <Ionicons name="card-outline" size={32} color={colors.text.light} />
                 <Text style={styles.noMembershipText}>No active membership</Text>
+                <TouchableOpacity
+                  style={styles.assignMembershipBtn}
+                  onPress={() => router.push(
+                    `/(app)/(admin)/memberships/memberships/assign?preselectedUserId=${id}&preselectedUserName=${encodeURIComponent(user?.name ?? '')}` as any
+                  )}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add-circle-outline" size={16} color={colors.primary.yellowDark} />
+                  <Text style={styles.assignMembershipBtnText}>Assign Membership</Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -899,6 +905,24 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     fontSize: 14,
     color: colors.text.light,
+    marginTop: spacing.sm,
+  },
+  assignMembershipBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.pill,
+    borderWidth: 1,
+    borderColor: colors.primary.yellowDark,
+    backgroundColor: colors.primary.yellowLight,
+  },
+  assignMembershipBtnText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 13,
+    color: colors.primary.yellowDark,
   },
   membershipActions: {
     flexDirection: 'row',

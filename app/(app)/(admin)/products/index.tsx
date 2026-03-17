@@ -6,7 +6,7 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
@@ -26,6 +26,8 @@ import type { Product } from '../../../../src/types/models';
 
 export default function ProductListScreen() {
   const router = useRouter();
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { products, isLoading, fetchProducts } = useProductStore();
   const showToast = useUIStore((s) => s.showToast);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -181,7 +183,7 @@ export default function ProductListScreen() {
         <Header
           title="Products"
           showBack
-          onBack={() => router.back()}
+          onBack={handleBack}
           rightAction={
             <TouchableOpacity
               onPress={() => router.push('/(app)/(admin)/products/create')}

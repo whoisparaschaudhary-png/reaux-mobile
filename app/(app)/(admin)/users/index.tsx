@@ -13,6 +13,7 @@ import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { useAdminStore } from '../../../../src/stores/useAdminStore';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { useUIStore } from '../../../../src/stores/useUIStore';
+import { membershipsApi } from '../../../../src/api/endpoints/memberships';
 import { exportUsersListPDF } from '../../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
 import type { User, Role } from '../../../../src/types/models';
@@ -36,10 +37,28 @@ export default function UsersScreen() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
   const [isExporting, setIsExporting] = useState(false);
+  const [membershipExpiryMap, setMembershipExpiryMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchUsers(1);
+    loadMembershipExpiries();
   }, []);
+
+  const loadMembershipExpiries = async () => {
+    try {
+      const res = await membershipsApi.list({ limit: 200 });
+      const map: Record<string, string> = {};
+      (res.data ?? []).forEach((m) => {
+        const userId = typeof m.userId === 'object' ? (m.userId as any)._id : m.userId;
+        if (userId && m.endDate) {
+          map[userId] = m.endDate;
+        }
+      });
+      setMembershipExpiryMap(map);
+    } catch {
+      // Non-critical — silently ignore
+    }
+  };
 
   const filteredUsers = users.filter((user) => {
     // Admins should only see regular users (safety net for backend filtering)
@@ -80,9 +99,10 @@ export default function UsersScreen() {
         user={item}
         onPress={handleUserPress}
         onDeactivate={handleDeactivate}
+        membershipEndDate={membershipExpiryMap[item._id]}
       />
     ),
-    [handleUserPress, handleDeactivate],
+    [handleUserPress, handleDeactivate, membershipExpiryMap],
   );
 
   const handleExportPDF = async () => {

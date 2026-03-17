@@ -7,7 +7,7 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
@@ -54,6 +54,8 @@ const FILTER_TABS: { key: StatusFilter; label: string }[] = [
 
 export default function AdminOrdersScreen() {
   const router = useRouter();
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { orders, isLoading, isUpdating, fetchAllOrders, updateOrderStatus } = useOrderStore();
   const showToast = useUIStore((s) => s.showToast);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -302,7 +304,7 @@ export default function AdminOrdersScreen() {
         <Header
           title="Orders"
           showBack
-          onBack={() => router.back()}
+          onBack={handleBack}
         />
 
         <View style={styles.container}>

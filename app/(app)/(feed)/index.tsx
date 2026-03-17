@@ -368,8 +368,8 @@ export default function FeedScreen() {
         onShare={() => {
           Share.share({
             message: item.content
-              ? `${item.content} — shared from REAUX Labs`
-              : 'Check out this post on REAUX Labs!',
+              ? `${item.content}\n\n— REAUX Labs\nFollow us: https://www.instagram.com/reauxlabs/`
+              : 'Check out REAUX Labs – your fitness community!\nFollow us: https://www.instagram.com/reauxlabs/',
           });
         }}
       />

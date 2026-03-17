@@ -12,6 +12,7 @@ interface UserCardProps {
   user: User;
   onDeactivate?: (user: User) => void;
   onPress?: (user: User) => void;
+  membershipEndDate?: string;
 }
 
 const getRoleBadgeVariant = (role: string) => {
@@ -25,7 +26,16 @@ const getRoleBadgeVariant = (role: string) => {
   }
 };
 
-export const UserCard: React.FC<UserCardProps> = ({ user, onDeactivate, onPress }) => {
+const getExpiryColor = (endDate: string) => {
+  const now = new Date();
+  const expiry = new Date(endDate);
+  const daysLeft = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  if (daysLeft < 0) return colors.status.error;
+  if (daysLeft <= 7) return colors.status.warning;
+  return colors.text.light;
+};
+
+export const UserCard: React.FC<UserCardProps> = ({ user, onDeactivate, onPress, membershipEndDate }) => {
   const isActive = user.status === 'active';
 
   return (
@@ -74,6 +84,12 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onDeactivate, onPress 
               {isActive ? 'Active' : 'Disabled'}
             </Text>
           </View>
+
+          {membershipEndDate && (
+            <Text style={[styles.expiryText, { color: getExpiryColor(membershipEndDate) }]}>
+              Exp: {formatDate(membershipEndDate)}
+            </Text>
+          )}
 
           {onDeactivate && (
             <TouchableOpacity
@@ -147,6 +163,12 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.medium,
     fontSize: 11,
     lineHeight: 14,
+  },
+  expiryText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 10,
+    lineHeight: 14,
+    textAlign: 'right',
   },
   removeButton: {
     width: 28,

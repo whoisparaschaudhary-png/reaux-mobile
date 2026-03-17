@@ -23,26 +23,45 @@ import { showAppAlert } from '../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../src/theme';
 import type { SavedAddress } from '../../../src/types/models';
 
-const MAJOR_CITIES = [
-  'Agra', 'Ahmedabad', 'Amritsar', 'Aurangabad', 'Bangalore', 'Bhopal', 'Bhubaneswar',
-  'Chandigarh', 'Chennai', 'Coimbatore', 'Dehradun', 'Delhi', 'Faridabad', 'Ghaziabad',
-  'Gurgaon', 'Guwahati', 'Howrah', 'Hyderabad', 'Indore', 'Jaipur', 'Jodhpur',
-  'Kanpur', 'Kochi', 'Kolkata', 'Lucknow', 'Ludhiana', 'Madurai', 'Meerut',
-  'Mumbai', 'Mysore', 'Nagpur', 'Nashik', 'Navi Mumbai', 'Noida', 'Patna', 'Pune',
-  'Raipur', 'Rajkot', 'Ranchi', 'Srinagar', 'Surat', 'Thane', 'Tiruchirappalli',
-  'Vadodara', 'Varanasi', 'Vijayawada', 'Visakhapatnam',
-];
+const CITIES_BY_STATE: Record<string, string[]> = {
+  'Andhra Pradesh': ['Visakhapatnam', 'Vijayawada', 'Guntur', 'Nellore', 'Kurnool', 'Tirupati', 'Rajahmundry', 'Kakinada', 'Anantapur', 'Kadapa', 'Eluru', 'Ongole', 'Nandyal', 'Machilipatnam'],
+  'Arunachal Pradesh': ['Itanagar', 'Naharlagun', 'Pasighat', 'Tawang', 'Ziro', 'Bomdila'],
+  'Assam': ['Guwahati', 'Dibrugarh', 'Jorhat', 'Silchar', 'Nagaon', 'Tinsukia', 'Tezpur', 'Bongaigaon', 'Dhubri', 'Diphu'],
+  'Bihar': ['Patna', 'Gaya', 'Bhagalpur', 'Muzaffarpur', 'Purnia', 'Darbhanga', 'Bihar Sharif', 'Arrah', 'Begusarai', 'Katihar', 'Munger', 'Chapra'],
+  'Chhattisgarh': ['Raipur', 'Bhilai', 'Korba', 'Bilaspur', 'Durg', 'Rajnandgaon', 'Jagdalpur', 'Ambikapur', 'Raigarh'],
+  'Goa': ['Panaji', 'Vasco da Gama', 'Margao', 'Mapusa', 'Ponda', 'Calangute', 'Candolim'],
+  'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot', 'Bhavnagar', 'Jamnagar', 'Gandhinagar', 'Junagadh', 'Anand', 'Navsari', 'Morbi', 'Nadiad', 'Mehsana', 'Bharuch', 'Surendranagar'],
+  'Haryana': ['Gurgaon', 'Faridabad', 'Panipat', 'Ambala', 'Yamunanagar', 'Rohtak', 'Hisar', 'Karnal', 'Sonipat', 'Panchkula', 'Bhiwani', 'Sirsa', 'Rewari', 'Kaithal'],
+  'Himachal Pradesh': ['Shimla', 'Manali', 'Dharamshala', 'Solan', 'Mandi', 'Baddi', 'Nahan', 'Palampur', 'Kullu'],
+  'Jharkhand': ['Ranchi', 'Jamshedpur', 'Dhanbad', 'Bokaro', 'Hazaribagh', 'Deoghar', 'Giridih', 'Ramgarh', 'Phusro', 'Medininagar'],
+  'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore', 'Belgaum', 'Gulbarga', 'Davanagere', 'Bellary', 'Bijapur', 'Shimoga', 'Tumkur', 'Raichur', 'Hassan', 'Udupi'],
+  'Kerala': ['Kochi', 'Thiruvananthapuram', 'Kozhikode', 'Thrissur', 'Kannur', 'Kollam', 'Palakkad', 'Alappuzha', 'Kottayam', 'Malappuram', 'Kasaragod'],
+  'Madhya Pradesh': ['Indore', 'Bhopal', 'Jabalpur', 'Gwalior', 'Ujjain', 'Sagar', 'Ratlam', 'Satna', 'Murwara', 'Singrauli', 'Rewa', 'Dewas', 'Burhanpur', 'Chhindwara'],
+  'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Thane', 'Aurangabad', 'Navi Mumbai', 'Solapur', 'Kolhapur', 'Amravati', 'Nanded', 'Sangli', 'Malegaon', 'Jalgaon', 'Akola', 'Latur', 'Dhule', 'Chandrapur', 'Parbhani'],
+  'Manipur': ['Imphal', 'Thoubal', 'Bishnupur', 'Churachandpur', 'Kakching'],
+  'Meghalaya': ['Shillong', 'Tura', 'Jowai', 'Nongstoin', 'Williamnagar'],
+  'Mizoram': ['Aizawl', 'Lunglei', 'Champhai', 'Serchhip', 'Kolasib'],
+  'Nagaland': ['Kohima', 'Dimapur', 'Mokokchung', 'Tuensang', 'Wokha'],
+  'Odisha': ['Bhubaneswar', 'Cuttack', 'Rourkela', 'Brahmapur', 'Sambalpur', 'Puri', 'Balasore', 'Baripada', 'Bhadrak', 'Jharsuguda'],
+  'Punjab': ['Ludhiana', 'Amritsar', 'Jalandhar', 'Patiala', 'Bathinda', 'Mohali', 'Hoshiarpur', 'Batala', 'Pathankot', 'Moga', 'Ferozepur', 'Abohar', 'Gurdaspur', 'Sangrur', 'Rupnagar'],
+  'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota', 'Ajmer', 'Bikaner', 'Alwar', 'Bhilwara', 'Bharatpur', 'Pali', 'Sikar', 'Sri Ganganagar', 'Barmer', 'Tonk'],
+  'Sikkim': ['Gangtok', 'Namchi', 'Pelling', 'Rangpo', 'Singtam'],
+  'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem', 'Tirunelveli', 'Tiruppur', 'Vellore', 'Erode', 'Thoothukudi', 'Dindigul', 'Thanjavur', 'Ranipet', 'Hosur', 'Nagercoil'],
+  'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad', 'Karimnagar', 'Khammam', 'Ramagundam', 'Mahbubnagar', 'Nalgonda', 'Adilabad', 'Suryapet'],
+  'Tripura': ['Agartala', 'Dharmanagar', 'Udaipur', 'Kailashahar', 'Belonia'],
+  'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Agra', 'Varanasi', 'Meerut', 'Allahabad', 'Ghaziabad', 'Noida', 'Bareilly', 'Aligarh', 'Moradabad', 'Saharanpur', 'Gorakhpur', 'Firozabad', 'Jhansi', 'Mathura', 'Muzaffarnagar', 'Rampur', 'Shahjahanpur', 'Ayodhya'],
+  'Uttarakhand': ['Dehradun', 'Haridwar', 'Roorkee', 'Haldwani', 'Rudrapur', 'Kashipur', 'Rishikesh', 'Nainital', 'Mussoorie'],
+  'West Bengal': ['Kolkata', 'Howrah', 'Asansol', 'Siliguri', 'Durgapur', 'Bardhaman', 'Malda', 'Baharampur', 'Habra', 'Kharagpur', 'Shantipur', 'Darjeeling', 'Jalpaiguri'],
+  'Andaman and Nicobar Islands': ['Port Blair', 'Diglipur', 'Rangat'],
+  'Chandigarh': ['Chandigarh'],
+  'Dadra and Nagar Haveli and Daman and Diu': ['Silvassa', 'Daman', 'Diu'],
+  'Delhi': ['New Delhi', 'Delhi', 'Dwarka', 'Rohini', 'Janakpuri', 'Saket', 'Lajpat Nagar', 'Karol Bagh', 'Pitampura', 'Noida Extension'],
+  'Jammu and Kashmir': ['Srinagar', 'Jammu', 'Anantnag', 'Sopore', 'Baramulla', 'Kathua', 'Udhampur'],
+  'Ladakh': ['Leh', 'Kargil'],
+  'Lakshadweep': ['Kavaratti', 'Agatti'],
+  'Puducherry': ['Puducherry', 'Karaikal', 'Mahe', 'Yanam'],
+};
 
-const INDIAN_STATES = [
-  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
-  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
-  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
-  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
-  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-  'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
-  'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry',
-];
 
 export default function AddressScreen() {
   const [form, setForm] = useState({ label: 'Home', street: '', city: '', state: '', pincode: '', phone: '' });
@@ -177,20 +196,20 @@ export default function AddressScreen() {
 
           <View style={styles.row}>
             <View style={styles.halfInput}>
-              <Text style={styles.fieldLabel}>City</Text>
-              <TouchableOpacity style={[styles.stateDropdown, errors.city ? styles.stateDropdownError : null]} onPress={() => setShowCityPicker(true)} activeOpacity={0.7}>
-                <Text style={[styles.stateDropdownText, !form.city && styles.statePlaceholder]}>{form.city || 'Select City'}</Text>
-                <Ionicons name="chevron-down" size={16} color={colors.text.light} />
-              </TouchableOpacity>
-              {errors.city ? <Text style={styles.errorText}>{errors.city}</Text> : null}
-            </View>
-            <View style={styles.halfInput}>
               <Text style={styles.fieldLabel}>State</Text>
               <TouchableOpacity style={[styles.stateDropdown, errors.state ? styles.stateDropdownError : null]} onPress={() => setShowStatePicker(true)} activeOpacity={0.7}>
                 <Text style={[styles.stateDropdownText, !form.state && styles.statePlaceholder]}>{form.state || 'Select State'}</Text>
                 <Ionicons name="chevron-down" size={16} color={colors.text.light} />
               </TouchableOpacity>
               {errors.state ? <Text style={styles.errorText}>{errors.state}</Text> : null}
+            </View>
+            <View style={styles.halfInput}>
+              <Text style={styles.fieldLabel}>City</Text>
+              <TouchableOpacity style={[styles.stateDropdown, errors.city ? styles.stateDropdownError : null]} onPress={() => setShowCityPicker(true)} activeOpacity={0.7}>
+                <Text style={[styles.stateDropdownText, !form.city && styles.statePlaceholder]}>{form.city || 'Select City'}</Text>
+                <Ionicons name="chevron-down" size={16} color={colors.text.light} />
+              </TouchableOpacity>
+              {errors.city ? <Text style={styles.errorText}>{errors.city}</Text> : null}
             </View>
           </View>
           <View style={styles.spacer} />
@@ -210,18 +229,26 @@ export default function AddressScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <Modal visible={showCityPicker} animationType="slide" transparent onRequestClose={() => setShowCityPicker(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCityPicker(false)}>
+      <Modal visible={showStatePicker} animationType="slide" transparent onRequestClose={() => setShowStatePicker(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowStatePicker(false)}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Select City</Text>
+            <Text style={styles.modalTitle}>Select State</Text>
             <FlatList
-              data={MAJOR_CITIES}
+              data={Object.keys(CITIES_BY_STATE).sort()}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity style={[styles.stateOption, form.city === item && styles.stateOptionActive]} onPress={() => { updateField('city', item); setShowCityPicker(false); }} activeOpacity={0.7}>
-                  <Text style={[styles.stateOptionText, form.city === item && styles.stateOptionTextActive]}>{item}</Text>
-                  {form.city === item && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
+                <TouchableOpacity
+                  style={[styles.stateOption, form.state === item && styles.stateOptionActive]}
+                  onPress={() => {
+                    setForm((prev) => ({ ...prev, state: item, city: '' }));
+                    setErrors((prev) => ({ ...prev, state: '', city: '' }));
+                    setShowStatePicker(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.stateOptionText, form.state === item && styles.stateOptionTextActive]}>{item}</Text>
+                  {form.state === item && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
                 </TouchableOpacity>
               )}
               showsVerticalScrollIndicator={false}
@@ -230,22 +257,29 @@ export default function AddressScreen() {
         </TouchableOpacity>
       </Modal>
 
-      <Modal visible={showStatePicker} animationType="slide" transparent onRequestClose={() => setShowStatePicker(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowStatePicker(false)}>
+      <Modal visible={showCityPicker} animationType="slide" transparent onRequestClose={() => setShowCityPicker(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCityPicker(false)}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Select State</Text>
-            <FlatList
-              data={INDIAN_STATES}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={[styles.stateOption, form.state === item && styles.stateOptionActive]} onPress={() => { updateField('state', item); setShowStatePicker(false); }} activeOpacity={0.7}>
-                  <Text style={[styles.stateOptionText, form.state === item && styles.stateOptionTextActive]}>{item}</Text>
-                  {form.state === item && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
-                </TouchableOpacity>
-              )}
-              showsVerticalScrollIndicator={false}
-            />
+            <Text style={styles.modalTitle}>Select City</Text>
+            {!form.state ? (
+              <View style={styles.cityPromptWrap}>
+                <Ionicons name="location-outline" size={32} color={colors.text.light} />
+                <Text style={styles.cityPromptText}>Please select a state first</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={CITIES_BY_STATE[form.state] ?? []}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity style={[styles.stateOption, form.city === item && styles.stateOptionActive]} onPress={() => { updateField('city', item); setShowCityPicker(false); }} activeOpacity={0.7}>
+                    <Text style={[styles.stateOptionText, form.city === item && styles.stateOptionTextActive]}>{item}</Text>
+                    {form.city === item && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
+                  </TouchableOpacity>
+                )}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
@@ -294,4 +328,6 @@ const styles = StyleSheet.create({
   stateOptionActive: { backgroundColor: colors.primary.yellowLight },
   stateOptionText: { fontFamily: fontFamily.regular, fontSize: 15, color: colors.text.primary },
   stateOptionTextActive: { fontFamily: fontFamily.medium },
+  cityPromptWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xxxl, gap: spacing.md },
+  cityPromptText: { fontFamily: fontFamily.regular, fontSize: 14, color: colors.text.light, textAlign: 'center' },
 });
