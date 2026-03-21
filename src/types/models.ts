@@ -22,7 +22,7 @@ export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'c
 export type ChallengeType = 'steps' | 'workout' | 'diet' | 'custom';
 export type WorkoutCategory = 'strength' | 'cardio' | 'flexibility' | 'hiit' | 'yoga' | 'crossfit' | 'other';
 export type WorkoutDifficulty = 'beginner' | 'intermediate' | 'advanced';
-export type NotificationType = 'system' | 'order' | 'challenge' | 'community' | 'diet';
+export type NotificationType = 'system' | 'order' | 'challenge' | 'community' | 'diet' | 'announcement';
 export type DiscountType = 'percentage' | 'fixed';
 export type MembershipStatus = 'active' | 'expired' | 'cancelled';
 

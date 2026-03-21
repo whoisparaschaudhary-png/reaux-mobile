@@ -62,11 +62,11 @@ export const addressesApi = {
     client.get<ApiResponse<SavedAddress[]>>('/users/addresses').then(r => r.data),
 
   add: (payload: { label: string; street: string; city: string; state: string; pincode: string; phone: string; isDefault?: boolean }) =>
-    client.post<ApiResponse<SavedAddress>>('/users/addresses', payload).then(r => r.data),
+    client.post<ApiResponse<SavedAddress[]>>('/users/addresses', payload).then(r => r.data),
 
   update: (id: string, payload: Partial<{ label: string; street: string; city: string; state: string; pincode: string; phone: string; isDefault: boolean }>) =>
-    client.put<ApiResponse<SavedAddress>>(`/users/addresses/${id}`, payload).then(r => r.data),
+    client.put<ApiResponse<SavedAddress[]>>(`/users/addresses/${id}`, payload).then(r => r.data),
 
   delete: (id: string) =>
-    client.delete<ApiResponse<{ message: string }>>(`/users/addresses/${id}`).then(r => r.data),
+    client.delete<ApiResponse<SavedAddress[]>>(`/users/addresses/${id}`).then(r => r.data),
 };

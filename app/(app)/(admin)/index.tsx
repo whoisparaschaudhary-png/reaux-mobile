@@ -216,7 +216,7 @@ export default function AdminDashboardScreen() {
               <View style={styles.divider} />
               <MenuItem
                 label="Contact Us"
-                onPress={() => router.push('/(app)/(profile)/contact')}
+                onPress={() => router.navigate('/(app)/(profile)/contact' as any)}
               />
             </View>
           </View>

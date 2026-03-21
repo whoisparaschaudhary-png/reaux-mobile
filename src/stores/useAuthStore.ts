@@ -89,6 +89,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
+    // Remove FCM device token before clearing auth
+    try {
+      const { getPushNotificationToken } = await import('../services/notifications');
+      const { notificationsApi } = await import('../api/endpoints/notifications');
+      const pushToken = await getPushNotificationToken();
+      if (pushToken) {
+        await notificationsApi.removeDeviceToken(pushToken);
+      }
+    } catch {
+      // Don't block logout if token removal fails
+    }
     await removeToken();
     resetAllStores();
     set({ user: null, token: null, isAuthenticated: false, error: null });

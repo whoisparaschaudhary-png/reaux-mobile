@@ -44,6 +44,7 @@ export default function MembershipDetailScreen() {
   const {
     selectedMembership,
     membershipsLoading,
+    membershipsError,
     fetchMembershipById,
     cancelMembership,
     recordFees,
@@ -164,6 +165,24 @@ export default function MembershipDetailScreen() {
         return 'default';
     }
   };
+
+  if (membershipsError && !selectedMembership && !membershipsLoading) {
+    return (
+      <RoleGuard allowedRoles={['admin', 'superadmin']}>
+        <SafeScreen>
+          <Header title="Membership Details" showBack onBack={() => router.back()} />
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle-outline" size={48} color={colors.status.error} />
+            <Text style={styles.errorTitle}>Failed to load</Text>
+            <Text style={styles.errorMessage}>{membershipsError}</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={() => id && fetchMembershipById(id)}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeScreen>
+      </RoleGuard>
+    );
+  }
 
   if (membershipsLoading || !selectedMembership) {
     return (
@@ -569,6 +588,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.screenPadding,
     paddingTop: spacing.lg,
     gap: spacing.lg,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: layout.screenPadding,
+    gap: spacing.md,
+  },
+  errorTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: 18,
+    color: colors.text.primary,
+  },
+  errorMessage: {
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: colors.text.secondary,
+    textAlign: 'center',
+  },
+  retryBtn: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    backgroundColor: colors.primary.yellow,
+    borderRadius: borderRadius.pill,
+  },
+  retryBtnText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 15,
+    color: colors.text.onPrimary,
   },
   statusContainer: {
     alignItems: 'center',

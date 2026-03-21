@@ -136,8 +136,30 @@ export const membershipsApi = {
    * Apply advance credit toward pending fees (admin/superadmin)
    * feesPaid += amount, advanceCredit -= amount, capped at min(amount, advanceCredit)
    */
-  applyCredit: (id: string, amount: number) =>
+  applyCredit: (id: string, amount: number, note?: string) =>
     client
-      .post<ApiResponse<Membership>>(`/memberships/${id}/apply-credit`, { amount })
+      .post<ApiResponse<Membership>>(`/memberships/${id}/apply-credit`, { amount, ...(note ? { note } : {}) })
+      .then((r) => r.data),
+
+  /**
+   * Directly override fee values (admin/superadmin)
+   * At least one of feesAmount, feesPaid, advanceCredit required
+   */
+  feesAdjust: (id: string, data: { feesAmount?: number; feesPaid?: number; advanceCredit?: number; note?: string }) =>
+    client
+      .patch<ApiResponse<Membership>>(`/memberships/${id}/fees/adjust`, data)
+      .then((r) => r.data),
+
+  /**
+   * Get fees overview grouped by category (admin/superadmin)
+   */
+  feesOverview: (gymId?: string) =>
+    client
+      .get<ApiResponse<{
+        feesDue: Membership[];
+        fullyPaid: Membership[];
+        credit: Membership[];
+        upcomingRenewals: Membership[];
+      }>>('/memberships/fees-overview', { params: gymId ? { gymId } : undefined })
       .then((r) => r.data),
 };

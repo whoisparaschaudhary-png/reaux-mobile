@@ -31,4 +31,9 @@ export const notificationsApi = {
     client
       .post<ApiResponse<{ message: string }>>('/notifications/test')
       .then(r => r.data),
+
+  broadcast: (title: string, message: string, type: string) =>
+    client
+      .post<ApiResponse<{ sent: number; failed: number; total: number; message: string }>>('/notifications/broadcast', { title, message, type })
+      .then(r => r.data),
 };

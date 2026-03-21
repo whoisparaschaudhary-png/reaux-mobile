@@ -37,7 +37,7 @@ function ManageMembershipsContent() {
           <View style={styles.divider} />
           <MenuItem
             label="User Memberships"
-            onPress={() => router.push('/(app)/(profile)/user-memberships')}
+            onPress={() => router.navigate('/(app)/(profile)/user-memberships' as any)}
           />
         </View>
       </View>

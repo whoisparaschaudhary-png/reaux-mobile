@@ -65,6 +65,12 @@ export default function AppLayout() {
       />
       <Tabs.Screen
         name="(shop)"
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('(shop)', { screen: 'index' });
+          },
+        })}
         options={
           isAdmin
             ? {

@@ -21,7 +21,7 @@ interface DietState {
 
   fetchPlans: (page?: number, category?: DietCategory, options?: { includeUnpublished?: boolean; dietType?: DietType }) => Promise<void>;
   getPlanById: (id: string) => Promise<void>;
-  fetchSuggestedPlans: (page?: number) => Promise<void>;
+  fetchSuggestedPlans: (page?: number, options?: { goal?: 'lose' | 'gain' | 'maintain'; dietType?: string }) => Promise<void>;
   followPlan: (id: string) => Promise<void>;
   likePlan: (id: string) => Promise<void>;
   createPlan: (data: CreateDietRequest | FormData, currentUser?: User | null) => Promise<void>;
@@ -45,6 +45,8 @@ export const useDietStore = create<DietState>((set, get) => ({
     try {
       const params: Record<string, any> = { page, limit: 10 };
       if (category) params.category = category;
+      if (options?.dietType) params.dietType = options.dietType;
+      if (options?.includeUnpublished) params.includeUnpublished = options.includeUnpublished;
       const response = await dietsApi.list(params);
 
       const currentPlans = get().plans;
@@ -94,10 +96,12 @@ export const useDietStore = create<DietState>((set, get) => ({
     }
   },
 
-  fetchSuggestedPlans: async (page = 1) => {
+  fetchSuggestedPlans: async (page = 1, options?) => {
     set({ isLoading: true, error: null });
     try {
-      const params = { page, limit: 10 };
+      const params: Record<string, any> = { page, limit: 10 };
+      if (options?.goal) params.goal = options.goal;
+      if (options?.dietType) params.dietType = options.dietType;
       const response = await dietsApi.getSuggested(params);
       set({
         suggestedPlans: page === 1 ? response.data : [...get().suggestedPlans, ...response.data],

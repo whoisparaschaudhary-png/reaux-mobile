@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -33,6 +33,114 @@ import {
   borderRadius,
 } from '../../../src/theme';
 import type { Post, Comment, User, Role } from '../../../src/types/models';
+
+interface PostHeaderProps {
+  post: Post;
+  isLiked: boolean;
+  onLike: () => void;
+  onDelete: () => void;
+  isSuperAdmin: boolean;
+}
+
+const PostHeader = React.memo(({ post, isLiked, onLike, onDelete, isSuperAdmin }: PostHeaderProps) => {
+  const author = typeof post.author === 'object' ? (post.author as User) : null;
+  const authorName = author?.name ?? 'Unknown';
+  const authorAvatar = author?.avatar;
+  const authorRole = author?.role as Role | undefined;
+  const hasImage = post.mediaType === 'image' && post.mediaUrl;
+
+  return (
+    <View>
+      {hasImage && (
+        <Image
+          source={{ uri: post.mediaUrl }}
+          style={styles.postImage}
+          contentFit="cover"
+          transition={300}
+        />
+      )}
+
+      <View style={styles.authorRow}>
+        <Avatar uri={authorAvatar} name={authorName} size={44} />
+        <View style={styles.authorInfo}>
+          <View style={styles.authorNameRow}>
+            <Text style={styles.authorName}>{authorName}</Text>
+            {authorRole === 'admin' && (
+              <Badge text="Admin" variant="primary" size="sm" />
+            )}
+            {authorRole === 'superadmin' && (
+              <Badge text="Coach" variant="success" size="sm" />
+            )}
+          </View>
+          <Text style={styles.timestamp}>{formatRelative(post.createdAt)}</Text>
+        </View>
+      </View>
+
+      {post.content ? (
+        <Text style={styles.content}>{post.content}</Text>
+      ) : null}
+
+      {post.hashtags && post.hashtags.length > 0 && (
+        <View style={styles.hashtagRow}>
+          {post.hashtags.map((tag) => (
+            <Text key={tag} style={styles.hashtag}>#{tag}</Text>
+          ))}
+        </View>
+      )}
+
+      <View style={styles.actionsRow}>
+        <TouchableOpacity
+          onPress={onLike}
+          style={styles.actionButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons
+            name={isLiked ? 'heart' : 'heart-outline'}
+            size={24}
+            color={isLiked ? colors.status.error : colors.text.secondary}
+          />
+          <Text style={styles.actionCount}>{formatNumber(post.likesCount)}</Text>
+        </TouchableOpacity>
+
+        <View style={styles.actionButton}>
+          <Ionicons name="chatbubble-outline" size={22} color={colors.text.secondary} />
+          <Text style={styles.actionCount}>{formatNumber(post.commentsCount)}</Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.actionButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          onPress={() => {
+            const storeUrl = Platform.OS === 'ios'
+              ? 'https://apps.apple.com/app/id' + 'YOUR_APP_STORE_ID'
+              : 'https://play.google.com/store/apps/details?id=com.babbaranish.reauxlabsmobile';
+            Share.share({
+              message: post.content
+                ? `${post.content}\n\n— Shared from REAUX Labs\nFollow us: https://www.instagram.com/reauxlabs/\nDownload: ${storeUrl}`
+                : `Check out REAUX Labs – your fitness community!\nFollow us: https://www.instagram.com/reauxlabs/\nDownload: ${storeUrl}`,
+            });
+          }}
+        >
+          <Ionicons name="share-outline" size={22} color={colors.text.secondary} />
+        </TouchableOpacity>
+
+        {isSuperAdmin && (
+          <TouchableOpacity
+            onPress={onDelete}
+            style={styles.actionButton}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="trash-outline" size={22} color={colors.status.error} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={styles.commentsHeader}>
+        <Text style={styles.commentsTitle}>Comments</Text>
+      </View>
+    </View>
+  );
+});
 
 interface CommentInputProps {
   onSend: (text: string) => Promise<void>;
@@ -182,6 +290,19 @@ export default function PostDetailScreen() {
     [id],
   );
 
+  const headerElement = useMemo(
+    () => post ? (
+      <PostHeader
+        post={post}
+        isLiked={post.isLiked}
+        onLike={handleLike}
+        onDelete={handleDelete}
+        isSuperAdmin={isSuperAdmin}
+      />
+    ) : null,
+    [post, handleLike, handleDelete, isSuperAdmin],
+  );
+
   if (isLoading) {
     return (
       <SafeScreen>
@@ -206,140 +327,12 @@ export default function PostDetailScreen() {
     );
   }
 
-  const author =
-    typeof post.author === 'object' ? (post.author as User) : null;
-  const authorName = author?.name ?? 'Unknown';
-  const authorAvatar = author?.avatar;
-  const authorRole = author?.role as Role | undefined;
-  const hasImage = post.mediaType === 'image' && post.mediaUrl;
-
-  // Check if current user has liked this post
-  const isLiked = post.isLiked;
-
-  const renderHeader = useCallback(() => (
-    <View>
-      {/* Post image */}
-      {hasImage && (
-        <Image
-          source={{ uri: post.mediaUrl }}
-          style={styles.postImage}
-          contentFit="cover"
-          transition={300}
-        />
-      )}
-
-      {/* Author info */}
-      <View style={styles.authorRow}>
-        <Avatar uri={authorAvatar} name={authorName} size={44} />
-        <View style={styles.authorInfo}>
-          <View style={styles.authorNameRow}>
-            <Text style={styles.authorName}>{authorName}</Text>
-            {authorRole === 'admin' && (
-              <Badge text="Admin" variant="primary" size="sm" />
-            )}
-            {authorRole === 'superadmin' && (
-              <Badge text="Coach" variant="success" size="sm" />
-            )}
-          </View>
-          <Text style={styles.timestamp}>
-            {formatRelative(post.createdAt)}
-          </Text>
-        </View>
-      </View>
-
-      {/* Content */}
-      {post.content ? (
-        <Text style={styles.content}>{post.content}</Text>
-      ) : null}
-
-      {/* Hashtags */}
-      {post.hashtags && post.hashtags.length > 0 && (
-        <View style={styles.hashtagRow}>
-          {post.hashtags.map((tag) => (
-            <Text key={tag} style={styles.hashtag}>
-              #{tag}
-            </Text>
-          ))}
-        </View>
-      )}
-
-      {/* Actions */}
-      <View style={styles.actionsRow}>
-        <TouchableOpacity
-          onPress={handleLike}
-          style={styles.actionButton}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Ionicons
-            name={isLiked ? 'heart' : 'heart-outline'}
-            size={24}
-            color={
-              isLiked
-                ? colors.status.error
-                : colors.text.secondary
-            }
-          />
-          <Text style={styles.actionCount}>
-            {formatNumber(post.likesCount)}
-          </Text>
-        </TouchableOpacity>
-
-        <View style={styles.actionButton}>
-          <Ionicons
-            name="chatbubble-outline"
-            size={22}
-            color={colors.text.secondary}
-          />
-          <Text style={styles.actionCount}>
-            {formatNumber(post.commentsCount)}
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          onPress={() => {
-            const storeUrl = Platform.OS === 'ios'
-              ? 'https://apps.apple.com/app/id' + 'YOUR_APP_STORE_ID'
-              : 'https://play.google.com/store/apps/details?id=com.babbaranish.reauxlabsmobile';
-            Share.share({
-              message: post.content
-                ? `${post.content}\n\n— Shared from REAUX Labs\nFollow us: https://www.instagram.com/reauxlabs/\nDownload: ${storeUrl}`
-                : `Check out REAUX Labs – your fitness community!\nFollow us: https://www.instagram.com/reauxlabs/\nDownload: ${storeUrl}`,
-            });
-          }}
-        >
-          <Ionicons
-            name="share-outline"
-            size={22}
-            color={colors.text.secondary}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Comments header */}
-      <View style={styles.commentsHeader}>
-        <Text style={styles.commentsTitle}>Comments</Text>
-      </View>
-    </View>
-  ), [post, isLiked, handleLike, handleDelete, isSuperAdmin]);
-
   return (
     <SafeScreen>
       <Header
         title="Post"
         showBack
         onBack={() => router.back()}
-        rightAction={
-          isSuperAdmin ? (
-            <TouchableOpacity
-              onPress={handleDelete}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Ionicons name="trash-outline" size={22} color={colors.status.error} />
-            </TouchableOpacity>
-          ) : undefined
-        }
       />
 
       <KeyboardAvoidingView
@@ -357,7 +350,7 @@ export default function PostDetailScreen() {
               onDelete={handleDeleteComment}
             />
           )}
-          ListHeaderComponent={renderHeader}
+          ListHeaderComponent={() => headerElement}
           ListEmptyComponent={
             <View style={styles.emptyComments}>
               <Text style={styles.emptyText}>

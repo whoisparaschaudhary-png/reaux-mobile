@@ -266,7 +266,7 @@ export default function ProfileScreen() {
         {isSuperadmin && (
           <Card
             style={styles.linkCard}
-            onPress={() => router.push('/(app)/(admin)')}
+            onPress={() => router.navigate('/(app)/(admin)' as any)}
           >
             <View style={styles.linkCardContent}>
               <View style={styles.linkCardLeft}>
@@ -295,7 +295,7 @@ export default function ProfileScreen() {
         {isAdmin && (
           <Card
             style={styles.linkCard}
-            onPress={() => router.push({ pathname: '/(app)/(admin)/users', params: { backRoute: 'profile' } })}
+            onPress={() => router.navigate({ pathname: '/(app)/(admin)/users', params: { backRoute: 'profile' } } as any)}
           >
             <View style={styles.linkCardContent}>
               <View style={styles.linkCardLeft}>
@@ -324,7 +324,7 @@ export default function ProfileScreen() {
         {isAdmin && !isSuperadmin && gym && (
           <Card
             style={styles.linkCard}
-            onPress={() => router.push({ pathname: '/(app)/(admin)/gyms/[id]', params: { id: gym._id, backRoute: 'profile' } })}
+            onPress={() => router.navigate({ pathname: '/(app)/(admin)/gyms/[id]', params: { id: gym._id, backRoute: 'profile' } } as any)}
           >
             <View style={styles.linkCardContent}>
               <View style={styles.linkCardLeft}>
@@ -355,7 +355,7 @@ export default function ProfileScreen() {
             <Text style={styles.sectionGroupTitle}>Shop</Text>
             <Card
               style={styles.linkCard}
-              onPress={() => router.push({ pathname: '/(app)/(admin)/products', params: { backRoute: 'profile' } })}
+              onPress={() => router.navigate({ pathname: '/(app)/(admin)/products', params: { backRoute: 'profile' } } as any)}
             >
               <View style={styles.linkCardContent}>
                 <View style={styles.linkCardLeft}>
@@ -370,7 +370,7 @@ export default function ProfileScreen() {
             </Card>
             <Card
               style={styles.linkCard}
-              onPress={() => router.push({ pathname: '/(app)/(admin)/orders', params: { backRoute: 'profile' } })}
+              onPress={() => router.navigate({ pathname: '/(app)/(admin)/orders', params: { backRoute: 'profile' } } as any)}
             >
               <View style={styles.linkCardContent}>
                 <View style={styles.linkCardLeft}>
@@ -385,7 +385,7 @@ export default function ProfileScreen() {
             </Card>
             <Card
               style={styles.linkCard}
-              onPress={() => router.push({ pathname: '/(app)/(admin)/sales-report', params: { backRoute: 'profile' } })}
+              onPress={() => router.navigate({ pathname: '/(app)/(admin)/sales-report', params: { backRoute: 'profile' } } as any)}
             >
               <View style={styles.linkCardContent}>
                 <View style={styles.linkCardLeft}>
@@ -405,7 +405,7 @@ export default function ProfileScreen() {
         {isAdmin && !isSuperadmin && (
           <Card
             style={styles.linkCard}
-            onPress={() => router.push({ pathname: '/(app)/(shop)/orders', params: { backRoute: 'profile' } })}
+            onPress={() => router.navigate({ pathname: '/(app)/(shop)/orders', params: { backRoute: 'profile' } } as any)}
           >
             <View style={styles.linkCardContent}>
               <View style={styles.linkCardLeft}>
@@ -461,7 +461,7 @@ export default function ProfileScreen() {
         {isAdmin && (
           <Card
             style={styles.linkCard}
-            onPress={() => router.push({ pathname: '/(app)/(admin)/manage-memberships', params: { backRoute: 'profile' } })}
+            onPress={() => router.navigate({ pathname: '/(app)/(admin)/manage-memberships', params: { backRoute: 'profile' } } as any)}
           >
             <View style={styles.linkCardContent}>
               <View style={styles.linkCardLeft}>

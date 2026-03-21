@@ -63,11 +63,14 @@ const CITIES_BY_STATE: Record<string, string[]> = {
 };
 
 
+const OTHER_CITY = '__OTHER__';
+
 export default function AddressScreen() {
   const [form, setForm] = useState({ label: 'Home', street: '', city: '', state: '', pincode: '', phone: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showStatePicker, setShowStatePicker] = useState(false);
   const [showCityPicker, setShowCityPicker] = useState(false);
+  const [showCustomCity, setShowCustomCity] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -97,6 +100,9 @@ export default function AddressScreen() {
   const prefillFromSaved = useCallback((addr: SavedAddress) => {
     setForm({ label: addr.label, street: addr.street, city: addr.city, state: addr.state, pincode: addr.pincode, phone: addr.phone });
     setErrors({});
+    // Check if saved city is in list or custom
+    const cities = CITIES_BY_STATE[addr.state] ?? [];
+    setShowCustomCity(!!addr.city && !cities.includes(addr.city));
   }, []);
 
   const handleSelectAndBack = useCallback((addr: SavedAddress) => {
@@ -120,7 +126,8 @@ export default function AddressScreen() {
     if (!validate()) return;
     setSaving(true);
     try {
-      await addressesApi.add({ label: form.label || 'Home', street: form.street.trim(), city: form.city.trim(), state: form.state.trim(), pincode: form.pincode.trim(), phone: form.phone.trim() });
+      const res = await addressesApi.add({ label: form.label || 'Home', street: form.street.trim(), city: form.city.trim(), state: form.state.trim(), pincode: form.pincode.trim(), phone: form.phone.trim() });
+      if (res.data) setSavedAddresses(res.data);
       setSelectedAddress({ street: form.street.trim(), city: form.city.trim(), state: form.state.trim(), pincode: form.pincode.trim(), phone: form.phone.trim() });
       showAppAlert('Address Saved', 'Your shipping address has been saved.', [{ text: 'OK', onPress: () => router.back() }]);
     } catch (err: any) {
@@ -133,8 +140,12 @@ export default function AddressScreen() {
   const handleDelete = useCallback(async (id: string) => {
     setDeletingId(id);
     try {
-      await addressesApi.delete(id);
-      setSavedAddresses((prev) => prev.filter((a) => a._id !== id));
+      const res = await addressesApi.delete(id);
+      if (res.data) {
+        setSavedAddresses(res.data);
+      } else {
+        setSavedAddresses((prev) => prev.filter((a) => a._id !== id));
+      }
     } catch (err: any) {
       showAppAlert('Error', err.message || 'Failed to delete address');
     } finally {
@@ -206,12 +217,25 @@ export default function AddressScreen() {
             <View style={styles.halfInput}>
               <Text style={styles.fieldLabel}>City</Text>
               <TouchableOpacity style={[styles.stateDropdown, errors.city ? styles.stateDropdownError : null]} onPress={() => setShowCityPicker(true)} activeOpacity={0.7}>
-                <Text style={[styles.stateDropdownText, !form.city && styles.statePlaceholder]}>{form.city || 'Select City'}</Text>
+                <Text style={[styles.stateDropdownText, !form.city && !showCustomCity && styles.statePlaceholder]}>
+                  {showCustomCity ? 'Other' : (form.city || 'Select City')}
+                </Text>
                 <Ionicons name="chevron-down" size={16} color={colors.text.light} />
               </TouchableOpacity>
               {errors.city ? <Text style={styles.errorText}>{errors.city}</Text> : null}
             </View>
           </View>
+          {showCustomCity && (
+            <View style={styles.spacer}>
+              <Input
+                label="Enter City Name"
+                placeholder="e.g. Hoshiarpur"
+                value={form.city}
+                onChangeText={(t) => updateField('city', t)}
+                error={errors.city}
+              />
+            </View>
+          )}
           <View style={styles.spacer} />
 
           <View style={styles.row}>
@@ -243,6 +267,7 @@ export default function AddressScreen() {
                   onPress={() => {
                     setForm((prev) => ({ ...prev, state: item, city: '' }));
                     setErrors((prev) => ({ ...prev, state: '', city: '' }));
+                    setShowCustomCity(false);
                     setShowStatePicker(false);
                   }}
                   activeOpacity={0.7}
@@ -269,14 +294,38 @@ export default function AddressScreen() {
               </View>
             ) : (
               <FlatList
-                data={CITIES_BY_STATE[form.state] ?? []}
+                data={[...(CITIES_BY_STATE[form.state] ?? []), OTHER_CITY]}
                 keyExtractor={(item) => item}
-                renderItem={({ item }) => (
-                  <TouchableOpacity style={[styles.stateOption, form.city === item && styles.stateOptionActive]} onPress={() => { updateField('city', item); setShowCityPicker(false); }} activeOpacity={0.7}>
-                    <Text style={[styles.stateOptionText, form.city === item && styles.stateOptionTextActive]}>{item}</Text>
-                    {form.city === item && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
-                  </TouchableOpacity>
-                )}
+                renderItem={({ item }) => {
+                  if (item === OTHER_CITY) {
+                    return (
+                      <TouchableOpacity
+                        style={[styles.stateOption, showCustomCity && styles.stateOptionActive]}
+                        onPress={() => {
+                          setShowCustomCity(true);
+                          updateField('city', '');
+                          setShowCityPicker(false);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.stateOptionText, showCustomCity && styles.stateOptionTextActive]}>
+                          Other (type manually)
+                        </Text>
+                        {showCustomCity && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
+                      </TouchableOpacity>
+                    );
+                  }
+                  return (
+                    <TouchableOpacity
+                      style={[styles.stateOption, form.city === item && !showCustomCity && styles.stateOptionActive]}
+                      onPress={() => { setShowCustomCity(false); updateField('city', item); setShowCityPicker(false); }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.stateOptionText, form.city === item && !showCustomCity && styles.stateOptionTextActive]}>{item}</Text>
+                      {form.city === item && !showCustomCity && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
+                    </TouchableOpacity>
+                  );
+                }}
                 showsVerticalScrollIndicator={false}
               />
             )}
