@@ -208,7 +208,7 @@ export default function CreateUserScreen() {
               text: 'Assign',
               onPress: () =>
                 router.replace({
-                  pathname: '/(app)/(admin)/memberships/memberships/assign',
+                  pathname: '/(app)/(admin)/memberships/records/assign',
                   params: { preselectedUserId: newUserId, preselectedUserName: fullName },
                 }),
             },

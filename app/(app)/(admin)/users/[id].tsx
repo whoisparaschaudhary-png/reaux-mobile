@@ -415,7 +415,7 @@ export default function UserDetailScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.viewHistoryBtn}
-                      onPress={() => router.push(`/(app)/(admin)/memberships/memberships/${membership._id}`)}
+                      onPress={() => router.push(`/(app)/(admin)/memberships/records/${membership._id}`)}
                       activeOpacity={0.7}
                     >
                       <Ionicons name="time-outline" size={15} color={colors.status.info} />
@@ -431,7 +431,7 @@ export default function UserDetailScreen() {
                 <TouchableOpacity
                   style={styles.assignMembershipBtn}
                   onPress={() => router.push(
-                    `/(app)/(admin)/memberships/memberships/assign?preselectedUserId=${id}&preselectedUserName=${encodeURIComponent(user?.name ?? '')}` as any
+                    `/(app)/(admin)/memberships/records/assign?preselectedUserId=${id}&preselectedUserName=${encodeURIComponent(user?.name ?? '')}` as any
                   )}
                   activeOpacity={0.7}
                 >

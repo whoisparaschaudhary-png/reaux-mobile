@@ -257,7 +257,7 @@ export default function FeesScreen() {
         <TouchableOpacity
           key={membership._id}
           style={styles.feeRow}
-          onPress={() => router.push(`/(app)/(admin)/memberships/memberships/${membership._id}`)}
+          onPress={() => router.push(`/(app)/(admin)/memberships/records/${membership._id}`)}
           activeOpacity={0.7}
         >
           <Avatar name={name} uri={avatar} size={40} />

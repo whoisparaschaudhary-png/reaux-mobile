@@ -199,7 +199,7 @@ export default function GymMembersScreen() {
     return (
       <TouchableOpacity
         style={styles.memberCard}
-        onPress={() => router.push(`/(app)/(admin)/memberships/memberships/${item._id}`)}
+        onPress={() => router.push(`/(app)/(admin)/memberships/records/${item._id}`)}
         activeOpacity={0.7}
       >
         <View style={styles.memberIndex}>

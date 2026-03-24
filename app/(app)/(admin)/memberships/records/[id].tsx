@@ -442,7 +442,7 @@ export default function MembershipDetailScreen() {
                     : (selectedMembership.userId as User)._id;
                   const userName = encodeURIComponent((selectedMembership.userId as User)?.name ?? '');
                   router.push(
-                    `/(app)/(admin)/memberships/memberships/assign?preselectedUserId=${userId}&preselectedUserName=${userName}` as any
+                    `/(app)/(admin)/memberships/records/assign?preselectedUserId=${userId}&preselectedUserName=${userName}` as any
                   );
                 }}
                 variant="primary"
