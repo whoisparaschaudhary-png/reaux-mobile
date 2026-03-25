@@ -35,7 +35,7 @@ export default function SuggestedDietsScreen() {
   }, [fetchSuggestedPlans, suggestedPagination, isLoading]);
 
   const handlePlanPress = useCallback((plan: DietPlan) => {
-    router.push(`/(app)/(diet)/${plan._id}` as any);
+    router.push(`/(diet)/${plan._id}` as any);
   }, []);
 
   const renderItem = useCallback(

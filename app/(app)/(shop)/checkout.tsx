@@ -17,6 +17,7 @@ import { Input } from '../../../src/components/ui/Input';
 import { useCartStore } from '../../../src/stores/useCartStore';
 import { useOrderStore } from '../../../src/stores/useOrderStore';
 import { addressesApi } from '../../../src/api/endpoints/users';
+import { promosApi } from '../../../src/api/endpoints/promos';
 import { showAppAlert } from '../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
@@ -48,6 +49,9 @@ export default function CheckoutScreen() {
 
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
   const [address, setAddress] = useState<ShippingAddressState>(emptyAddress);
   const [showStatePicker, setShowStatePicker] = useState(false);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
@@ -159,15 +163,68 @@ export default function CheckoutScreen() {
                 <Input
                   placeholder="Enter promo code"
                   value={promoCode}
-                  onChangeText={setPromoCode}
+                  onChangeText={(t) => {
+                    setPromoCode(t.toUpperCase());
+                    if (promoApplied) {
+                      setPromoApplied(false);
+                      setDiscount(0);
+                    }
+                    setPromoError(null);
+                  }}
+                  error={promoError ?? undefined}
                 />
               </View>
-              <Button
-                title="Apply"
-                onPress={() => router.push('/(app)/(shop)/promo')}
-                variant="outline"
-                size="md"
-              />
+              {promoApplied ? (
+                <Button
+                  title="Remove"
+                  onPress={() => {
+                    setPromoCode('');
+                    setDiscount(0);
+                    setPromoApplied(false);
+                    setPromoError(null);
+                  }}
+                  variant="outline"
+                  size="md"
+                />
+              ) : (
+                <Button
+                  title="Apply"
+                  onPress={async () => {
+                    if (!promoCode.trim()) {
+                      setPromoError('Enter a code');
+                      return;
+                    }
+                    setPromoLoading(true);
+                    setPromoError(null);
+                    try {
+                      const response = await promosApi.validate(promoCode.trim());
+                      const promo = response.data;
+                      let discountAmt = 0;
+                      if (promo.discountType === 'percentage') {
+                        discountAmt = (total * promo.discountValue) / 100;
+                        if (promo.maxDiscount && discountAmt > promo.maxDiscount) {
+                          discountAmt = promo.maxDiscount;
+                        }
+                      } else {
+                        discountAmt = promo.discountValue;
+                      }
+                      if (promo.minOrderAmount && total < promo.minOrderAmount) {
+                        setPromoError(`Minimum order ₹${promo.minOrderAmount}`);
+                      } else {
+                        setDiscount(Math.min(discountAmt, total));
+                        setPromoApplied(true);
+                      }
+                    } catch (err: any) {
+                      setPromoError(err.message || 'Invalid promo code');
+                    } finally {
+                      setPromoLoading(false);
+                    }
+                  }}
+                  variant="outline"
+                  size="md"
+                  loading={promoLoading}
+                />
+              )}
             </View>
           </View>
 

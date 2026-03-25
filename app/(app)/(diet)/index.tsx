@@ -79,7 +79,7 @@ export default function DietScreen() {
   );
 
   const handlePlanPress = useCallback((plan: DietPlan) => {
-    router.push(`/(app)/(diet)/${plan._id}`);
+    router.push(`/(diet)/${plan._id}`);
   }, []);
 
   const renderItem = useCallback(
@@ -111,7 +111,7 @@ export default function DietScreen() {
         {isAdmin && (
           <TouchableOpacity
             style={styles.analyticsButton}
-            onPress={() => router.push('/(app)/(diet)/upload' as any)}
+            onPress={() => router.push('/(diet)/upload' as any)}
             activeOpacity={0.7}
           >
             <Ionicons name="add-circle-outline" size={18} color={colors.text.primary} />

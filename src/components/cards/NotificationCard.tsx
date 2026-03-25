@@ -17,6 +17,7 @@ const iconMap: Record<NotificationType, keyof typeof Ionicons.glyphMap> = {
   community: 'people-outline',
   diet: 'leaf-outline',
   system: 'settings-outline',
+  announcement: 'megaphone-outline',
 };
 
 const iconColorMap: Record<NotificationType, string> = {
@@ -25,6 +26,7 @@ const iconColorMap: Record<NotificationType, string> = {
   community: colors.status.success,
   diet: '#22c55e',
   system: colors.text.secondary,
+  announcement: colors.primary.yellowDark,
 };
 
 const iconBgMap: Record<NotificationType, string> = {
@@ -32,6 +34,7 @@ const iconBgMap: Record<NotificationType, string> = {
   challenge: '#fef3c7',
   community: '#dcfce7',
   diet: '#dcfce7',
+  announcement: colors.primary.yellowLight,
   system: colors.border.light,
 };
 

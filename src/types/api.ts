@@ -25,6 +25,8 @@ export interface UpdateProfileRequest {
 export interface RecordBmiRequest {
   height: number;
   weight: number;
+  age?: number;
+  gender?: Gender;
 }
 
 export interface CreatePostRequest {
@@ -56,6 +58,14 @@ export interface CreateProductRequest {
   category?: string;
   stock?: number;
   isActive?: boolean;
+  nutrition?: {
+    servingSize?: string;
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+    sugar?: number;
+  };
 }
 
 export interface AddToCartRequest {

@@ -30,6 +30,8 @@ export type MembershipStatus = 'active' | 'expired' | 'cancelled';
 export interface User {
   _id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   phone?: string;
   role: Role;

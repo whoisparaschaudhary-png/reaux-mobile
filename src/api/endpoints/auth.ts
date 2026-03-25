@@ -29,8 +29,14 @@ export interface RegisterParams {
 
 export interface UpdateProfileParams {
   name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   phone?: string;
+  height?: number;
+  weight?: number;
+  dateOfBirth?: string;
+  gender?: string;
   gymId?: string;
 }
 

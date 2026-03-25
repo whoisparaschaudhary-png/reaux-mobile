@@ -126,8 +126,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const params: UpdateProfileParams = {
         name: data.name,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         phone: data.phone,
+        height: data.height,
+        weight: data.weight,
+        dateOfBirth: data.dateOfBirth,
+        gender: data.gender,
         gymId: typeof data.gymId === 'string' ? data.gymId : undefined,
       };
       const response = await updateProfile(params);

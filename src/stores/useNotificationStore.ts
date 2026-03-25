@@ -17,8 +17,8 @@ interface NotificationState {
   error: string | null;
   pagination: Pagination;
 
-  fetchNotifications: (page?: number) => Promise<void>;
-  refreshNotifications: () => Promise<void>;
+  fetchNotifications: (page?: number, filters?: { isRead?: boolean; type?: string }) => Promise<void>;
+  refreshNotifications: (filters?: { isRead?: boolean; type?: string }) => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   getUnreadCount: () => Promise<void>;
@@ -33,10 +33,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   error: null,
   pagination: { page: 1, limit: 20, total: 0, pages: 0 },
 
-  fetchNotifications: async (page = 1) => {
+  fetchNotifications: async (page = 1, filters?: { isRead?: boolean; type?: string }) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await notificationsApi.list({ page, limit: 20 });
+      const response = await notificationsApi.list({ page, limit: 20, ...filters });
       set((state) => ({
         notifications:
           page === 1
@@ -53,10 +53,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     }
   },
 
-  refreshNotifications: async () => {
+  refreshNotifications: async (filters?: { isRead?: boolean; type?: string }) => {
     set({ isRefreshing: true, error: null });
     try {
-      const response = await notificationsApi.list({ page: 1, limit: 20 });
+      const response = await notificationsApi.list({ page: 1, limit: 20, ...filters });
       set({
         notifications: response.data,
         pagination: response.pagination,

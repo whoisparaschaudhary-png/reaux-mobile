@@ -50,6 +50,8 @@ interface MembershipState {
   cancelMembership: (id: string) => Promise<void>;
   recordFees: (id: string, data: RecordFeesRequest) => Promise<void>;
   applyCredit: (id: string, amount: number, note?: string) => Promise<void>;
+  fetchFeesOverview: (gymId?: string) => Promise<any>;
+  adjustFees: (id: string, data: { feesAmount?: number; feesPaid?: number; advanceCredit?: number; note?: string }) => Promise<void>;
 
   // Utility actions
   clearPlansError: () => void;
@@ -318,6 +320,40 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
       }));
     } catch (err: any) {
       set({ membershipsError: err.message || 'Failed to apply credit', membershipsLoading: false });
+      throw err;
+    }
+  },
+
+  fetchFeesOverview: async (gymId?: string) => {
+    set({ membershipsLoading: true, membershipsError: null });
+    try {
+      const response = await membershipsApi.feesOverview(gymId);
+      set({ membershipsLoading: false });
+      return response.data;
+    } catch (err: any) {
+      set({
+        membershipsError: err.message || 'Failed to fetch fees overview',
+        membershipsLoading: false,
+      });
+      throw err;
+    }
+  },
+
+  adjustFees: async (id: string, data: { feesAmount?: number; feesPaid?: number; advanceCredit?: number; note?: string }) => {
+    set({ membershipsLoading: true, membershipsError: null });
+    try {
+      const response = await membershipsApi.feesAdjust(id, data);
+      set((state) => ({
+        memberships: state.memberships.map((m) => (m._id === id ? response.data : m)),
+        selectedMembership:
+          state.selectedMembership?._id === id ? response.data : state.selectedMembership,
+        membershipsLoading: false,
+      }));
+    } catch (err: any) {
+      set({
+        membershipsError: err.message || 'Failed to adjust fees',
+        membershipsLoading: false,
+      });
       throw err;
     }
   },

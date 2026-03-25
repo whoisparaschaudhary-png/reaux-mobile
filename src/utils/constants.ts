@@ -1,4 +1,4 @@
-export const API_URL = 'https://reaux-labs-be.onrender.com/api';
+export const API_URL = 'https://api.anishbabbar.me/api';
 
 /** App store URLs - update APP_STORE_ID when the app is published on iOS */
 export const APP_STORE_ID = 'YOUR_APP_STORE_ID'; // e.g. '1234567890'

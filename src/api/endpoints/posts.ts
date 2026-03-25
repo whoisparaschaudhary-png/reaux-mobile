@@ -28,6 +28,6 @@ export const postsApi = {
 
   deleteComment: (postId: string, commentId: string) =>
     client
-      .delete<ApiResponse<{ message: string }>>(`/posts/${postId}/comment/${commentId}`)
+      .delete<ApiResponse<{ message: string }>>(`/posts/${postId}/comments/${commentId}`)
       .then(r => r.data),
 };

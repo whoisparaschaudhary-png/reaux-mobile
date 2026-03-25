@@ -47,6 +47,12 @@ export default function AppLayout() {
       />
       <Tabs.Screen
         name="(diet)"
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('(diet)', { screen: 'index' });
+          },
+        })}
         options={{
           title: 'Diet',
           tabBarIcon: ({ color, size }) => (
