@@ -25,6 +25,7 @@ export type WorkoutDifficulty = 'beginner' | 'intermediate' | 'advanced';
 export type NotificationType = 'system' | 'order' | 'challenge' | 'community' | 'diet' | 'announcement';
 export type DiscountType = 'percentage' | 'fixed';
 export type MembershipStatus = 'active' | 'expired' | 'cancelled';
+export type ContactStatus = 'open' | 'resolved';
 
 // User
 export interface User {
@@ -307,6 +308,20 @@ export interface Notification {
   isRead: boolean;
   metadata?: Record<string, any>;
   createdAt: string;
+}
+
+// Contact
+export interface Contact {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  subject?: string;
+  message: string;
+  status: ContactStatus;
+  userId?: string | User;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 // Analytics

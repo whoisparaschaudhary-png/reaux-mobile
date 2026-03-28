@@ -213,11 +213,15 @@ export default function AdminDashboardScreen() {
                 label="Promo Banners"
                 onPress={() => router.push('/(app)/(admin)/promo/past')}
               />
-              <View style={styles.divider} />
-              <MenuItem
-                label="Contact Us"
-                onPress={() => router.navigate('/(app)/(profile)/contact' as any)}
-              />
+              {isSuperadmin && (
+                <>
+                  <View style={styles.divider} />
+                  <MenuItem
+                    label="Contact Messages"
+                    onPress={() => router.push('/(app)/(admin)/contacts')}
+                  />
+                </>
+              )}
             </View>
           </View>
 
