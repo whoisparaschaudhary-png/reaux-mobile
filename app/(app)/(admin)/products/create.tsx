@@ -19,6 +19,7 @@ import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
 import client from '../../../../src/api/client';
+import type { ProductVisibility } from '../../../../src/types/models';
 
 const CATEGORIES = [
   'Supplements',
@@ -28,6 +29,12 @@ const CATEGORIES = [
   'Nutrition',
   'Other',
 ] as const;
+
+const VISIBILITY_OPTIONS: { value: ProductVisibility; label: string }[] = [
+  { value: 'all', label: 'Everyone' },
+  { value: 'admin', label: 'Admin only' },
+  { value: 'user', label: 'Members only' },
+];
 
 export default function CreateProductScreen() {
   const router = useRouter();
@@ -40,6 +47,7 @@ export default function CreateProductScreen() {
   const [compareAtPrice, setCompareAtPrice] = useState('');
   const [stock, setStock] = useState('');
   const [category, setCategory] = useState<string>('Supplements');
+  const [visibility, setVisibility] = useState<ProductVisibility>('all');
   const [imageUris, setImageUris] = useState<string[]>([]);
 
   // Nutrition
@@ -107,6 +115,7 @@ export default function CreateProductScreen() {
         if (compareAtPrice) form.append('compareAtPrice', compareAtPrice);
         if (stock) form.append('stock', stock);
         form.append('category', category);
+        form.append('visibility', visibility);
         const nutrition = buildNutrition();
         if (nutrition) form.append('nutrition', JSON.stringify(nutrition));
 
@@ -127,8 +136,9 @@ export default function CreateProductScreen() {
         compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
         stock: stock ? Number(stock) : undefined,
         category,
+        visibility,
         nutrition: buildNutrition(),
-      } as any);
+      });
 
       showAppAlert('Success', 'Product created successfully', [
         { text: 'OK', onPress: () => router.back() },
@@ -296,6 +306,34 @@ export default function CreateProductScreen() {
             />
           </View>
 
+          {/* Visibility */}
+          <Text style={styles.sectionTitle}>Who can see this?</Text>
+          <Text style={styles.hintText}>
+            Logged-in customers get role-based catalog filtering on the shop. Default is everyone.
+          </Text>
+          <View style={styles.categoryGrid}>
+            {VISIBILITY_OPTIONS.map((opt) => {
+              const isActive = opt.value === visibility;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.categoryChip, isActive && styles.categoryChipActive]}
+                  onPress={() => setVisibility(opt.value)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      isActive && styles.categoryChipTextActive,
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           {/* Category */}
           <Text style={styles.sectionTitle}>Category</Text>
           <View style={styles.categoryGrid}>
@@ -346,6 +384,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.screenPadding,
     paddingTop: spacing.lg,
     paddingBottom: 40,
+  },
+  hintText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    lineHeight: 16,
+    color: colors.text.secondary,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,

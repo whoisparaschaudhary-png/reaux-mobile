@@ -22,7 +22,14 @@ import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { productsApi } from '../../../../src/api/endpoints/products';
 import { exportProductsListPDF } from '../../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
-import type { Product } from '../../../../src/types/models';
+import type { Product, ProductVisibility } from '../../../../src/types/models';
+
+function visibilityBadge(visibility: ProductVisibility | undefined) {
+  const v = visibility ?? 'all';
+  if (v === 'all') return { text: 'All users', variant: 'default' as const };
+  if (v === 'admin') return { text: 'Admin', variant: 'warning' as const };
+  return { text: 'Members', variant: 'info' as const };
+}
 
 export default function ProductListScreen() {
   const router = useRouter();
@@ -143,6 +150,7 @@ export default function ProductListScreen() {
           </View>
 
           <View style={styles.statusColumn}>
+            <Badge {...visibilityBadge(item.visibility)} size="sm" />
             <Badge
               text={item.isActive ? 'Active' : 'Hidden'}
               variant={item.isActive ? 'success' : 'error'}

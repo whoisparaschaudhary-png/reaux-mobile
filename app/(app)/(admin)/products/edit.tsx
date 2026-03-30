@@ -20,7 +20,7 @@ import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
 import client from '../../../../src/api/client';
-import type { Product } from '../../../../src/types/models';
+import type { Product, ProductVisibility } from '../../../../src/types/models';
 
 const CATEGORIES = [
   'Supplements',
@@ -30,6 +30,12 @@ const CATEGORIES = [
   'Nutrition',
   'Other',
 ] as const;
+
+const VISIBILITY_OPTIONS: { value: ProductVisibility; label: string }[] = [
+  { value: 'all', label: 'Everyone' },
+  { value: 'admin', label: 'Admin only' },
+  { value: 'user', label: 'Members only' },
+];
 
 export default function EditProductScreen() {
   const router = useRouter();
@@ -46,6 +52,7 @@ export default function EditProductScreen() {
   const [compareAtPrice, setCompareAtPrice] = useState('');
   const [stock, setStock] = useState('');
   const [category, setCategory] = useState('Supplements');
+  const [visibility, setVisibility] = useState<ProductVisibility>('all');
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [newImageUris, setNewImageUris] = useState<string[]>([]);
 
@@ -98,6 +105,7 @@ export default function EditProductScreen() {
         setCompareAtPrice(p.compareAtPrice?.toString() || '');
         setStock(p.stock.toString());
         setCategory(p.category || 'Supplements');
+        setVisibility(p.visibility ?? 'all');
         setExistingImages(p.images || []);
         if (p.nutrition) {
           setServingSize(p.nutrition.servingSize || '');
@@ -147,6 +155,7 @@ export default function EditProductScreen() {
         if (compareAtPrice) form.append('compareAtPrice', compareAtPrice);
         if (stock) form.append('stock', stock);
         form.append('category', category);
+        form.append('visibility', visibility);
         // Pass existing images so the backend knows which to keep
         existingImages.forEach((url) => form.append('existingImages[]', url));
         const nutrition = buildNutrition();
@@ -165,9 +174,10 @@ export default function EditProductScreen() {
           compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
           stock: stock ? Number(stock) : undefined,
           category,
+          visibility,
           nutrition: buildNutrition(),
           images: existingImages,
-        } as any);
+        });
       }
 
       showAppAlert('Success', 'Product updated successfully', [
@@ -363,6 +373,34 @@ export default function EditProductScreen() {
             />
           </View>
 
+          {/* Visibility */}
+          <Text style={styles.sectionTitle}>Who can see this?</Text>
+          <Text style={styles.hintText}>
+            Logged-in customers get role-based catalog filtering on the shop.
+          </Text>
+          <View style={styles.categoryGrid}>
+            {VISIBILITY_OPTIONS.map((opt) => {
+              const isActive = opt.value === visibility;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.categoryChip, isActive && styles.categoryChipActive]}
+                  onPress={() => setVisibility(opt.value)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      isActive && styles.categoryChipTextActive,
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           {/* Category */}
           <Text style={styles.sectionTitle}>Category</Text>
           <View style={styles.categoryGrid}>
@@ -418,6 +456,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  hintText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    lineHeight: 16,
+    color: colors.text.secondary,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,

@@ -24,6 +24,7 @@ export type WorkoutCategory = 'strength' | 'cardio' | 'flexibility' | 'hiit' | '
 export type WorkoutDifficulty = 'beginner' | 'intermediate' | 'advanced';
 export type NotificationType = 'system' | 'order' | 'challenge' | 'community' | 'diet' | 'announcement';
 export type DiscountType = 'percentage' | 'fixed';
+export type ProductVisibility = 'all' | 'admin' | 'user';
 export type MembershipStatus = 'active' | 'expired' | 'cancelled';
 export type ContactStatus = 'open' | 'resolved';
 
@@ -208,6 +209,7 @@ export interface Product {
   images: string[];
   category?: string;
   stock: number;
+  visibility?: ProductVisibility;
   nutrition?: NutritionInfo;
   isActive: boolean;
   createdBy: string | User;

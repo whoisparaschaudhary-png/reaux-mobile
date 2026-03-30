@@ -77,16 +77,12 @@ export default function AppLayout() {
             navigation.navigate('(shop)', { screen: 'index' });
           },
         })}
-        options={
-          isAdmin
-            ? {
-                title: 'Shop',
-                tabBarIcon: ({ color, size }) => (
-                  <Ionicons name="storefront-outline" size={size} color={color} />
-                ),
-              }
-            : { href: null }
-        }
+        options={{
+          title: 'Shop',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="storefront-outline" size={size} color={color} />
+          ),
+        }}
       />
       <Tabs.Screen
         name="(profile)"
