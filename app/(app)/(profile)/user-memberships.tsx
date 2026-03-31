@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { SkeletonLoader } from '../../../src/components/ui/SkeletonLoader';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../src/stores/useMembershipStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { formatCurrency, formatDate } from '../../../src/utils/formatters';
 import { Badge } from '../../../src/components/ui/Badge';
 import {
@@ -20,6 +21,7 @@ import {
   layout,
   shadows,
 } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type {
   MembershipPlan,
   Gym,
@@ -70,7 +72,7 @@ function UserMembershipsContent() {
   };
 
   const handleCancelMembership = (membership: Membership) => {
-    Alert.alert(
+    showAppAlert(
       'Cancel Membership',
       'Are you sure you want to cancel this membership?',
       [
@@ -81,9 +83,9 @@ function UserMembershipsContent() {
           onPress: async () => {
             try {
               await cancelMembership(membership._id);
-              Alert.alert('Success', 'Membership cancelled successfully');
+              showAppAlert('Success', 'Membership cancelled successfully');
             } catch {
-              Alert.alert('Error', 'Failed to cancel membership');
+              showAppAlert('Error', 'Failed to cancel membership');
             }
           },
         },
@@ -313,14 +315,14 @@ const styles = StyleSheet.create({
   },
   memberName: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   planName: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginTop: 2,
   },
@@ -332,8 +334,8 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   datesRow: {
@@ -347,15 +349,15 @@ const styles = StyleSheet.create({
   },
   dateLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginBottom: 2,
   },
   dateValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   warningBanner: {
@@ -369,8 +371,8 @@ const styles = StyleSheet.create({
   },
   warningText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.status.warning,
   },
   priceRow: {
@@ -385,15 +387,15 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginBottom: 2,
   },
   priceValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   cancelButton: {
@@ -411,8 +413,8 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.status.error,
   },
 });

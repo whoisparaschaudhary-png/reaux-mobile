@@ -5,26 +5,33 @@ import { Avatar } from '../ui/Avatar';
 import { Badge } from '../ui/Badge';
 import { Card } from '../ui/Card';
 import { colors, fontFamily, spacing } from '../../theme';
+import { formatDate } from '../../utils/formatters';
+import { ms, mvs } from '../../utils/responsive';
 import type { User } from '../../types/models';
 
 interface UserCardProps {
   user: User;
   onDeactivate?: (user: User) => void;
   onPress?: (user: User) => void;
+  membershipEndDate?: string;
 }
 
 const getRoleBadgeVariant = (role: string) => {
   switch (role) {
-    case 'superadmin':
-      return 'error' as const;
-    case 'admin':
-      return 'warning' as const;
-    default:
-      return 'default' as const;
+    case 'superadmin': return 'error' as const;
+    case 'admin':      return 'warning' as const;
+    default:           return 'default' as const;
   }
 };
 
-export const UserCard: React.FC<UserCardProps> = ({ user, onDeactivate, onPress }) => {
+const getExpiryColor = (endDate: string) => {
+  const daysLeft = (new Date(endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+  if (daysLeft < 0)  return colors.status.error;
+  if (daysLeft <= 7) return colors.status.warning;
+  return colors.text.light;
+};
+
+export const UserCard: React.FC<UserCardProps> = ({ user, onDeactivate, onPress, membershipEndDate }) => {
   const isActive = user.status === 'active';
 
   return (
@@ -33,7 +40,7 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onDeactivate, onPress 
       onPress={onPress ? () => onPress(user) : undefined}
     >
       <View style={styles.row}>
-        <Avatar uri={user.avatar} name={user.name} size={44} />
+        <Avatar uri={user.avatar} name={user.name} size={ms(44)} />
 
         <View style={styles.info}>
           <View style={styles.nameRow}>
@@ -49,6 +56,11 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onDeactivate, onPress 
           <Text style={styles.email} numberOfLines={1}>
             {user.email}
           </Text>
+          {(user.dateOfJoining || user.createdAt) && (
+            <Text style={styles.doj} numberOfLines={1}>
+              DOJ: {formatDate(user.dateOfJoining || user.createdAt)}
+            </Text>
+          )}
         </View>
 
         <View style={styles.rightSection}>
@@ -69,13 +81,19 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onDeactivate, onPress 
             </Text>
           </View>
 
+          {membershipEndDate && (
+            <Text style={[styles.expiryText, { color: getExpiryColor(membershipEndDate) }]}>
+              Exp: {formatDate(membershipEndDate)}
+            </Text>
+          )}
+
           {onDeactivate && (
             <TouchableOpacity
               onPress={() => onDeactivate(user)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               style={styles.removeButton}
             >
-              <Ionicons name="close" size={18} color={colors.status.error} />
+              <Ionicons name="close" size={ms(18)} color={colors.status.error} />
             </TouchableOpacity>
           )}
         </View>
@@ -101,20 +119,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: 2,
+    marginBottom: mvs(2),
   },
   name: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
     flexShrink: 1,
   },
   email: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
+  },
+  doj: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(11),
+    lineHeight: ms(16),
+    color: colors.text.light,
+    marginTop: mvs(1),
   },
   rightSection: {
     alignItems: 'flex-end',
@@ -123,22 +148,28 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: ms(4),
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: ms(8),
+    height: ms(8),
+    borderRadius: ms(4),
   },
   statusText: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: ms(11),
+    lineHeight: ms(14),
+  },
+  expiryText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(10),
+    lineHeight: ms(14),
+    textAlign: 'right',
   },
   removeButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: ms(28),
+    height: ms(28),
+    borderRadius: ms(14),
     backgroundColor: '#fee2e2',
     alignItems: 'center',
     justifyContent: 'center',

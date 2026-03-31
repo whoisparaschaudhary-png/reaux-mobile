@@ -1,12 +1,13 @@
 import client from '../client';
 import type { ApiResponse, PaginatedResponse, PaginationParams } from '../types';
-import type { User, Role, UserStatus, Gender, BirthdayUser, UpcomingBirthdayUser } from '../../types/models';
+import type { User, Role, UserStatus, Gender, BirthdayUser, UpcomingBirthdayUser, SavedAddress } from '../../types/models';
 
 interface UpdateUserPayload {
   name?: string;
   phone?: string;
   role?: Role;
   gymId?: string;
+  gymIds?: string[];
   gender?: Gender;
   dateOfBirth?: string;
   status?: UserStatus;
@@ -21,6 +22,7 @@ interface CreateUserPayload {
   gymId?: string;
   gender: Gender;
   dateOfBirth: string;
+  dateOfJoining?: string;
   status?: UserStatus;
 }
 
@@ -48,4 +50,23 @@ export const usersApi = {
 
   getUpcomingBirthdays: (days = 7) =>
     client.get<ApiResponse<UpcomingBirthdayUser[]>>('/users/birthdays/upcoming', { params: { days } }).then(r => r.data),
+};
+
+export const gymsAdminApi = {
+  assignAdmin: (gymId: string, userId: string) =>
+    client.post<ApiResponse<{ message: string }>>(`/gyms/${gymId}/assign-admin`, { userId }).then(r => r.data),
+};
+
+export const addressesApi = {
+  list: () =>
+    client.get<ApiResponse<SavedAddress[]>>('/users/addresses').then(r => r.data),
+
+  add: (payload: { label: string; street: string; city: string; state: string; pincode: string; phone: string; isDefault?: boolean }) =>
+    client.post<ApiResponse<SavedAddress[]>>('/users/addresses', payload).then(r => r.data),
+
+  update: (id: string, payload: Partial<{ label: string; street: string; city: string; state: string; pincode: string; phone: string; isDefault: boolean }>) =>
+    client.put<ApiResponse<SavedAddress[]>>(`/users/addresses/${id}`, payload).then(r => r.data),
+
+  delete: (id: string) =>
+    client.delete<ApiResponse<SavedAddress[]>>(`/users/addresses/${id}`).then(r => r.data),
 };

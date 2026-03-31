@@ -11,6 +11,7 @@ import {
 } from '../services/notifications';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useNotificationStore } from '../stores/useNotificationStore';
+import { useUIStore } from '../stores/useUIStore';
 
 /**
  * Hook to manage push notifications throughout the app
@@ -19,6 +20,7 @@ export function useNotifications() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const getUnreadCount = useNotificationStore((s) => s.getUnreadCount);
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,26 +29,46 @@ export function useNotifications() {
 
   // Initialize notifications when user is logged in
   useEffect(() => {
-    if (!user) return;
+    console.log('🔔 useNotifications effect triggered, user:', user ? user._id : 'null');
+
+    if (!user) {
+      console.log('⚠️ No user found, skipping notification initialization');
+      return;
+    }
 
     let isMounted = true;
 
     const initializeNotifications = async () => {
+      console.log('🚀 Starting notification initialization...');
       setIsLoading(true);
       try {
+        // Get push token
+        console.log('📲 Requesting push token...');
         const token = await getPushNotificationToken();
+        console.log('📲 Push token result:', token ? 'Success' : 'Failed');
+
         if (isMounted && token) {
           setExpoPushToken(token);
+          console.log('📱 Push token ready:', token);
+
+          // Register token with backend
+          console.log('🔄 Registering token with backend...');
           try {
             await registerDeviceToken(token, user._id);
-          } catch {
-            // Don't fail if registration fails
+            console.log('✅ Token registration successful');
+          } catch (registerError) {
+            console.error('❌ Failed to register token with backend:', registerError);
+            // Don't fail the whole flow if registration fails
           }
+        } else if (!token) {
+          console.error('❌ Failed to get push token');
         }
-      } catch {
-        // Ignore errors
+      } catch (error) {
+        console.error('❌ Failed to initialize notifications:', error);
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -59,14 +81,23 @@ export function useNotifications() {
 
   // Listen for notifications
   useEffect(() => {
+    // Notification received while app is in foreground
     notificationListener.current = addNotificationReceivedListener(
-      (_notification) => {
-        // Foreground notification received
+      (notification) => {
+        const title = notification.request.content.title ?? '';
+        const body = notification.request.content.body ?? '';
+        const message = body || title;
+        if (message) {
+          useUIStore.getState().showToast(message, 'info');
+        }
+        getUnreadCount();
       }
     );
 
+    // User tapped on notification
     responseListener.current = addNotificationResponseReceivedListener(
       (response) => {
+        console.log('👆 Notification tapped:', response);
 
         // Navigate based on notification data
         const data = response.notification.request.content.data;

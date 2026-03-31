@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../src/components/layout/Header';
@@ -13,8 +13,10 @@ import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { useAdminStore } from '../../../../src/stores/useAdminStore';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { useUIStore } from '../../../../src/stores/useUIStore';
+import { membershipsApi } from '../../../../src/api/endpoints/memberships';
 import { exportUsersListPDF } from '../../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { User, Role } from '../../../../src/types/models';
 
 type TabFilter = 'all' | 'admin' | 'user';
@@ -27,6 +29,8 @@ const SUPERADMIN_TABS: { key: TabFilter; label: string }[] = [
 
 export default function UsersScreen() {
   const router = useRouter();
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { users, isLoading, pagination, fetchUsers, updateUserStatus } = useAdminStore();
   const currentUser = useAuthStore((s) => s.user);
   const isSuperAdmin = currentUser?.role === 'superadmin';
@@ -34,10 +38,28 @@ export default function UsersScreen() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
   const [isExporting, setIsExporting] = useState(false);
+  const [membershipExpiryMap, setMembershipExpiryMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchUsers(1);
+    loadMembershipExpiries();
   }, []);
+
+  const loadMembershipExpiries = async () => {
+    try {
+      const res = await membershipsApi.list({ limit: 200 });
+      const map: Record<string, string> = {};
+      (res.data ?? []).forEach((m) => {
+        const userId = typeof m.userId === 'object' ? (m.userId as any)._id : m.userId;
+        if (userId && m.endDate) {
+          map[userId] = m.endDate;
+        }
+      });
+      setMembershipExpiryMap(map);
+    } catch {
+      // Non-critical — silently ignore
+    }
+  };
 
   const filteredUsers = users.filter((user) => {
     // Admins should only see regular users (safety net for backend filtering)
@@ -69,7 +91,7 @@ export default function UsersScreen() {
   }, [router]);
 
   const handleUserPress = useCallback((user: User) => {
-    router.push(`/(app)/(admin)/users/${user._id}`);
+    router.push({ pathname: '/(app)/(admin)/users/[id]', params: { id: user._id, backRoute: 'admin' } });
   }, [router]);
 
   const renderItem = useCallback(
@@ -78,9 +100,10 @@ export default function UsersScreen() {
         user={item}
         onPress={handleUserPress}
         onDeactivate={handleDeactivate}
+        membershipEndDate={membershipExpiryMap[item._id]}
       />
     ),
-    [handleUserPress, handleDeactivate],
+    [handleUserPress, handleDeactivate, membershipExpiryMap],
   );
 
   const handleExportPDF = async () => {
@@ -106,10 +129,10 @@ export default function UsersScreen() {
         <Header
           title="Users"
           showBack
-          onBack={() => router.back()}
+          onBack={handleBack}
           rightAction={
             <TouchableOpacity
-              onPress={() => router.push('/(app)/(admin)/users/create')}
+              onPress={() => router.push({ pathname: '/(app)/(admin)/users/create', params: { backRoute: 'admin' } })}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Ionicons
@@ -233,8 +256,8 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   tabTextActive: {

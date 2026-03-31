@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -17,6 +16,7 @@ import { Header } from '../../../src/components/layout/Header';
 import { Input } from '../../../src/components/ui/Input';
 import { Button } from '../../../src/components/ui/Button';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import {
   colors,
   typography,
@@ -25,6 +25,7 @@ import {
   borderRadius,
   layout,
 } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { Gender } from '../../../src/types/models';
 
 const GENDER_OPTIONS: { label: string; value: Gender }[] = [
@@ -61,7 +62,7 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Name is required');
+      showAppAlert('Validation', 'Name is required');
       return;
     }
 
@@ -77,11 +78,11 @@ export default function EditProfileScreen() {
 
     try {
       await updateProfile(data);
-      Alert.alert('Success', 'Profile updated successfully', [
+      showAppAlert('Success', 'Profile updated successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch {
-      Alert.alert('Error', 'Failed to update profile');
+      showAppAlert('Error', 'Failed to update profile');
     }
   };
 
@@ -246,15 +247,15 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: layout.screenPadding,
     paddingTop: spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: mvs(40),
   },
   fieldGroup: {
     marginBottom: spacing.xl,
   },
   label: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -271,8 +272,8 @@ const styles = StyleSheet.create({
   },
   dateButtonText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
   },
   dateButtonPlaceholder: {
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
   },
   datePickerDoneText: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.status.info,
   },
   pillRow: {
@@ -316,8 +317,8 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   pillTextSelected: {
@@ -331,8 +332,8 @@ const styles = StyleSheet.create({
   },
   readOnlyHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: ms(11),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginTop: spacing.xs,
   },

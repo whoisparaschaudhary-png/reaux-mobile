@@ -15,6 +15,7 @@ import { DietPlanCard } from '../../../src/components/cards/DietPlanCard';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { useDietStore } from '../../../src/stores/useDietStore';
 import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { DietPlan } from '../../../src/types/models';
 
 export default function SuggestedDietsScreen() {
@@ -35,7 +36,7 @@ export default function SuggestedDietsScreen() {
   }, [fetchSuggestedPlans, suggestedPagination, isLoading]);
 
   const handlePlanPress = useCallback((plan: DietPlan) => {
-    router.push(`/(app)/(diet)/${plan._id}` as any);
+    router.push(`/(diet)/${plan._id}` as any);
   }, []);
 
   const renderItem = useCallback(
@@ -59,7 +60,7 @@ export default function SuggestedDietsScreen() {
       <Header
         title="Suggested Diets"
         showBack
-        onBack={() => router.navigate('/(app)/(health)/' as any)}
+        onBack={() => router.back()}
       />
 
       {/* Info card */}
@@ -85,7 +86,7 @@ export default function SuggestedDietsScreen() {
           title="No Suggestions Available"
           message="Record your BMI to get personalized diet plan suggestions"
           actionLabel="Go to BMI Calculator"
-          onAction={() => router.navigate('/(app)/(health)/' as any)}
+          onAction={() => router.push('/(app)/(health)/' as any)}
         />
       ) : (
         <FlashList
@@ -134,15 +135,15 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: ms(16),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   infoText: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   centered: {

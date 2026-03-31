@@ -12,6 +12,7 @@ import {
 import { Link, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../src/components/layout/SafeScreen';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
@@ -19,10 +20,12 @@ import { FadeInView, SlideInUpView } from '../../src/components/animated/Animate
 import { useAuthStore } from '../../src/stores/useAuthStore';
 import { useUIStore } from '../../src/stores/useUIStore';
 import { colors, fontFamily, spacing } from '../../src/theme';
+import { ms, mvs, hp, wp } from '../../src/utils/responsive';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const login = useAuthStore((s) => s.login);
   const isLoading = useAuthStore((s) => s.isLoading);
@@ -119,15 +122,22 @@ export default function LoginScreen() {
                 placeholder="Enter your password"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 rightIcon={
-                  <Link href="/(auth)/forgot-password" asChild>
-                    <TouchableOpacity>
-                      <Text style={styles.forgotText}>Forgot?</Text>
-                    </TouchableOpacity>
-                  </Link>
+                  <TouchableOpacity onPress={() => setShowPassword((v) => !v)}>
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={20}
+                      color={colors.text.light}
+                    />
+                  </TouchableOpacity>
                 }
               />
+              <Link href="/(auth)/forgot-password" asChild>
+                <TouchableOpacity style={styles.forgotRow}>
+                  <Text style={styles.forgotText}>Forgot Password?</Text>
+                </TouchableOpacity>
+              </Link>
             </FadeInView>
 
             <SlideInUpView delay={400}>
@@ -176,7 +186,7 @@ const styles = StyleSheet.create({
   },
   loginTitle: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.white,
     opacity: 0.7,
   },
@@ -185,7 +195,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   fullOverlay: {
-    paddingTop: 250,
+    paddingTop: hp(30),
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -193,41 +203,41 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   logo: {
-    width: 200,
-    height: 52,
+    width: wp(53),
+    height: mvs(52),
     marginBottom: spacing.lg,
   },
   heading: {
     fontFamily: fontFamily.bold,
-    fontSize: 28,
-    lineHeight: 36,
+    fontSize: ms(28),
+    lineHeight: ms(36),
     color: colors.text.primary,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
   subtext: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
     textAlign: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: ms(12),
   },
   formSection: {
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: ms(24),
+    borderTopRightRadius: ms(24),
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
-    marginTop: -30,
+    marginTop: mvs(-30),
     justifyContent: 'center',
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 24,
+    marginVertical: mvs(24),
   },
   dividerLine: {
     flex: 1,
@@ -236,14 +246,14 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     fontFamily: fontFamily.bold,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.light,
     letterSpacing: 1.5,
-    marginHorizontal: 12,
+    marginHorizontal: ms(12),
   },
   socialRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: ms(12),
   },
   socialButton: {
     flex: 1,
@@ -252,21 +262,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: mvs(24),
   },
   signupText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   signupLink: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
+  },
+  forgotRow: {
+    alignSelf: 'flex-end',
+    marginTop: -spacing.sm,
+    marginBottom: spacing.lg,
   },
   forgotText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.primary.yellowDark,
   },
 });

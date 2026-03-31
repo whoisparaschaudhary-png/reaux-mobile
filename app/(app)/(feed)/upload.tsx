@@ -7,7 +7,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +18,7 @@ import { Button } from '../../../src/components/ui/Button';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useFeedStore } from '../../../src/stores/useFeedStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
 import {
   colors,
@@ -27,6 +27,7 @@ import {
   borderRadius,
   shadows,
 } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 
 const POST_CATEGORIES = ['General', 'Workouts', 'Nutrition', 'Tips', 'Motivation'] as const;
 type PostCategory = (typeof POST_CATEGORIES)[number];
@@ -56,7 +57,7 @@ export default function UploadPostScreen() {
 
   const handlePost = useCallback(async () => {
     if (!content.trim() && !image) {
-      Alert.alert('Missing content', 'Please add some text or an image to your post.');
+      showAppAlert('Missing content', 'Please add some text or an image to your post.');
       return;
     }
 
@@ -73,7 +74,7 @@ export default function UploadPostScreen() {
       );
       router.back();
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to create post.');
+      showAppAlert('Error', err.message || 'Failed to create post.');
     }
   }, [content, image, hashtags, selectedCategory, createPost, router, user]);
 
@@ -257,8 +258,8 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
   // Image picker
   imagePicker: {
     width: '100%',
-    height: 160,
+    height: ms(160),
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,
     borderColor: colors.border.gray,
@@ -278,8 +279,8 @@ const styles = StyleSheet.create({
   },
   imagePickerText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
   },
   imagePreviewContainer: {
@@ -289,7 +290,7 @@ const styles = StyleSheet.create({
   },
   imagePreview: {
     width: '100%',
-    height: 200,
+    height: ms(200),
     borderRadius: borderRadius.lg,
   },
   removeImageButton: {
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
   },
   hashSymbol: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.light,
   },
   addHashtagButton: {
@@ -332,8 +333,8 @@ const styles = StyleSheet.create({
   },
   hashtagChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.primary,
   },
 
@@ -354,8 +355,8 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   categoryChipTextActive: {

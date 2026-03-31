@@ -18,6 +18,7 @@ import {
   layout,
   shadows,
 } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type {
   MembershipPlan,
   Gym,
@@ -240,8 +241,8 @@ const styles = StyleSheet.create({
   },
   planName: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     flex: 1,
   },
@@ -253,8 +254,8 @@ const styles = StyleSheet.create({
   },
   gymText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   datesRow: {
@@ -267,15 +268,15 @@ const styles = StyleSheet.create({
   },
   dateLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginBottom: 2,
   },
   dateValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   warningBanner: {
@@ -289,8 +290,8 @@ const styles = StyleSheet.create({
   },
   warningText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.status.warning,
   },
   priceRow: {
@@ -305,15 +306,15 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginBottom: 2,
   },
   priceValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
 });

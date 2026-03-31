@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -17,7 +16,9 @@ import { Badge } from '../../../../src/components/ui/Badge';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { gymsApi } from '../../../../src/api/endpoints/gyms';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms } from '../../../../src/utils/responsive';
 import type { Gym } from '../../../../src/types/models';
 
 export default function GymListScreen() {
@@ -31,7 +32,7 @@ export default function GymListScreen() {
       const response = await gymsApi.list({ limit: 50 });
       setGyms(response.data);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to load gyms');
+      showAppAlert('Error', err.message || 'Failed to load gyms');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -48,7 +49,7 @@ export default function GymListScreen() {
   };
 
   const handleDelete = (gym: Gym) => {
-    Alert.alert(
+    showAppAlert(
       'Deactivate Gym',
       `Are you sure you want to deactivate "${gym.name}"?`,
       [
@@ -61,7 +62,7 @@ export default function GymListScreen() {
               await gymsApi.remove(gym._id);
               setGyms((prev) => prev.filter((g) => g._id !== gym._id));
             } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to deactivate gym');
+              showAppAlert('Error', err.message || 'Failed to deactivate gym');
             }
           },
         },
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   gymCard: {
     marginTop: spacing.md,
@@ -195,21 +196,21 @@ const styles = StyleSheet.create({
   },
   gymName: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   gymLocation: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
   },
   gymDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
@@ -222,12 +223,12 @@ const styles = StyleSheet.create({
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: ms(4),
   },
   metaText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   gymActions: {
@@ -254,8 +255,8 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.primary.yellowDark,
   },
   deleteButton: {
@@ -264,8 +265,8 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.status.error,
   },
 });

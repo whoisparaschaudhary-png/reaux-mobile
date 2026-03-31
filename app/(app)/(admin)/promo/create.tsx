@@ -16,6 +16,7 @@ import { Button } from '../../../../src/components/ui/Button';
 import { Card } from '../../../../src/components/ui/Card';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 
 export default function CreatePromoScreen() {
   const router = useRouter();
@@ -210,8 +211,8 @@ const styles = StyleSheet.create({
   },
   previewLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -230,15 +231,15 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   previewDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: spacing.md,
   },
@@ -251,8 +252,8 @@ const styles = StyleSheet.create({
   },
   previewCtaText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.onPrimary,
   },
   uploadSection: {
@@ -260,8 +261,8 @@ const styles = StyleSheet.create({
   },
   uploadLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -286,15 +287,15 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: 4,
   },
   uploadHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   dateRow: {

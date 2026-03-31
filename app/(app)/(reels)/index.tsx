@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef, useState, useMemo } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,27 +8,27 @@ import {
   FlatList,
   ViewToken,
   Dimensions,
+  Platform,
+  Share,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { ReelCard } from '../../../src/components/cards/ReelCard';
-import { ReelCommentsSheet } from '../../../src/components/cards/ReelCommentsSheet';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { useReelStore } from '../../../src/stores/useReelStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
-import { colors, fontFamily, spacing } from '../../../src/theme';
+import { colors, fontFamily, typography, spacing, shadows } from '../../../src/theme';
+import { STORE_URLS, INSTAGRAM_URL } from '../../../src/utils/constants';
+import { ms } from '../../../src/utils/responsive';
 import type { Reel } from '../../../src/types/models';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function ReelsScreen() {
   const router = useRouter();
-  const [visibleIndex, setVisibleIndex] = useState<number>(0);
+  const [visibleId, setVisibleId] = useState<string | null>(null);
   const [reelHeight, setReelHeight] = useState(SCREEN_HEIGHT);
-  const [commentReel, setCommentReel] = useState<{ id: string; count: number } | null>(null);
-  // Extra copies of the reel list appended for looping
-  const [loopedCopies, setLoopedCopies] = useState<Reel[]>([]);
   const user = useAuthStore((s) => s.user);
   const isSuperAdmin = user?.role === 'superadmin';
 
@@ -43,44 +43,29 @@ export default function ReelsScreen() {
     likeReel,
   } = useReelStore();
 
-  // Combined list: original pages + any looped copies
-  const displayReels = useMemo(() => [...reels, ...loopedCopies], [reels, loopedCopies]);
-
-  useEffect(() => {
-    fetchReels(1);
-  }, []);
-
-  // Pause all videos when navigating away
+  // Refresh reels on every focus, pause videos on unfocus
   useFocusEffect(
     useCallback(() => {
+      fetchReels(1);
       return () => {
-        setVisibleIndex(-1);
+        setVisibleId(null);
       };
-    }, [])
+    }, [fetchReels])
   );
 
   const handleRefresh = useCallback(() => {
-    setLoopedCopies([]);
     refreshReels();
   }, [refreshReels]);
 
-  const loopingRef = useRef(false);
   const handleLoadMore = useCallback(() => {
-    if (isLoading) return;
-    if (pagination.page < pagination.pages) {
-      fetchReels(pagination.page + 1);
-    } else if (reels.length > 0 && !loopingRef.current) {
-      // All pages loaded — loop back by appending reels again
-      loopingRef.current = true;
-      setLoopedCopies((prev) => [...prev, ...reels]);
-      setTimeout(() => { loopingRef.current = false; }, 2000);
-    }
-  }, [isLoading, pagination, fetchReels, reels]);
+    if (isLoading || pagination.page >= pagination.pages) return;
+    fetchReels(pagination.page + 1);
+  }, [isLoading, pagination, fetchReels]);
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      if (viewableItems.length > 0 && viewableItems[0].index !== null) {
-        setVisibleIndex(viewableItems[0].index);
+      if (viewableItems.length > 0) {
+        setVisibleId(viewableItems[0].item._id);
       }
     },
   ).current;
@@ -96,27 +81,35 @@ export default function ReelsScreen() {
     [reelHeight],
   );
 
+  const handleShareReel = useCallback(() => {
+    const storeUrl = Platform.OS === 'ios' ? STORE_URLS.ios : STORE_URLS.android;
+    Share.share({
+      message: `Check out REAUX Labs – your fitness community app!\n\nFollow us on Instagram: ${INSTAGRAM_URL}\n\nDownload the app: ${storeUrl}`,
+    }).catch(() => {});
+  }, []);
+
   const renderReel = useCallback(
-    ({ item, index }: { item: Reel; index: number }) => (
+    ({ item }: { item: Reel }) => (
       <ReelCard
         reel={item}
-        isVisible={index === visibleIndex}
+        isVisible={item._id === visibleId}
         onLike={() => likeReel(item._id)}
-        onComment={() => setCommentReel({ id: item._id, count: item.commentsCount ?? 0 })}
+        onComment={() => router.push(`/(app)/(reels)/${item._id}`)}
+        onShare={() => handleShareReel()}
         height={reelHeight}
       />
     ),
-    [visibleIndex, likeReel, reelHeight],
+    [visibleId, likeReel, reelHeight, handleShareReel, router],
   );
 
   const renderFooter = useCallback(() => {
-    if (!isLoading || displayReels.length === 0) return null;
+    if (!isLoading || reels.length === 0) return null;
     return (
       <View style={[styles.footerLoader, { height: reelHeight }]}>
         <ActivityIndicator size="large" color={colors.primary.yellow} />
       </View>
     );
-  }, [isLoading, displayReels.length, reelHeight]);
+  }, [isLoading, reels.length, reelHeight]);
 
   return (
     <SafeScreen>
@@ -124,28 +117,28 @@ export default function ReelsScreen() {
         style={styles.container}
         onLayout={(e) => setReelHeight(e.nativeEvent.layout.height)}
       >
-        {isLoading && displayReels.length === 0 ? (
+        {isLoading && reels.length === 0 ? (
           <View style={styles.centerLoader}>
             <ActivityIndicator size="large" color={colors.primary.yellow} />
             <Text style={styles.loadingText}>Loading reels...</Text>
           </View>
-        ) : !isLoading && displayReels.length === 0 && !error ? (
+        ) : !isLoading && reels.length === 0 && !error ? (
           <EmptyState
             icon="videocam-outline"
             title="No reels yet"
-            message={isSuperAdmin ? 'Be the first to share a reel with the community.' : 'Check back later for new reels.'}
-            actionLabel={isSuperAdmin ? 'Create Reel' : undefined}
+            message={isSuperAdmin ? "Be the first to share a reel with the community." : "Check back later for new reels."}
+            actionLabel={isSuperAdmin ? "Create Reel" : undefined}
             onAction={isSuperAdmin ? () => router.push('/(app)/(feed)/new-reel') : undefined}
           />
         ) : (
           <FlatList
-            data={displayReels}
+            data={reels}
             renderItem={renderReel}
-            keyExtractor={(_, index) => String(index)}
+            keyExtractor={(item) => item._id}
             onRefresh={handleRefresh}
             refreshing={isRefreshing}
             onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.3}
+            onEndReachedThreshold={0.5}
             ListFooterComponent={renderFooter}
             showsVerticalScrollIndicator={false}
             onViewableItemsChanged={onViewableItemsChanged}
@@ -155,9 +148,10 @@ export default function ReelsScreen() {
             snapToAlignment="start"
             decelerationRate="fast"
             getItemLayout={getItemLayout}
-            windowSize={5}
+            windowSize={3}
             maxToRenderPerBatch={2}
             initialNumToRender={1}
+            removeClippedSubviews
           />
         )}
 
@@ -174,13 +168,6 @@ export default function ReelsScreen() {
           )}
         </View>
       </View>
-
-      <ReelCommentsSheet
-        visible={commentReel !== null}
-        reelId={commentReel?.id ?? null}
-        commentsCount={commentReel?.count ?? 0}
-        onClose={() => setCommentReel(null)}
-      />
     </SafeScreen>
   );
 }
@@ -204,7 +191,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
+    fontSize: ms(22),
     color: colors.text.white,
   },
   footerLoader: {
@@ -219,7 +206,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.light,
   },
 });

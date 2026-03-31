@@ -4,11 +4,10 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   StyleSheet,
   RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
@@ -19,10 +18,11 @@ import { Button } from '../../../../src/components/ui/Button';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { useOrderStore } from '../../../../src/stores/useOrderStore';
-import { useUIStore } from '../../../../src/stores/useUIStore';
+import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { formatCurrency, formatDate } from '../../../../src/utils/formatters';
 import { exportOrdersListPDF, exportSingleOrderPDF } from '../../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { Order, OrderStatus } from '../../../../src/types/models';
 
 type BadgeVariant = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'default';
@@ -55,6 +55,8 @@ const FILTER_TABS: { key: StatusFilter; label: string }[] = [
 
 export default function AdminOrdersScreen() {
   const router = useRouter();
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { orders, isLoading, isUpdating, fetchAllOrders, updateOrderStatus } = useOrderStore();
   const showToast = useUIStore((s) => s.showToast);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -80,7 +82,7 @@ export default function AdminOrdersScreen() {
   const handleStatusChange = useCallback(
     (order: Order, newStatus: OrderStatus) => {
       const statusLabel = STATUS_BADGE_MAP[newStatus].label;
-      Alert.alert(
+      showAppAlert(
         'Update Order Status',
         `Change status from "${STATUS_BADGE_MAP[order.status].label}" to "${statusLabel}" for order ...${order._id.slice(-6)}?`,
         [
@@ -92,7 +94,7 @@ export default function AdminOrdersScreen() {
                 await updateOrderStatus(order._id, newStatus);
                 setExpandedOrderId(null);
               } catch {
-                Alert.alert('Error', 'Failed to update order status. Please try again.');
+                showAppAlert('Error', 'Failed to update order status. Please try again.');
               }
             },
           },
@@ -303,7 +305,7 @@ export default function AdminOrdersScreen() {
         <Header
           title="Orders"
           showBack
-          onBack={() => router.back()}
+          onBack={handleBack}
         />
 
         <View style={styles.container}>
@@ -413,8 +415,8 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   tabTextActive: {
@@ -447,8 +449,8 @@ const styles = StyleSheet.create({
   },
   orderId: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   orderDetails: {
@@ -461,32 +463,32 @@ const styles = StyleSheet.create({
   },
   customerName: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   orderAmount: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   orderDate: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   itemCount: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   discountText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.status.success,
   },
   expandIndicator: {
@@ -504,8 +506,8 @@ const styles = StyleSheet.create({
   },
   itemsTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
@@ -517,21 +519,21 @@ const styles = StyleSheet.create({
   itemName: {
     flex: 1,
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.primary,
   },
   itemQty: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginHorizontal: spacing.md,
   },
   itemPrice: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.primary,
     minWidth: 60,
     textAlign: 'right',
@@ -541,8 +543,8 @@ const styles = StyleSheet.create({
   },
   addressText: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   statusUpdateSection: {
@@ -550,8 +552,8 @@ const styles = StyleSheet.create({
   },
   statusUpdateTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
@@ -568,8 +570,8 @@ const styles = StyleSheet.create({
   },
   statusFinalText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.light,
     fontStyle: 'italic',
   },
@@ -582,8 +584,8 @@ const styles = StyleSheet.create({
   },
   updatingText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   exportInvoiceSection: {

@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
@@ -16,9 +15,12 @@ import { Input } from '../../../../src/components/ui/Input';
 import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { productsApi } from '../../../../src/api/endpoints/products';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
+import { ms } from '../../../../src/utils/responsive';
 import client from '../../../../src/api/client';
+import type { ProductVisibility } from '../../../../src/types/models';
 
 const CATEGORIES = [
   'Supplements',
@@ -28,6 +30,12 @@ const CATEGORIES = [
   'Nutrition',
   'Other',
 ] as const;
+
+const VISIBILITY_OPTIONS: { value: ProductVisibility; label: string }[] = [
+  { value: 'all', label: 'Everyone' },
+  { value: 'admin', label: 'Admin only' },
+  { value: 'user', label: 'Members only' },
+];
 
 export default function CreateProductScreen() {
   const router = useRouter();
@@ -40,6 +48,7 @@ export default function CreateProductScreen() {
   const [compareAtPrice, setCompareAtPrice] = useState('');
   const [stock, setStock] = useState('');
   const [category, setCategory] = useState<string>('Supplements');
+  const [visibility, setVisibility] = useState<ProductVisibility>('all');
   const [imageUris, setImageUris] = useState<string[]>([]);
 
   // Nutrition
@@ -74,11 +83,11 @@ export default function CreateProductScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Product name is required');
+      showAppAlert('Validation', 'Product name is required');
       return;
     }
     if (!price || isNaN(Number(price))) {
-      Alert.alert('Validation', 'Valid price is required');
+      showAppAlert('Validation', 'Valid price is required');
       return;
     }
 
@@ -107,6 +116,7 @@ export default function CreateProductScreen() {
         if (compareAtPrice) form.append('compareAtPrice', compareAtPrice);
         if (stock) form.append('stock', stock);
         form.append('category', category);
+        form.append('visibility', visibility);
         const nutrition = buildNutrition();
         if (nutrition) form.append('nutrition', JSON.stringify(nutrition));
 
@@ -114,7 +124,7 @@ export default function CreateProductScreen() {
           headers: { 'Content-Type': 'multipart/form-data' },
           timeout: 60_000,
         });
-        Alert.alert('Success', 'Product created successfully', [
+        showAppAlert('Success', 'Product created successfully', [
           { text: 'OK', onPress: () => router.back() },
         ]);
         return;
@@ -127,16 +137,17 @@ export default function CreateProductScreen() {
         compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
         stock: stock ? Number(stock) : undefined,
         category,
+        visibility,
         nutrition: buildNutrition(),
-      } as any);
+      });
 
-      Alert.alert('Success', 'Product created successfully', [
+      showAppAlert('Success', 'Product created successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
       console.error('Error creating product:', error);
       const errorMessage = error?.message || error?.toString() || 'Failed to create product';
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -296,6 +307,34 @@ export default function CreateProductScreen() {
             />
           </View>
 
+          {/* Visibility */}
+          <Text style={styles.sectionTitle}>Who can see this?</Text>
+          <Text style={styles.hintText}>
+            Logged-in customers get role-based catalog filtering on the shop. Default is everyone.
+          </Text>
+          <View style={styles.categoryGrid}>
+            {VISIBILITY_OPTIONS.map((opt) => {
+              const isActive = opt.value === visibility;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.categoryChip, isActive && styles.categoryChipActive]}
+                  onPress={() => setVisibility(opt.value)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      isActive && styles.categoryChipTextActive,
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           {/* Category */}
           <Text style={styles.sectionTitle}>Category</Text>
           <View style={styles.categoryGrid}>
@@ -345,12 +384,19 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: layout.screenPadding,
     paddingTop: spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
+  },
+  hintText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(12),
+    lineHeight: ms(16),
+    color: colors.text.secondary,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -375,29 +421,29 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   imagePreview: {
-    width: 80,
-    height: 80,
+    width: ms(80),
+    height: ms(80),
     borderRadius: borderRadius.md,
   },
   removeImageBtn: {
     position: 'absolute',
-    top: -6,
-    right: -6,
+    top: ms(-6),
+    right: ms(-6),
   },
   addImageBtn: {
-    width: 80,
-    height: 80,
+    width: ms(80),
+    height: ms(80),
     borderRadius: borderRadius.md,
     borderWidth: 1.5,
     borderColor: colors.border.gray,
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: ms(2),
   },
   addImageText: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.light,
   },
   categoryGrid: {
@@ -416,8 +462,8 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   categoryChipTextActive: {

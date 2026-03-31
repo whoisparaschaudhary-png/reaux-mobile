@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   ActivityIndicator,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +14,8 @@ import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../src/components/layout/Header';
 import { Badge } from '../../../../src/components/ui/Badge';
 import { useWorkoutStore } from '../../../../src/stores/useWorkoutStore';
+import { useUIStore } from '../../../../src/stores/useUIStore';
+import { exportWorkoutPlanPDF } from '../../../../src/utils/pdfExport';
 import {
   colors,
   fontFamily,
@@ -20,6 +23,7 @@ import {
   borderRadius,
   shadows,
 } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { WorkoutDifficulty, Exercise } from '../../../../src/types/models';
 
 const DIFFICULTY_CONFIG: Record<WorkoutDifficulty, { variant: 'success' | 'warning' | 'error' }> = {
@@ -31,12 +35,27 @@ const DIFFICULTY_CONFIG: Record<WorkoutDifficulty, { variant: 'success' | 'warni
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const showToast = useUIStore((s) => s.showToast);
   const { selectedWorkout, isLoading, fetchWorkoutById, clearSelected } = useWorkoutStore();
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     if (id) fetchWorkoutById(id);
     return () => clearSelected();
   }, [id]);
+
+  const handleExportPDF = useCallback(async () => {
+    if (!selectedWorkout) return;
+    setPdfLoading(true);
+    try {
+      await exportWorkoutPlanPDF(selectedWorkout);
+      showToast('PDF exported successfully', 'success');
+    } catch {
+      showToast('Failed to export PDF', 'error');
+    } finally {
+      setPdfLoading(false);
+    }
+  }, [selectedWorkout, showToast]);
 
   if (isLoading || !selectedWorkout) {
     return (
@@ -54,7 +73,25 @@ export default function WorkoutDetailScreen() {
 
   return (
     <SafeScreen>
-      <Header title="Workout" showBack onBack={() => router.back()} />
+      <Header
+        title="Workout"
+        showBack
+        onBack={() => router.back()}
+        rightAction={
+          <TouchableOpacity
+            onPress={handleExportPDF}
+            disabled={pdfLoading}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ minWidth: 40, alignItems: 'flex-end' }}
+          >
+            {pdfLoading ? (
+              <ActivityIndicator size="small" color={colors.primary.yellow} />
+            ) : (
+              <Ionicons name="document-attach-outline" size={24} color={colors.text.primary} />
+            )}
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -83,7 +120,7 @@ export default function WorkoutDetailScreen() {
         {/* Stats Row */}
         <View style={[styles.statsCard, shadows.card]}>
           <View style={styles.statItem}>
-            <Ionicons name="time-outline" size={22} color={colors.primary.dark} />
+            <Ionicons name="time-outline" size={22} color={colors.primary.yellowDark} />
             <Text style={styles.statValue}>{workout.duration}</Text>
             <Text style={styles.statLabel}>min</Text>
           </View>
@@ -197,8 +234,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fontFamily.bold,
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: ms(24),
+    lineHeight: ms(30),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -222,13 +259,13 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
-    lineHeight: 26,
+    fontSize: ms(20),
+    lineHeight: ms(26),
     color: colors.text.primary,
   },
   statLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   section: {
@@ -237,15 +274,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
   description: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   tagRow: {
@@ -263,7 +300,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   exerciseCard: {
@@ -284,7 +321,7 @@ const styles = StyleSheet.create({
   },
   exerciseIndexText: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   exerciseContent: {
@@ -292,8 +329,8 @@ const styles = StyleSheet.create({
   },
   exerciseName: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: 4,
   },
@@ -304,13 +341,13 @@ const styles = StyleSheet.create({
   },
   exerciseDetail: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
   },
   exerciseNotes: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginTop: spacing.xs,
     fontStyle: 'italic',

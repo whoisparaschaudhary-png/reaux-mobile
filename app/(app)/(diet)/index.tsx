@@ -19,19 +19,28 @@ import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDietStore } from '../../../src/stores/useDietStore';
 import { useRefreshOnFocus } from '../../../src/hooks/useRefreshOnFocus';
 import { colors, fontFamily, typography, spacing, borderRadius } from '../../../src/theme';
-import type { DietCategory, DietPlan } from '../../../src/types/models';
+import { ms, mvs } from '../../../src/utils/responsive';
+import type { DietCategory, DietType, DietPlan } from '../../../src/types/models';
 
 const CATEGORIES: { label: string; value: DietCategory | undefined }[] = [
   { label: 'All', value: undefined },
   { label: 'Weight Loss', value: 'weight-loss' },
   { label: 'Muscle Gain', value: 'muscle-gain' },
-  { label: 'Keto', value: 'keto' },
-  { label: 'Vegan', value: 'vegan' },
-  { label: 'Maintenance', value: 'maintenance' },
+  { label: 'Bulking', value: 'bulking' },
+  { label: 'Cutting', value: 'cutting' },
+  { label: 'Other', value: 'other' },
+];
+
+const DIET_TYPES: { label: string; value: DietType | undefined }[] = [
+  { label: 'All', value: undefined },
+  { label: 'Veg', value: 'veg' },
+  { label: 'Non-Veg', value: 'non-veg' },
+  { label: 'Both', value: 'both' },
 ];
 
 export default function DietScreen() {
   const [selectedCategory, setSelectedCategory] = useState<DietCategory | undefined>(undefined);
+  const [selectedDietType, setSelectedDietType] = useState<DietType | undefined>(undefined);
 
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
@@ -39,31 +48,39 @@ export default function DietScreen() {
   const { plans, isLoading, pagination, fetchPlans } = useDietStore();
 
   const loadPlans = useCallback(() => {
-    fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin });
-  }, [fetchPlans, selectedCategory, isAdmin]);
+    fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin, dietType: selectedDietType });
+  }, [fetchPlans, selectedCategory, selectedDietType, isAdmin]);
 
   useRefreshOnFocus(loadPlans);
 
   const handleRefresh = useCallback(() => {
-    fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin });
-  }, [fetchPlans, selectedCategory, isAdmin]);
+    fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin, dietType: selectedDietType });
+  }, [fetchPlans, selectedCategory, selectedDietType, isAdmin]);
 
   const handleLoadMore = useCallback(() => {
     if (pagination.page < pagination.pages && !isLoading) {
-      fetchPlans(pagination.page + 1, selectedCategory, { includeUnpublished: isAdmin });
+      fetchPlans(pagination.page + 1, selectedCategory, { includeUnpublished: isAdmin, dietType: selectedDietType });
     }
-  }, [fetchPlans, pagination, isLoading, selectedCategory, isAdmin]);
+  }, [fetchPlans, pagination, isLoading, selectedCategory, selectedDietType, isAdmin]);
 
   const handleCategorySelect = useCallback(
     (category: DietCategory | undefined) => {
       setSelectedCategory(category);
-      fetchPlans(1, category, { includeUnpublished: isAdmin });
+      fetchPlans(1, category, { includeUnpublished: isAdmin, dietType: selectedDietType });
     },
-    [fetchPlans, isAdmin],
+    [fetchPlans, isAdmin, selectedDietType],
+  );
+
+  const handleDietTypeSelect = useCallback(
+    (dietType: DietType | undefined) => {
+      setSelectedDietType(dietType);
+      fetchPlans(1, selectedCategory, { includeUnpublished: isAdmin, dietType });
+    },
+    [fetchPlans, isAdmin, selectedCategory],
   );
 
   const handlePlanPress = useCallback((plan: DietPlan) => {
-    router.push(`/(app)/(diet)/${plan._id}`);
+    router.push(`/(diet)/${plan._id}`);
   }, []);
 
   const renderItem = useCallback(
@@ -95,7 +112,7 @@ export default function DietScreen() {
         {isAdmin && (
           <TouchableOpacity
             style={styles.analyticsButton}
-            onPress={() => router.push('/(app)/(diet)/upload' as any)}
+            onPress={() => router.push('/(diet)/upload' as any)}
             activeOpacity={0.7}
           >
             <Ionicons name="add-circle-outline" size={18} color={colors.text.primary} />
@@ -130,6 +147,40 @@ export default function DietScreen() {
                       ]}
                     >
                       {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(item) => item.label}
+              />
+            </View>
+
+            {/* Diet Type filter (Veg / Non-Veg) */}
+            <View style={styles.categoryRow}>
+              <FlashList
+                data={DIET_TYPES}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.categoryChip,
+                      styles.dietTypeChip,
+                      selectedDietType === item.value && styles.categoryChipActive,
+                      item.value === undefined && selectedDietType === undefined && styles.categoryChipActive,
+                    ]}
+                    onPress={() => handleDietTypeSelect(item.value)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        (selectedDietType === item.value ||
+                          (item.value === undefined && selectedDietType === undefined)) &&
+                          styles.categoryChipTextActive,
+                      ]}
+                    >
+                      {item.value === 'veg' ? '🟢 ' : item.value === 'non-veg' ? '🔴 ' : ''}{item.label}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -193,8 +244,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   analyticsButton: {
@@ -211,12 +262,12 @@ const styles = StyleSheet.create({
   analyticsText: {
     flex: 1,
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   categoryRow: {
-    height: 40,
+    height: ms(40),
     marginBottom: spacing.md,
     paddingLeft: spacing.xl,
   },
@@ -230,10 +281,14 @@ const styles = StyleSheet.create({
   categoryChipActive: {
     backgroundColor: colors.primary.yellow,
   },
+  dietTypeChip: {
+    borderWidth: 1,
+    borderColor: colors.border.gray,
+  },
   categoryChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   categoryChipTextActive: {

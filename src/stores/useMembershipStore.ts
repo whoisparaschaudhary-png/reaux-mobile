@@ -5,6 +5,7 @@ import {
   type CreateMembershipPlanRequest,
   type UpdateMembershipPlanRequest,
   type AssignMembershipRequest,
+  type RecordFeesRequest,
 } from '../api/endpoints/memberships';
 import type { MembershipPlan, Membership } from '../types/models';
 
@@ -42,11 +43,15 @@ interface MembershipState {
   assignMembership: (data: AssignMembershipRequest) => Promise<void>;
   fetchMemberships: (
     page?: number,
-    filters?: { userId?: string; gymId?: string; status?: string }
+    filters?: { userId?: string; gymId?: string; status?: string; sortBy?: string; order?: 'asc' | 'desc' }
   ) => Promise<void>;
   fetchMyMemberships: (page?: number) => Promise<void>;
   fetchMembershipById: (id: string) => Promise<void>;
   cancelMembership: (id: string) => Promise<void>;
+  recordFees: (id: string, data: RecordFeesRequest) => Promise<void>;
+  applyCredit: (id: string, amount: number, note?: string) => Promise<void>;
+  fetchFeesOverview: (gymId?: string) => Promise<any>;
+  adjustFees: (id: string, data: { feesAmount?: number; feesPaid?: number; advanceCredit?: number; note?: string }) => Promise<void>;
 
   // Utility actions
   clearPlansError: () => void;
@@ -180,7 +185,7 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
 
   fetchMemberships: async (
     page = 1,
-    filters?: { userId?: string; gymId?: string; status?: string }
+    filters?: { userId?: string; gymId?: string; status?: string; sortBy?: string; order?: 'asc' | 'desc' }
   ) => {
     set({ membershipsLoading: true, membershipsError: null });
     try {
@@ -275,6 +280,79 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
         myMemberships: prevMyMemberships,
         selectedMembership: prevSelected,
         membershipsError: err.message || 'Failed to cancel membership',
+      });
+      throw err;
+    }
+  },
+
+  recordFees: async (id: string, data: RecordFeesRequest) => {
+    set({ membershipsLoading: true, membershipsError: null });
+    try {
+      const response = await membershipsApi.recordFees(id, data);
+      set((state) => ({
+        memberships: state.memberships.map((m) =>
+          m._id === id ? response.data : m
+        ),
+        selectedMembership:
+          state.selectedMembership?._id === id
+            ? response.data
+            : state.selectedMembership,
+        membershipsLoading: false,
+      }));
+    } catch (err: any) {
+      set({
+        membershipsError: err.message || 'Failed to record fee payment',
+        membershipsLoading: false,
+      });
+      throw err;
+    }
+  },
+
+  applyCredit: async (id: string, amount: number, note?: string) => {
+    set({ membershipsLoading: true, membershipsError: null });
+    try {
+      const response = await membershipsApi.applyCredit(id, amount, note);
+      set((state) => ({
+        memberships: state.memberships.map((m) => (m._id === id ? response.data : m)),
+        selectedMembership:
+          state.selectedMembership?._id === id ? response.data : state.selectedMembership,
+        membershipsLoading: false,
+      }));
+    } catch (err: any) {
+      set({ membershipsError: err.message || 'Failed to apply credit', membershipsLoading: false });
+      throw err;
+    }
+  },
+
+  fetchFeesOverview: async (gymId?: string) => {
+    set({ membershipsLoading: true, membershipsError: null });
+    try {
+      const response = await membershipsApi.feesOverview(gymId);
+      set({ membershipsLoading: false });
+      return response.data;
+    } catch (err: any) {
+      set({
+        membershipsError: err.message || 'Failed to fetch fees overview',
+        membershipsLoading: false,
+      });
+      throw err;
+    }
+  },
+
+  adjustFees: async (id: string, data: { feesAmount?: number; feesPaid?: number; advanceCredit?: number; note?: string }) => {
+    set({ membershipsLoading: true, membershipsError: null });
+    try {
+      const response = await membershipsApi.feesAdjust(id, data);
+      set((state) => ({
+        memberships: state.memberships.map((m) => (m._id === id ? response.data : m)),
+        selectedMembership:
+          state.selectedMembership?._id === id ? response.data : state.selectedMembership,
+        membershipsLoading: false,
+      }));
+    } catch (err: any) {
+      set({
+        membershipsError: err.message || 'Failed to adjust fees',
+        membershipsLoading: false,
       });
       throw err;
     }

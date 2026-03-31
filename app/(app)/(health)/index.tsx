@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,24 @@ import { Badge } from '../../../src/components/ui/Badge';
 import { useBmiStore } from '../../../src/stores/useBmiStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
-import type { BmiCategory, BmiRecord } from '../../../src/types/models';
+import { ms, mvs } from '../../../src/utils/responsive';
+import type { BmiCategory, BmiRecord, Gender } from '../../../src/types/models';
+
+// Mifflin-St Jeor formula (most accurate for BMR)
+function calculateBMR(weightKg: number, heightCm: number, age: number, gender: Gender): number {
+  const base = 10 * weightKg + 6.25 * heightCm - 5 * age;
+  if (gender === 'female') return base - 161;
+  if (gender === 'male') return base + 5;
+  return base - 78; // average of male and female for 'other'
+}
+
+const ACTIVITY_LEVELS: { label: string; multiplier: number; description: string }[] = [
+  { label: 'Sedentary', multiplier: 1.2, description: 'Little or no exercise' },
+  { label: 'Light', multiplier: 1.375, description: '1–3 days/week' },
+  { label: 'Moderate', multiplier: 1.55, description: '3–5 days/week' },
+  { label: 'Active', multiplier: 1.725, description: '6–7 days/week' },
+  { label: 'Very Active', multiplier: 1.9, description: 'Intense daily exercise' },
+];
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SLIDER_PADDING = 20; // padding on each side
@@ -49,6 +66,17 @@ const BMI_CATEGORY_CONFIG: Record<BmiCategory, { label: string; color: string; v
   },
 };
 
+function getAgeFromDateOfBirth(dateOfBirth?: string): number | null {
+  if (!dateOfBirth) return null;
+  const dob = new Date(dateOfBirth);
+  if (isNaN(dob.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  return age >= 15 && age <= 120 ? age : null;
+}
+
 function calculateBmiLocal(height: number, weight: number): { bmi: number; category: BmiCategory } {
   const heightM = height / 100;
   const bmi = weight / (heightM * heightM);
@@ -60,11 +88,21 @@ function calculateBmiLocal(height: number, weight: number): { bmi: number; categ
   return { bmi, category };
 }
 
-// Mifflin-St Jeor formula
-function calculateBmrLocal(height: number, weight: number, age: number, gender: string): number {
-  const base = 10 * weight + 6.25 * height - 5 * age;
-  return gender === 'female' ? base - 161 : base + 5;
+// Healthy weight range for height (BMI 18.5–25)
+function getIdealWeightRange(heightCm: number): { minKg: number; maxKg: number } {
+  const heightM = heightCm / 100;
+  return {
+    minKg: Math.round(18.5 * heightM * heightM * 10) / 10,
+    maxKg: Math.round(25 * heightM * heightM * 10) / 10,
+  };
 }
+
+const BMI_RANGES: { category: BmiCategory; range: string; description: string }[] = [
+  { category: 'underweight', range: '< 18.5', description: 'Below healthy range' },
+  { category: 'normal', range: '18.5 – 25', description: 'Healthy range' },
+  { category: 'overweight', range: '25 – 30', description: 'Above healthy range' },
+  { category: 'obese', range: '30+', description: 'Well above healthy range' },
+];
 
 // Custom slider component using PanResponder (avoids external dependency)
 interface CustomSliderProps {
@@ -126,27 +164,27 @@ function CustomSlider({ value, min, max, step, onValueChange }: CustomSliderProp
 
 const sliderStyles = StyleSheet.create({
   container: {
-    height: 40,
+    height: ms(40),
     justifyContent: 'center',
     paddingHorizontal: SLIDER_PADDING,
   },
   track: {
-    height: 6,
-    borderRadius: 3,
+    height: ms(6),
+    borderRadius: ms(3),
     backgroundColor: colors.border.gray,
     overflow: 'hidden',
   },
   filledTrack: {
     height: '100%',
     backgroundColor: colors.primary.yellow,
-    borderRadius: 3,
+    borderRadius: ms(3),
   },
   thumb: {
     position: 'absolute',
-    top: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: ms(8),
+    width: ms(24),
+    height: ms(24),
+    borderRadius: ms(12),
     backgroundColor: colors.primary.yellow,
     borderWidth: 3,
     borderColor: colors.background.white,
@@ -158,54 +196,61 @@ const sliderStyles = StyleSheet.create({
   },
 });
 
-type Gender = 'male' | 'female';
-
-function getAgeFromDob(dob?: string): number | null {
-  if (!dob) return null;
-  const birth = new Date(dob);
-  if (isNaN(birth.getTime())) return null;
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return age > 0 ? age : null;
-}
-
 export default function HealthScreen() {
   const user = useAuthStore((s) => s.user);
+  const ageFromProfile = useMemo(() => getAgeFromDateOfBirth(user?.dateOfBirth), [user?.dateOfBirth]);
+  const genderFromProfile = user?.gender ?? 'male';
 
-  const profileAge = getAgeFromDob(user?.dateOfBirth);
-  const profileGender = (user?.gender === 'male' || user?.gender === 'female') ? user.gender as Gender : null;
+  const [height, setHeight] = useState(170);
+  const [weight, setWeight] = useState(70);
+  const [age, setAge] = useState(() => ageFromProfile ?? 30);
+  const [gender, setGender] = useState<Gender>(genderFromProfile);
+  const [activityLevelIndex, setActivityLevelIndex] = useState(0);
+  const [result, setResult] = useState<{
+    bmi: number;
+    category: BmiCategory;
+    bmr: number;
+    message?: string;
+  } | null>(null);
 
-  const [height, setHeight] = useState(user?.height ?? 170);
-  const [weight, setWeight] = useState(user?.weight ?? 70);
-  const [age, setAge] = useState<number>(profileAge ?? 25);
-  const [gender, setGender] = useState<Gender>(profileGender ?? 'male');
-  const [result, setResult] = useState<{ bmi: number; category: BmiCategory; bmr?: number; message?: string } | null>(null);
-
-  const { recordBmi, getLatest, latestRecord, isLoading } = useBmiStore();
+  const { recordBmi, getLatest, isLoading } = useBmiStore();
 
   useEffect(() => {
     getLatest();
   }, []);
 
+  useEffect(() => {
+    if (ageFromProfile != null && ageFromProfile >= 15 && ageFromProfile <= 80) setAge(ageFromProfile);
+  }, [ageFromProfile]);
+
+  useEffect(() => {
+    setGender(genderFromProfile);
+  }, [genderFromProfile]);
+
   const handleCalculate = useCallback(async () => {
-    // Show local result immediately (with local BMR as fallback)
     const localResult = calculateBmiLocal(height, weight);
-    const localBmr = calculateBmrLocal(height, weight, age, gender);
-    setResult({ ...localResult, bmr: localBmr });
+    const bmr = calculateBMR(weight, height, age, gender);
+
+    setResult({
+      bmi: localResult.bmi,
+      category: localResult.category,
+      bmr,
+    });
 
     try {
-      const apiRecord = await recordBmi(height, weight, age, gender);
-      // Update with API response (overrides local with server values)
-      setResult({
-        bmi: apiRecord.bmi,
-        category: apiRecord.category,
-        bmr: apiRecord.bmr ?? localBmr,
-        message: apiRecord.message,
-      });
+      const apiRecord = await recordBmi(height, weight);
+      setResult((prev) =>
+        prev
+          ? {
+              ...prev,
+              bmi: apiRecord.bmi,
+              category: apiRecord.category,
+              message: apiRecord.message,
+            }
+          : prev
+      );
     } catch {
-      // Local result with local BMR already shown — nothing more to do
+      // Keep local result
     }
   }, [height, weight, age, gender, recordBmi]);
 
@@ -235,7 +280,7 @@ export default function HealthScreen() {
         <View style={styles.headingSection}>
           <Text style={styles.heading}>Check your Body stats</Text>
           <Text style={styles.subtitle}>
-            Enter your height and weight to get your comprehensive BMI analysis
+            Enter your stats to get BMI, BMR (calories at rest), and daily calorie estimate
           </Text>
         </View>
 
@@ -277,44 +322,52 @@ export default function HealthScreen() {
           </View>
         </View>
 
-        {/* Gender selector */}
+        {/* Age slider */}
+        <View style={styles.sliderSection}>
+          <View style={styles.sliderHeader}>
+            <Text style={styles.sliderLabel}>Age</Text>
+            <Text style={styles.sliderValue}>{age} years</Text>
+          </View>
+          <CustomSlider
+            value={age}
+            min={15}
+            max={80}
+            step={1}
+            onValueChange={setAge}
+          />
+          <View style={styles.sliderRange}>
+            <Text style={styles.rangeText}>15</Text>
+            <Text style={styles.rangeText}>80</Text>
+          </View>
+        </View>
+
+        {/* Gender */}
         <View style={styles.genderSection}>
           <Text style={styles.sliderLabel}>Gender</Text>
           <View style={styles.genderRow}>
-            <TouchableOpacity
-              style={[styles.genderOption, gender === 'male' && styles.genderOptionActive]}
-              onPress={() => setGender('male')}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name="male"
-                size={20}
-                color={gender === 'male' ? colors.text.onPrimary : colors.text.secondary}
-              />
-              <Text style={[styles.genderText, gender === 'male' && styles.genderTextActive]}>
-                Male
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.genderOption, gender === 'female' && styles.genderOptionActive]}
-              onPress={() => setGender('female')}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name="female"
-                size={20}
-                color={gender === 'female' ? colors.text.onPrimary : colors.text.secondary}
-              />
-              <Text style={[styles.genderText, gender === 'female' && styles.genderTextActive]}>
-                Female
-              </Text>
-            </TouchableOpacity>
+            {(['male', 'female', 'other'] as const).map((g) => (
+              <TouchableOpacity
+                key={g}
+                style={[styles.genderChip, gender === g && styles.genderChipActive]}
+                onPress={() => setGender(g)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.genderChipText,
+                    gender === g && styles.genderChipTextActive,
+                  ]}
+                >
+                  {g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Other'}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
         {/* Calculate button */}
         <Button
-          title="CALCULATE BMI"
+          title="CALCULATE BMI & BMR"
           onPress={handleCalculate}
           variant="primary"
           size="lg"
@@ -325,64 +378,137 @@ export default function HealthScreen() {
         {/* Result card */}
         {result && bmiConfig && (
           <View style={[styles.resultCard, shadows.card]}>
-            {/* Tinted header */}
-            <View style={[styles.resultHeader, { backgroundColor: `${bmiConfig.color}15` }]}>
-              <Text style={styles.resultLabel}>YOUR BMI</Text>
-              <Text style={[styles.resultBmi, { color: bmiConfig.color }]}>
-                {result.bmi.toFixed(1)}
-              </Text>
-              <View style={[styles.categoryPill, { backgroundColor: `${bmiConfig.color}20`, borderColor: `${bmiConfig.color}40` }]}>
-                <View style={[styles.categoryDot, { backgroundColor: bmiConfig.color }]} />
-                <Text style={[styles.categoryText, { color: bmiConfig.color }]}>{bmiConfig.label}</Text>
+            <Text style={styles.resultLabel}>YOUR RESULT</Text>
+
+            <Text style={[styles.resultBmi, { color: bmiConfig.color }]}>
+              {result.bmi.toFixed(1)}
+            </Text>
+
+            <Badge text={bmiConfig.label} variant={bmiConfig.variant} size="md" />
+
+            {/* Color bar */}
+            <View style={styles.colorBar}>
+              <View style={[styles.colorSegment, { backgroundColor: colors.status.info, flex: 1 }]} />
+              <View style={[styles.colorSegment, { backgroundColor: colors.status.success, flex: 2 }]} />
+              <View style={[styles.colorSegment, { backgroundColor: colors.status.warning, flex: 1.5 }]} />
+              <View style={[styles.colorSegment, { backgroundColor: colors.status.error, flex: 2 }]} />
+            </View>
+
+            {/* Indicator position */}
+            <View style={styles.indicatorContainer}>
+              <View style={[styles.barIndicator, { left: `${getBarPosition(result.bmi)}%` }]}>
+                <View style={styles.barIndicatorLine} />
+                <View style={styles.barIndicatorDot} />
               </View>
             </View>
 
-            <View style={styles.resultBody}>
-              {/* Stats row */}
-              <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{height}</Text>
-                  <Text style={styles.statLabel}>Height (cm)</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{weight}</Text>
-                  <Text style={styles.statLabel}>Weight (kg)</Text>
-                </View>
-              </View>
+            <Text style={styles.resultMessage}>
+              {result.message || bmiConfig.message}
+            </Text>
 
-              {/* Color bar */}
-              <View style={styles.colorBarSection}>
-                <View style={styles.colorBar}>
-                  <View style={[styles.colorSegment, { backgroundColor: colors.status.info, flex: 1 }]} />
-                  <View style={[styles.colorSegment, { backgroundColor: colors.status.success, flex: 2 }]} />
-                  <View style={[styles.colorSegment, { backgroundColor: colors.status.warning, flex: 1.5 }]} />
-                  <View style={[styles.colorSegment, { backgroundColor: colors.status.error, flex: 2 }]} />
-                </View>
-                <View style={styles.indicatorContainer}>
-                  <View style={[styles.barIndicator, { left: `${getBarPosition(result.bmi)}%` }]}>
-                    <View style={[styles.barIndicatorPin, { borderTopColor: bmiConfig.color }]} />
+            {/* BMI details */}
+            {(() => {
+              const ideal = getIdealWeightRange(height);
+              const withinRange = weight >= ideal.minKg && weight <= ideal.maxKg;
+              const weightNote = withinRange
+                ? 'Your weight is within the healthy range for your height.'
+                : weight < ideal.minKg
+                  ? `Healthy range for your height: ${ideal.minKg} – ${ideal.maxKg} kg. Consider a balanced diet to reach it.`
+                  : `Healthy range for your height: ${ideal.minKg} – ${ideal.maxKg} kg. Diet and exercise can help you get there.`;
+              return (
+                <View style={styles.bmiDetailsCard}>
+                  <Text style={styles.bmiDetailsTitle}>BMI details</Text>
+                  <View style={styles.bmiDetailRow}>
+                    <Ionicons name="resize-outline" size={18} color={colors.text.secondary} />
+                    <Text style={styles.bmiDetailText}>
+                      Ideal weight for your height ({height} cm):{' '}
+                      <Text style={styles.bmiDetailValue}>{ideal.minKg} – {ideal.maxKg} kg</Text>
+                    </Text>
                   </View>
+                  <View style={styles.bmiDetailRow}>
+                    <Ionicons name="person-outline" size={18} color={colors.text.secondary} />
+                    <Text style={styles.bmiDetailText}>
+                      Your weight: <Text style={styles.bmiDetailValue}>{weight} kg</Text>
+                    </Text>
+                  </View>
+                  <Text style={styles.bmiDetailNote}>{weightNote}</Text>
+                  <View style={styles.bmiScaleSection}>
+                    <Text style={styles.bmiScaleTitle}>BMI scale</Text>
+                    {BMI_RANGES.map((r) => (
+                      <View key={r.category} style={styles.bmiScaleRow}>
+                        <View
+                          style={[
+                            styles.bmiScaleDot,
+                            { backgroundColor: BMI_CATEGORY_CONFIG[r.category].color },
+                          ]}
+                        />
+                        <Text style={styles.bmiScaleRange}>{r.range}</Text>
+                        <Text style={styles.bmiScaleDesc}>{r.description}</Text>
+                      </View>
+                    ))}
+                  </View>
+                  <Text style={styles.bmiWhatIs}>
+                    BMI is a measure of body fat based on height and weight. It’s a useful screening tool but doesn’t account for muscle mass or body composition.
+                  </Text>
                 </View>
-                <View style={styles.barLabels}>
-                  <Text style={styles.barLabel}>Under</Text>
-                  <Text style={styles.barLabel}>Normal</Text>
-                  <Text style={styles.barLabel}>Over</Text>
-                  <Text style={styles.barLabel}>Obese</Text>
-                </View>
+              );
+            })()}
+
+            {/* BMR section */}
+            <View style={styles.bmrCard}>
+              <View style={styles.bmrCardHeader}>
+                <Ionicons name="flame" size={22} color={colors.status.warning} />
+                <Text style={styles.bmrCardTitle}>Basal Metabolic Rate (BMR)</Text>
               </View>
+              <Text style={styles.bmrCardValue}>
+                {Math.round(result.bmr)} <Text style={styles.bmrCardUnit}>cal/day</Text>
+              </Text>
+              <Text style={styles.bmrCardHint}>
+                Calories your body burns at rest (Mifflin-St Jeor formula)
+              </Text>
+            </View>
 
-              {/* BMR chip */}
-              {result.bmr && (
-                <View style={styles.bmrChip}>
-                  <Ionicons name="flame" size={16} color={colors.status.warning} />
-                  <Text style={styles.bmrChipLabel}>Basal Metabolic Rate</Text>
-                  <Text style={styles.bmrChipValue}>{Math.round(result.bmr)} cal/day</Text>
-                </View>
-              )}
-
-              <Text style={styles.resultMessage}>
-                {result.message || bmiConfig.message}
+            {/* Activity & TDEE */}
+            <View style={styles.tdeeSection}>
+              <Text style={styles.tdeeLabel}>Activity level</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.activityRow}
+              >
+                {ACTIVITY_LEVELS.map((level, idx) => (
+                  <TouchableOpacity
+                    key={level.label}
+                    style={[
+                      styles.activityChip,
+                      activityLevelIndex === idx && styles.activityChipActive,
+                    ]}
+                    onPress={() => setActivityLevelIndex(idx)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.activityChipText,
+                        activityLevelIndex === idx && styles.activityChipTextActive,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {level.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <View style={styles.tdeeRow}>
+                <Ionicons name="nutrition-outline" size={20} color={colors.primary.yellowDark} />
+                <Text style={styles.tdeeText}>
+                  Estimated daily calories (TDEE):{' '}
+                  <Text style={styles.tdeeValue}>
+                    {Math.round(result.bmr * ACTIVITY_LEVELS[activityLevelIndex].multiplier)} cal
+                  </Text>
+                </Text>
+              </View>
+              <Text style={styles.tdeeHint}>
+                {ACTIVITY_LEVELS[activityLevelIndex].description} — maintain weight at this intake
               </Text>
             </View>
           </View>
@@ -392,7 +518,7 @@ export default function HealthScreen() {
         {result && (
           <TouchableOpacity
             style={[styles.dietSuggestionCard, shadows.card]}
-            onPress={() => router.push('/(app)/(health)/suggested' as any)}
+            onPress={() => router.push('/(health)/suggested' as any)}
             activeOpacity={0.7}
           >
             <View style={styles.dietSuggestionContent}>
@@ -418,7 +544,27 @@ export default function HealthScreen() {
           <Text style={styles.historyButtonText}>See History</Text>
         </TouchableOpacity>
 
-<View style={styles.bottomSpacer} />
+        {/* Workouts Section - opens Feed with Workouts tab */}
+        <TouchableOpacity
+          style={[styles.workoutCard, shadows.card]}
+          onPress={() => router.navigate('/(app)/(feed)' as any)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.workoutCardContent}>
+            <View style={styles.workoutCardIcon}>
+              <Ionicons name="barbell-outline" size={28} color={colors.primary.yellowDark} />
+            </View>
+            <View style={styles.workoutCardTextBlock}>
+              <Text style={styles.workoutCardTitle}>Explore Workouts</Text>
+              <Text style={styles.workoutCardSubtitle}>
+                Browse workout plans for strength, cardio, HIIT and more
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.text.light} />
+          </View>
+        </TouchableOpacity>
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeScreen>
   );
@@ -443,8 +589,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   sliderSection: {
@@ -458,14 +604,14 @@ const styles = StyleSheet.create({
   },
   sliderLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   sliderValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.primary.yellowDark,
   },
   sliderRange: {
@@ -476,8 +622,8 @@ const styles = StyleSheet.create({
   },
   rangeText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   genderSection: {
@@ -485,179 +631,268 @@ const styles = StyleSheet.create({
   },
   genderRow: {
     flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: spacing.md,
-  },
-  genderOption: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  genderChip: {
+    flex: 1,
     paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.pill,
-    borderWidth: 1.5,
-    borderColor: colors.border.gray,
-    backgroundColor: colors.background.white,
+    backgroundColor: colors.border.light,
+    alignItems: 'center',
   },
-  genderOptionActive: {
+  genderChipActive: {
     backgroundColor: colors.primary.yellow,
-    borderColor: colors.primary.yellow,
   },
-  genderText: {
+  genderChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
-  genderTextActive: {
+  genderChipTextActive: {
     color: colors.text.onPrimary,
   },
   resultCard: {
     backgroundColor: colors.background.card,
     borderRadius: borderRadius.card,
-    overflow: 'hidden',
-    marginTop: spacing.xxl,
-  },
-  resultHeader: {
+    padding: spacing.xxl,
     alignItems: 'center',
-    paddingVertical: spacing.xxl,
-    paddingHorizontal: spacing.xxl,
+    marginTop: spacing.xxl,
   },
   resultLabel: {
     fontFamily: fontFamily.bold,
-    fontSize: 11,
-    letterSpacing: 2,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
-    marginBottom: spacing.sm,
+    letterSpacing: 1.5,
+    marginBottom: spacing.md,
   },
   resultBmi: {
     fontFamily: fontFamily.bold,
-    fontSize: 64,
-    lineHeight: 72,
+    fontSize: ms(56),
+    lineHeight: ms(64),
     marginBottom: spacing.md,
-  },
-  categoryPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.pill,
-    borderWidth: 1,
-  },
-  categoryDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-  },
-  categoryText: {
-    fontFamily: fontFamily.bold,
-    fontSize: 13,
-  },
-  resultBody: {
-    paddingHorizontal: spacing.xxl,
-    paddingBottom: spacing.xxl,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingVertical: spacing.lg,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.border.light,
-    marginBottom: spacing.xl,
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statValue: {
-    fontFamily: fontFamily.bold,
-    fontSize: 20,
-    color: colors.text.primary,
-  },
-  statLabel: {
-    fontFamily: fontFamily.regular,
-    fontSize: 11,
-    color: colors.text.light,
-    marginTop: 2,
-  },
-  statDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: colors.border.light,
-  },
-  colorBarSection: {
-    marginBottom: spacing.xl,
   },
   colorBar: {
     flexDirection: 'row',
     width: '100%',
-    height: 10,
-    borderRadius: 5,
+    height: 8,
+    borderRadius: 4,
     overflow: 'hidden',
+    marginTop: spacing.xl,
   },
   colorSegment: {
     height: '100%',
   },
   indicatorContainer: {
     width: '100%',
-    height: 16,
+    height: ms(20),
     position: 'relative',
+    marginBottom: spacing.md,
   },
   barIndicator: {
     position: 'absolute',
     top: 0,
     alignItems: 'center',
-    marginLeft: -7,
+    marginLeft: -6,
   },
-  barIndicatorPin: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 7,
-    borderRightWidth: 7,
-    borderTopWidth: 12,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
+  barIndicatorLine: {
+    width: 2,
+    height: ms(8),
+    backgroundColor: colors.background.dark,
   },
-  barLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.xs,
-  },
-  barLabel: {
-    fontFamily: fontFamily.regular,
-    fontSize: 10,
-    color: colors.text.light,
-  },
-  bmrChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: '#fff8e7',
-    borderRadius: borderRadius.pill,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  bmrChipLabel: {
-    fontFamily: fontFamily.medium,
-    fontSize: 13,
-    color: colors.text.secondary,
-    flex: 1,
-  },
-  bmrChipValue: {
-    fontFamily: fontFamily.bold,
-    fontSize: 14,
-    color: colors.text.primary,
+  barIndicatorDot: {
+    width: ms(10),
+    height: ms(10),
+    borderRadius: ms(5),
+    backgroundColor: colors.background.dark,
+    borderWidth: 2,
+    borderColor: colors.background.white,
   },
   resultMessage: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     textAlign: 'center',
+  },
+  bmiDetailsCard: {
+    width: '100%',
+    marginTop: spacing.xl,
+    padding: spacing.lg,
+    backgroundColor: colors.background.card,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  bmiDetailsTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(14),
+    color: colors.text.primary,
+    marginBottom: spacing.md,
+    letterSpacing: 0.5,
+  },
+  bmiDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  bmiDetailText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(14),
+    color: colors.text.secondary,
+    flex: 1,
+  },
+  bmiDetailValue: {
+    fontFamily: fontFamily.bold,
+    color: colors.text.primary,
+  },
+  bmiDetailNote: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(13),
+    lineHeight: ms(18),
+    color: colors.text.primary,
+    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  bmiScaleSection: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+  },
+  bmiScaleTitle: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(13),
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+  },
+  bmiScaleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  bmiScaleDot: {
+    width: ms(8),
+    height: ms(8),
+    borderRadius: ms(4),
+  },
+  bmiScaleRange: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(13),
+    color: colors.text.primary,
+    minWidth: ms(72),
+  },
+  bmiScaleDesc: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(13),
+    color: colors.text.light,
+  },
+  bmiWhatIs: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(12),
+    lineHeight: ms(17),
+    color: colors.text.light,
+    marginTop: spacing.md,
+    fontStyle: 'italic',
+  },
+  bmrCard: {
+    width: '100%',
+    marginTop: spacing.xl,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.primary.yellowLight,
+    borderRadius: borderRadius.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.status.warning,
+  },
+  bmrCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  bmrCardTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(14),
+    color: colors.text.primary,
+    letterSpacing: 0.5,
+  },
+  bmrCardValue: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(28),
+    color: colors.text.primary,
+  },
+  bmrCardUnit: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(16),
+    color: colors.text.secondary,
+  },
+  bmrCardHint: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(12),
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
+  },
+  tdeeSection: {
+    width: '100%',
+    marginTop: spacing.xl,
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+  },
+  tdeeLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(14),
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+  },
+  activityRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+    paddingRight: spacing.xl,
+  },
+  activityChip: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.pill,
+    backgroundColor: colors.border.light,
+  },
+  activityChipActive: {
+    backgroundColor: colors.primary.yellow,
+  },
+  activityChipText: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(13),
+    color: colors.text.secondary,
+  },
+  activityChipTextActive: {
+    color: colors.text.primary,
+  },
+  tdeeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  tdeeText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(15),
+    color: colors.text.primary,
+    flex: 1,
+  },
+  tdeeValue: {
+    fontFamily: fontFamily.bold,
+    color: colors.primary.yellowDark,
+  },
+  tdeeHint: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(12),
+    color: colors.text.light,
+    marginTop: spacing.xs,
   },
   dietSuggestionCard: {
     backgroundColor: colors.background.card,
@@ -675,14 +910,14 @@ const styles = StyleSheet.create({
   },
   dietSuggestionTitle: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   dietSuggestionSubtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
   },
@@ -699,9 +934,45 @@ const styles = StyleSheet.create({
   },
   historyButtonText: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
+  },
+  workoutCard: {
+    backgroundColor: colors.background.card,
+    borderRadius: borderRadius.card,
+    padding: spacing.lg,
+    marginTop: spacing.xxl,
+  },
+  workoutCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  workoutCardIcon: {
+    width: ms(48),
+    height: ms(48),
+    borderRadius: ms(24),
+    backgroundColor: colors.primary.yellowLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  workoutCardTextBlock: {
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  workoutCardTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(16),
+    lineHeight: ms(22),
+    color: colors.text.primary,
+  },
+  workoutCardSubtitle: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(13),
+    lineHeight: ms(18),
+    color: colors.text.secondary,
+    marginTop: 2,
   },
   bottomSpacer: {
     height: spacing.xxxl,

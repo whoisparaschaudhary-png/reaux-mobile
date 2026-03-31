@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -17,10 +16,12 @@ import { Input } from '../../../../src/components/ui/Input';
 import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { productsApi } from '../../../../src/api/endpoints/products';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import client from '../../../../src/api/client';
-import type { Product } from '../../../../src/types/models';
+import type { Product, ProductVisibility } from '../../../../src/types/models';
 
 const CATEGORIES = [
   'Supplements',
@@ -31,9 +32,16 @@ const CATEGORIES = [
   'Other',
 ] as const;
 
+const VISIBILITY_OPTIONS: { value: ProductVisibility; label: string }[] = [
+  { value: 'all', label: 'Everyone' },
+  { value: 'admin', label: 'Admin only' },
+  { value: 'user', label: 'Members only' },
+];
+
 export default function EditProductScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, backRoute } = useLocalSearchParams<{ id: string; backRoute?: string }>();
+  const handleBack = () => backRoute === 'shop' ? router.navigate('/(app)/(shop)') : router.back();
   const { pickImage } = useImagePicker();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +53,7 @@ export default function EditProductScreen() {
   const [compareAtPrice, setCompareAtPrice] = useState('');
   const [stock, setStock] = useState('');
   const [category, setCategory] = useState('Supplements');
+  const [visibility, setVisibility] = useState<ProductVisibility>('all');
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [newImageUris, setNewImageUris] = useState<string[]>([]);
 
@@ -97,6 +106,7 @@ export default function EditProductScreen() {
         setCompareAtPrice(p.compareAtPrice?.toString() || '');
         setStock(p.stock.toString());
         setCategory(p.category || 'Supplements');
+        setVisibility(p.visibility ?? 'all');
         setExistingImages(p.images || []);
         if (p.nutrition) {
           setServingSize(p.nutrition.servingSize || '');
@@ -107,8 +117,8 @@ export default function EditProductScreen() {
           setSugar(p.nutrition.sugar?.toString() || '');
         }
       } catch (err: any) {
-        Alert.alert('Error', err.message || 'Failed to load product');
-        router.back();
+        showAppAlert('Error', err.message || 'Failed to load product');
+        handleBack();
       } finally {
         setIsLoading(false);
       }
@@ -117,11 +127,11 @@ export default function EditProductScreen() {
 
   const handleSubmit = async () => {
     if (!id || !name.trim()) {
-      Alert.alert('Validation', 'Product name is required');
+      showAppAlert('Validation', 'Product name is required');
       return;
     }
     if (!price || isNaN(Number(price))) {
-      Alert.alert('Validation', 'Valid price is required');
+      showAppAlert('Validation', 'Valid price is required');
       return;
     }
 
@@ -146,6 +156,7 @@ export default function EditProductScreen() {
         if (compareAtPrice) form.append('compareAtPrice', compareAtPrice);
         if (stock) form.append('stock', stock);
         form.append('category', category);
+        form.append('visibility', visibility);
         // Pass existing images so the backend knows which to keep
         existingImages.forEach((url) => form.append('existingImages[]', url));
         const nutrition = buildNutrition();
@@ -164,18 +175,19 @@ export default function EditProductScreen() {
           compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
           stock: stock ? Number(stock) : undefined,
           category,
+          visibility,
           nutrition: buildNutrition(),
           images: existingImages,
-        } as any);
+        });
       }
 
-      Alert.alert('Success', 'Product updated successfully', [
-        { text: 'OK', onPress: () => router.back() },
+      showAppAlert('Success', 'Product updated successfully', [
+        { text: 'OK', onPress: handleBack },
       ]);
     } catch (error: any) {
       console.error('Error updating product:', error);
       const errorMessage = error?.message || error?.toString() || 'Failed to update product';
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -184,7 +196,7 @@ export default function EditProductScreen() {
   if (isLoading) {
     return (
       <SafeScreen>
-        <Header title="Edit Product" showBack onBack={() => router.back()} />
+        <Header title="Edit Product" showBack onBack={handleBack} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary.yellow} />
         </View>
@@ -195,7 +207,7 @@ export default function EditProductScreen() {
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
       <SafeScreen>
-        <Header title="Edit Product" showBack onBack={() => router.back()} />
+        <Header title="Edit Product" showBack onBack={handleBack} />
 
         <ScrollView
           style={styles.scroll}
@@ -362,6 +374,34 @@ export default function EditProductScreen() {
             />
           </View>
 
+          {/* Visibility */}
+          <Text style={styles.sectionTitle}>Who can see this?</Text>
+          <Text style={styles.hintText}>
+            Logged-in customers get role-based catalog filtering on the shop.
+          </Text>
+          <View style={styles.categoryGrid}>
+            {VISIBILITY_OPTIONS.map((opt) => {
+              const isActive = opt.value === visibility;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.categoryChip, isActive && styles.categoryChipActive]}
+                  onPress={() => setVisibility(opt.value)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      isActive && styles.categoryChipTextActive,
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           {/* Category */}
           <Text style={styles.sectionTitle}>Category</Text>
           <View style={styles.categoryGrid}>
@@ -418,10 +458,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  hintText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(12),
+    lineHeight: ms(16),
+    color: colors.text.secondary,
+    marginBottom: spacing.md,
+  },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -468,7 +515,7 @@ const styles = StyleSheet.create({
   },
   addImageText: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.light,
   },
   categoryGrid: {
@@ -487,8 +534,8 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   categoryChipTextActive: {

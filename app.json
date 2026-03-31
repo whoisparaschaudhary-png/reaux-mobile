@@ -5,21 +5,25 @@
     "scheme": "reauxlabs",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Example.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/Logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1c1c0d"
+      "backgroundColor": "#F9F506"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.babbaranish.reauxlabsmobile"
+      "bundleIdentifier": "com.babbaranish.reauxlabsmobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "REAUX Labs needs camera access to upload gym photos.",
+        "NSPhotoLibraryUsageDescription": "REAUX Labs needs photo library access to upload images."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Example.png",
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
@@ -27,12 +31,28 @@
       "package": "com.babbaranish.reauxlabsmobile",
       "permissions": [
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.VIBRATE"
+        "android.permission.VIBRATE",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "reauxlabs",
+              "host": "reset-password"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "notification": {
-      "icon": "./assets/icon.png",
+      "icon": "./assets/Example.png",
       "color": "#F9F506",
       "androidMode": "default",
       "androidCollapsedTitle": "#{unread_notifications} new notifications"
@@ -47,9 +67,16 @@
       "@react-native-community/datetimepicker",
       "expo-video",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "REAUX Labs needs access to your photos to upload images.",
+          "cameraPermission": "REAUX Labs needs camera access to take photos."
+        }
+      ],
+      [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
+          "icon": "./assets/Example.png",
           "color": "#F9F506",
           "mode": "default"
         }

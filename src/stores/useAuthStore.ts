@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { login, register, getMe, updateProfile, uploadAvatar } from '../api/endpoints/auth';
 import type { UpdateProfileParams } from '../api/endpoints/auth';
-import { getToken, setToken, removeToken, getItem, setItem, removeItem } from '../utils/storage';
-import { STORAGE_KEYS } from '../utils/constants';
+import { getToken, setToken, removeToken } from '../utils/storage';
+import { resetAllStores } from './resetAllStores';
 import type { User } from '../types/models';
 
 interface AuthState {
@@ -22,7 +22,7 @@ interface AuthState {
   clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set, _get) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
@@ -36,22 +36,21 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
       const response = await login(email, password);
       const { token: authToken, user } = response.data;
       await setToken(authToken);
-      await setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+      // Clear all store data before setting new user — prevents stale data from previous session
+      resetAllStores();
       set({ user: user as unknown as User, token: authToken, isAuthenticated: true, isLoading: false });
 
-      // Only register push token if it hasn't been registered yet on this device
+      // Register device token immediately after login
       try {
         const { getPushNotificationToken } = await import('../services/notifications');
         const { notificationsApi } = await import('../api/endpoints/notifications');
         const pushToken = await getPushNotificationToken();
         if (pushToken) {
-          const registeredToken = await getItem(STORAGE_KEYS.PUSH_TOKEN);
-          if (registeredToken !== pushToken) {
-            await notificationsApi.registerDeviceToken(pushToken);
-            await setItem(STORAGE_KEYS.PUSH_TOKEN, pushToken);
-          }
+          await notificationsApi.registerDeviceToken(pushToken);
+          console.log('✅ Device token registered after login');
         }
-      } catch {
+      } catch (tokenError) {
+        console.error('Failed to register device token after login:', tokenError);
         // Don't fail login if token registration fails
       }
     } catch (err: any) {
@@ -67,22 +66,19 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
       const response = await register({ name, email, password, phone, dateOfBirth });
       const { token: authToken, user } = response.data;
       await setToken(authToken);
-      await setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
       set({ user: user as unknown as User, token: authToken, isAuthenticated: true, isLoading: false });
 
-      // Only register push token if it hasn't been registered yet on this device
+      // Register device token immediately after registration
       try {
         const { getPushNotificationToken } = await import('../services/notifications');
         const { notificationsApi } = await import('../api/endpoints/notifications');
         const pushToken = await getPushNotificationToken();
         if (pushToken) {
-          const registeredToken = await getItem(STORAGE_KEYS.PUSH_TOKEN);
-          if (registeredToken !== pushToken) {
-            await notificationsApi.registerDeviceToken(pushToken);
-            await setItem(STORAGE_KEYS.PUSH_TOKEN, pushToken);
-          }
+          await notificationsApi.registerDeviceToken(pushToken);
+          console.log('✅ Device token registered after registration');
         }
-      } catch {
+      } catch (tokenError) {
+        console.error('Failed to register device token after registration:', tokenError);
         // Don't fail registration if token registration fails
       }
     } catch (err: any) {
@@ -93,14 +89,20 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
   },
 
   logout: async () => {
+    // Remove FCM device token before clearing auth
+    try {
+      const { getPushNotificationToken } = await import('../services/notifications');
+      const { notificationsApi } = await import('../api/endpoints/notifications');
+      const pushToken = await getPushNotificationToken();
+      if (pushToken) {
+        await notificationsApi.removeDeviceToken(pushToken);
+      }
+    } catch {
+      // Don't block logout if token removal fails
+    }
     await removeToken();
-    // Clear cached push token so next login re-registers if needed
-    await removeItem(STORAGE_KEYS.PUSH_TOKEN);
-    await removeItem(STORAGE_KEYS.USER_DATA);
+    resetAllStores();
     set({ user: null, token: null, isAuthenticated: false, error: null });
-    // Clear all stores that hold user-specific data
-    const { useNotificationStore } = await import('./useNotificationStore');
-    useNotificationStore.getState().reset();
   },
 
   restoreSession: async () => {
@@ -110,38 +112,9 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
         set({ isRestoring: false });
         return;
       }
-
-      // Restore from cache immediately so app opens without waiting for network
-      const cachedUser = await getItem(STORAGE_KEYS.USER_DATA);
-      if (cachedUser) {
-        set({
-          token: storedToken,
-          user: JSON.parse(cachedUser) as User,
-          isAuthenticated: true,
-          isRestoring: false,
-        });
-        // Refresh profile in background (don't await)
-        getMe()
-          .then((response) => {
-            const freshUser = response.data as unknown as User;
-            set({ user: freshUser });
-            setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(freshUser));
-          })
-          .catch(() => {
-            // Token expired — clear and force re-login
-            removeToken();
-            removeItem(STORAGE_KEYS.USER_DATA);
-            set({ user: null, token: null, isAuthenticated: false });
-          });
-        return;
-      }
-
-      // No cache — fall back to blocking network call
       set({ token: storedToken });
       const response = await getMe();
-      const user = response.data as unknown as User;
-      await setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
-      set({ user, isAuthenticated: true, isRestoring: false });
+      set({ user: response.data as unknown as User, isAuthenticated: true, isRestoring: false });
     } catch {
       await removeToken();
       set({ token: null, isRestoring: false });
@@ -153,8 +126,14 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
     try {
       const params: UpdateProfileParams = {
         name: data.name,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         phone: data.phone,
+        height: data.height,
+        weight: data.weight,
+        dateOfBirth: data.dateOfBirth,
+        gender: data.gender,
         gymId: typeof data.gymId === 'string' ? data.gymId : undefined,
       };
       const response = await updateProfile(params);

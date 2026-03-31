@@ -16,6 +16,7 @@ import { Input } from '../../src/components/ui/Input';
 import { forgotPassword } from '../../src/api/endpoints/auth';
 import { useUIStore } from '../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../src/theme';
+import { ms, mvs } from '../../src/utils/responsive';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -149,63 +150,63 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   backBtn: {
-    marginBottom: 16,
+    marginBottom: mvs(16),
     alignSelf: 'flex-start',
   },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 24,
+    gap: ms(10),
+    marginBottom: mvs(24),
   },
   logoBox: {
-    width: 36,
-    height: 36,
+    width: ms(36),
+    height: ms(36),
     backgroundColor: colors.primary.yellow,
-    borderRadius: 8,
+    borderRadius: ms(8),
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoR: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
+    fontSize: ms(20),
     color: colors.text.onPrimary,
   },
   logoText: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
+    fontSize: ms(18),
     color: colors.text.white,
     letterSpacing: 2,
   },
   heading: {
     fontFamily: fontFamily.bold,
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: ms(28),
+    lineHeight: ms(34),
     color: colors.text.white,
-    marginBottom: 8,
+    marginBottom: mvs(8),
   },
   subtext: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: 'rgba(255,255,255,0.6)',
   },
   formSection: {
     flex: 1,
     backgroundColor: colors.background.light,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: ms(24),
+    borderTopRightRadius: ms(24),
     paddingHorizontal: spacing.xl,
-    paddingTop: 28,
-    paddingBottom: 40,
+    paddingTop: mvs(28),
+    paddingBottom: mvs(40),
   },
   backRow: {
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: mvs(24),
   },
   backLink: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   successContainer: {
@@ -213,9 +214,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxxl,
   },
   successIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: ms(80),
+    height: ms(80),
+    borderRadius: ms(40),
     backgroundColor: colors.primary.yellowLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -223,14 +224,14 @@ const styles = StyleSheet.create({
   },
   successTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
+    fontSize: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   successMessage: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.xl,

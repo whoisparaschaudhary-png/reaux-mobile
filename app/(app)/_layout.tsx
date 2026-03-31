@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/stores/useAuthStore';
 import { colors, fontFamily, layout } from '../../src/theme';
+import { ms } from '../../src/utils/responsive';
 
 export default function AppLayout() {
   const user = useAuthStore((s) => s.user);
@@ -18,21 +19,21 @@ export default function AppLayout() {
           borderTopColor: colors.border.light,
           borderTopWidth: 1,
           height: layout.tabBarHeight,
-          paddingBottom: 20,
-          paddingTop: 8,
+          paddingBottom: ms(14),
+          paddingTop: ms(6),
         },
         tabBarLabelStyle: {
           fontFamily: fontFamily.medium,
-          fontSize: 11,
+          fontSize: ms(11),
         },
       }}
     >
       <Tabs.Screen
         name="(feed)"
         options={{
-          title: 'Feed',
+          title: isAdmin ? 'Members' : 'Feed',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name={isAdmin ? 'people-outline' : 'home-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -47,6 +48,12 @@ export default function AppLayout() {
       />
       <Tabs.Screen
         name="(diet)"
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('(diet)', { screen: 'index' });
+          },
+        })}
         options={{
           title: 'Diet',
           tabBarIcon: ({ color, size }) => (
@@ -65,16 +72,18 @@ export default function AppLayout() {
       />
       <Tabs.Screen
         name="(shop)"
-        options={
-          isAdmin
-            ? {
-                title: 'Shop',
-                tabBarIcon: ({ color, size }) => (
-                  <Ionicons name="storefront-outline" size={size} color={color} />
-                ),
-              }
-            : { href: null }
-        }
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('(shop)', { screen: 'index' });
+          },
+        })}
+        options={{
+          title: 'Shop',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="storefront-outline" size={size} color={color} />
+          ),
+        }}
       />
       <Tabs.Screen
         name="(profile)"

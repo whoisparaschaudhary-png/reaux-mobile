@@ -8,6 +8,7 @@ import {
   KeyboardTypeOptions,
 } from 'react-native';
 import { colors, typography, fontFamily, borderRadius, spacing } from '../theme';
+import { ms, mvs } from '../../utils/responsive';
 
 interface InputProps {
   label?: string;
@@ -19,6 +20,8 @@ interface InputProps {
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   multiline?: boolean;
+  numberOfLines?: number;
+  maxLength?: number;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   style?: ViewStyle;
@@ -34,6 +37,8 @@ export const Input: React.FC<InputProps> = ({
   keyboardType = 'default',
   autoCapitalize,
   multiline = false,
+  numberOfLines,
+  maxLength,
   leftIcon,
   rightIcon,
   style,
@@ -67,6 +72,8 @@ export const Input: React.FC<InputProps> = ({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           multiline={multiline}
+          numberOfLines={numberOfLines}
+          maxLength={maxLength}
           textAlignVertical={multiline ? 'top' : 'center'}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -85,8 +92,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -97,7 +104,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border.gray,
     borderRadius: borderRadius.lg,
     backgroundColor: colors.background.white,
-    minHeight: 48,
+    minHeight: mvs(48),
   },
   inputFocused: {
     borderColor: colors.primary.yellow,
@@ -106,14 +113,14 @@ const styles = StyleSheet.create({
     borderColor: colors.status.error,
   },
   multiline: {
-    minHeight: 100,
+    minHeight: mvs(100),
     alignItems: 'flex-start',
   },
   input: {
     flex: 1,
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
@@ -126,7 +133,7 @@ const styles = StyleSheet.create({
   },
   multilineInput: {
     paddingTop: spacing.md,
-    minHeight: 96,
+    minHeight: mvs(96),
   },
   iconLeft: {
     paddingLeft: spacing.md,
@@ -136,8 +143,8 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.status.error,
     marginTop: spacing.xs,
   },

@@ -19,6 +19,7 @@ import { useCartStore } from '../../../src/stores/useCartStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows, layout } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 
 const KEY_BENEFITS = ['Muscle Growth', 'Recovery', 'Low Carb', 'Delicious'];
 
@@ -169,17 +170,17 @@ export default function ProductDetailScreen() {
                     product.nutrition.fat != null && { label: 'Fat', value: `${product.nutrition.fat}g` },
                     product.nutrition.sugar != null && { label: 'Sugar', value: `${product.nutrition.sugar}g` },
                   ]
-                    .filter(Boolean)
+                    .filter((row): row is { label: string; value: string } => Boolean(row))
                     .map((row, index) => (
                       <View
-                        key={row!.label}
+                        key={row.label}
                         style={[
                           styles.nutritionRow,
                           index % 2 === 0 && styles.nutritionRowAlt,
                         ]}
                       >
-                        <Text style={styles.nutritionLabel}>{row!.label}</Text>
-                        <Text style={styles.nutritionValue}>{row!.value}</Text>
+                        <Text style={styles.nutritionLabel}>{row.label}</Text>
+                        <Text style={styles.nutritionValue}>{row.value}</Text>
                       </View>
                     ))}
                 </View>
@@ -204,7 +205,7 @@ export default function ProductDetailScreen() {
               {isAdmin && (
                 <TouchableOpacity
                   style={styles.secondaryBtn}
-                  onPress={() => router.push(`/(app)/(admin)/products/edit?id=${product._id}`)}
+                  onPress={() => router.push({ pathname: '/(app)/(admin)/products/edit', params: { id: product._id, backRoute: 'shop' } })}
                   activeOpacity={0.7}
                 >
                   <Ionicons
@@ -277,9 +278,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.lg,
     left: spacing.lg,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: ms(40),
+    height: ms(40),
+    borderRadius: ms(20),
     backgroundColor: 'rgba(255,255,255,0.9)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -289,9 +290,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.lg,
     right: spacing.lg,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: ms(40),
+    height: ms(40),
+    borderRadius: ms(20),
     backgroundColor: 'rgba(255,255,255,0.9)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -308,7 +309,7 @@ const styles = StyleSheet.create({
   },
   discountText: {
     fontFamily: fontFamily.bold,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.white,
   },
 
@@ -318,8 +319,8 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fontFamily.bold,
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: ms(24),
+    lineHeight: ms(30),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -331,18 +332,18 @@ const styles = StyleSheet.create({
   },
   price: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
+    fontSize: ms(22),
     color: colors.text.primary,
   },
   comparePrice: {
     fontFamily: fontFamily.regular,
-    fontSize: 17,
+    fontSize: ms(17),
     color: colors.text.light,
     textDecorationLine: 'line-through',
   },
   category: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
@@ -353,15 +354,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
   description: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
 
@@ -390,12 +391,12 @@ const styles = StyleSheet.create({
   },
   nutritionLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   nutritionValue: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
 
@@ -419,7 +420,7 @@ const styles = StyleSheet.create({
   },
   secondaryBtnText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
 
@@ -443,12 +444,12 @@ const styles = StyleSheet.create({
   },
   bottomPriceLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   bottomPrice: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
+    fontSize: ms(20),
     color: colors.text.primary,
   },
   bottomBtnWrap: {

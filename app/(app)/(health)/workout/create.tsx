@@ -7,9 +7,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Alert,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../src/components/layout/Header';
@@ -18,7 +17,10 @@ import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { workoutsApi } from '../../../../src/api/endpoints/workouts';
 import { useUIStore } from '../../../../src/stores/useUIStore';
+import { useFeedStore } from '../../../../src/stores/useFeedStore';
+import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { WorkoutCategory, WorkoutDifficulty, Exercise } from '../../../../src/types/models';
 
 const CATEGORIES: { value: WorkoutCategory; label: string }[] = [
@@ -49,17 +51,9 @@ const emptyExercise = (): Exercise => ({
 
 export default function CreateWorkoutScreen() {
   const router = useRouter();
-  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const showToast = useUIStore((s) => s.showToast);
-
-  const handleBack = () => {
-    if (returnTo === 'feed') {
-      router.dismissAll();
-      router.navigate('/(app)/(feed)' as any);
-    } else {
-      router.back();
-    }
-  };
+  const user = useAuthStore((s) => s.user);
+  const createPost = useFeedStore((s) => s.createPost);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -122,8 +116,22 @@ export default function CreateWorkoutScreen() {
           .filter(Boolean),
         exercises: validExercises,
       });
+      // Create a feed post with category "workouts" so it appears under the Workouts tab
+      const postContent = description.trim()
+        ? `${title.trim()}\n\n${description.trim()}`
+        : title.trim();
+      await createPost(
+        {
+          content: postContent,
+          mediaType: image.trim() ? 'image' : 'text',
+          mediaUrl: image.trim() || undefined,
+          hashtags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+          category: 'workouts',
+        },
+        user ?? undefined
+      );
       showToast('Workout created successfully', 'success');
-      handleBack();
+      router.navigate('/(app)/(health)/workouts');
     } catch (error: any) {
       showToast(error.message || 'Failed to create workout', 'error');
     } finally {
@@ -134,7 +142,7 @@ export default function CreateWorkoutScreen() {
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
       <SafeScreen>
-        <Header title="Create Workout" showBack onBack={handleBack} />
+        <Header title="Create Workout" showBack onBack={() => router.navigate('/(app)/(health)/workouts')} />
 
         <KeyboardAvoidingView
           style={styles.flex}
@@ -362,8 +370,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -384,7 +392,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   chipTextActive: {
@@ -416,7 +424,7 @@ const styles = StyleSheet.create({
   },
   exerciseFormTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   submitContainer: {

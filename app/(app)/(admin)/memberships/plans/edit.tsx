@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -18,7 +17,9 @@ import { Button } from '../../../../../src/components/ui/Button';
 import { SkeletonLoader } from '../../../../../src/components/ui/SkeletonLoader';
 import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
+import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
+import { ms, mvs } from '../../../../../src/utils/responsive';
 
 const DURATIONS = [
   { label: '1 Month', days: 30 },
@@ -82,11 +83,11 @@ export default function EditMembershipPlanScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Plan name is required');
+      showAppAlert('Validation', 'Plan name is required');
       return;
     }
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      Alert.alert('Validation', 'Valid price is required');
+      showAppAlert('Validation', 'Valid price is required');
       return;
     }
 
@@ -102,11 +103,11 @@ export default function EditMembershipPlanScreen() {
         isActive,
       });
 
-      Alert.alert('Success', 'Membership plan updated successfully', [
+      showAppAlert('Success', 'Membership plan updated successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to update plan');
+      showAppAlert('Error', err.message || 'Failed to update plan');
     }
   };
 
@@ -298,8 +299,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -323,8 +324,8 @@ const styles = StyleSheet.create({
   },
   durationChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   durationChipTextActive: {
@@ -346,8 +347,8 @@ const styles = StyleSheet.create({
   },
   statusChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   statusChipTextActive: {

@@ -16,6 +16,7 @@ import { Input } from '../../src/components/ui/Input';
 import { resetPassword } from '../../src/api/endpoints/auth';
 import { useUIStore } from '../../src/stores/useUIStore';
 import { colors, fontFamily, spacing } from '../../src/theme';
+import { ms, mvs } from '../../src/utils/responsive';
 
 export default function ResetPasswordScreen() {
   const { token } = useLocalSearchParams<{ token?: string }>();
@@ -227,26 +228,26 @@ const styles = StyleSheet.create({
   },
   logoR: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
+    fontSize: ms(20),
     color: colors.text.onPrimary,
   },
   logoText: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
+    fontSize: ms(18),
     color: colors.text.white,
     letterSpacing: 2,
   },
   heading: {
     fontFamily: fontFamily.bold,
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: ms(28),
+    lineHeight: ms(34),
     color: colors.text.white,
     marginBottom: 8,
   },
   subtext: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: 'rgba(255,255,255,0.6)',
   },
   formSection: {
@@ -264,12 +265,12 @@ const styles = StyleSheet.create({
   },
   backLink: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   errorText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.status.error,
     marginTop: -spacing.sm,
     marginBottom: spacing.md,
@@ -289,14 +290,14 @@ const styles = StyleSheet.create({
   },
   successTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
+    fontSize: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   successMessage: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
@@ -316,14 +317,14 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
+    fontSize: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   errorMessage: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.xl,

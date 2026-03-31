@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { reelsApi } from '../api/endpoints/reels';
-import type { Reel, ReelComment } from '../types/models';
+import type { Reel, ReelComment, User } from '../types/models';
 
 interface Pagination {
   page: number;
@@ -73,7 +73,6 @@ export const useReelStore = create<ReelState>((set, get) => ({
 
   likeReel: async (id: string) => {
     const { reels } = get();
-    // Optimistic update: toggle isLiked and count
     const updatedReels = reels.map((reel) => {
       if (reel._id !== id) return reel;
       return {
@@ -87,11 +86,17 @@ export const useReelStore = create<ReelState>((set, get) => ({
     try {
       const response = await reelsApi.like(id);
       const serverReel = response.data;
+      const serverAuthorPopulated =
+        typeof serverReel.author === 'object' && serverReel.author && (serverReel.author as User).name;
       set((state) => ({
-        reels: state.reels.map((r) => (r._id === id ? { ...r, ...serverReel } : r)),
+        reels: state.reels.map((r) => {
+          if (r._id !== id) return r;
+          const merged: Reel = { ...r, ...serverReel };
+          if (!serverAuthorPopulated && r.author) merged.author = r.author;
+          return merged;
+        }),
       }));
     } catch {
-      // Revert on failure
       set({ reels });
     }
   },

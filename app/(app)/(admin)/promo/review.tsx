@@ -8,6 +8,7 @@ import { Card } from '../../../../src/components/ui/Card';
 import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 
 export default function PromoReviewScreen() {
   const router = useRouter();
@@ -176,15 +177,15 @@ const styles = StyleSheet.create({
   },
   bannerTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: ms(22),
+    lineHeight: ms(28),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   bannerDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
@@ -197,8 +198,8 @@ const styles = StyleSheet.create({
   },
   ctaButtonText: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.onPrimary,
   },
   detailsSection: {
@@ -206,8 +207,8 @@ const styles = StyleSheet.create({
   },
   detailsTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.lg,
   },
@@ -221,14 +222,14 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   detailValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     flex: 1,
     textAlign: 'right',

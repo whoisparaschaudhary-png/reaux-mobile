@@ -7,6 +7,7 @@ import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '
 import { Badge } from '../ui/Badge';
 import { Avatar } from '../ui/Avatar';
 import { formatNumber } from '../../utils/formatters';
+import { ms, mvs } from '../../utils/responsive';
 import type { DietPlan, DietCategory, User } from '../../types/models';
 
 interface DietPlanCardProps {
@@ -15,24 +16,22 @@ interface DietPlanCardProps {
 }
 
 const categoryBadgeVariant: Record<DietCategory, { variant: 'primary' | 'success' | 'error' | 'warning' | 'info' | 'default'; label: string }> = {
-  'weight-loss': { variant: 'error', label: 'Weight Loss' },
-  'muscle-gain': { variant: 'success', label: 'Muscle Gain' },
-  'maintenance': { variant: 'info', label: 'Maintenance' },
-  'keto': { variant: 'warning', label: 'Keto' },
-  'vegan': { variant: 'success', label: 'Vegan' },
-  'other': { variant: 'default', label: 'Other' },
+  'weight-loss': { variant: 'error',    label: 'Weight Loss' },
+  'muscle-gain': { variant: 'success',  label: 'Muscle Gain' },
+  'bulking':     { variant: 'warning',  label: 'Bulking' },
+  'cutting':     { variant: 'info',     label: 'Cutting' },
+  'other':       { variant: 'default',  label: 'Other' },
 };
 
 export const DietPlanCard: React.FC<DietPlanCardProps> = ({ plan, onPress }) => {
   const author = typeof plan.createdBy === 'object' ? (plan.createdBy as User) : null;
   const categoryInfo = categoryBadgeVariant[plan.category] || categoryBadgeVariant.other;
 
-  // Card fade-in animation on mount
-  const opacity = useSharedValue(0);
+  const opacity    = useSharedValue(0);
   const translateY = useSharedValue(20);
 
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.ease) });
+    opacity.value    = withTiming(1, { duration: 400, easing: Easing.out(Easing.ease) });
     translateY.value = withSpring(0, { damping: 15, stiffness: 100 });
   }, []);
 
@@ -48,73 +47,69 @@ export const DietPlanCard: React.FC<DietPlanCardProps> = ({ plan, onPress }) => 
         activeOpacity={0.7}
         style={[styles.container, shadows.card]}
       >
-      {/* Image */}
-      <View style={styles.imageContainer}>
-        {plan.image ? (
-          <Image
-            source={{ uri: plan.image }}
-            style={styles.image}
-            contentFit="cover"
-            transition={200}
-          />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Ionicons name="restaurant-outline" size={32} color={colors.text.light} />
-          </View>
-        )}
-        <View style={styles.badgeOverlay}>
-          <Badge text={categoryInfo.label} variant={categoryInfo.variant} size="sm" />
-        </View>
-      </View>
-
-      {/* Content */}
-      <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={1}>
-          {plan.title}
-        </Text>
-        {plan.description ? (
-          <Text style={styles.description} numberOfLines={2}>
-            {plan.description}
-          </Text>
-        ) : null}
-
-        {/* Author row */}
-        <View style={styles.authorRow}>
-          <View style={styles.authorInfo}>
-            <Avatar
-              uri={author?.avatar}
-              name={author?.name || 'Unknown'}
-              size={28}
+        <View style={styles.imageContainer}>
+          {plan.image ? (
+            <Image
+              source={{ uri: plan.image }}
+              style={styles.image}
+              contentFit="cover"
+              transition={200}
             />
-            <Text style={styles.authorName} numberOfLines={1}>
-              {author?.name || 'Unknown'}
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="restaurant-outline" size={ms(32)} color={colors.text.light} />
+            </View>
+          )}
+          <View style={styles.badgeOverlay}>
+            <Badge text={categoryInfo.label} variant={categoryInfo.variant} size="sm" />
+          </View>
+        </View>
+
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={1}>
+            {plan.title}
+          </Text>
+          {plan.description ? (
+            <Text style={styles.description} numberOfLines={2}>
+              {plan.description}
             </Text>
-            {author?.role === 'admin' || author?.role === 'superadmin' ? (
-              <Ionicons name="checkmark-circle" size={14} color={colors.status.info} />
+          ) : null}
+
+          <View style={styles.authorRow}>
+            <View style={styles.authorInfo}>
+              <Avatar
+                uri={author?.avatar}
+                name={author?.name || 'Unknown'}
+                size={ms(28)}
+              />
+              <Text style={styles.authorName} numberOfLines={1}>
+                {author?.name || 'Unknown'}
+              </Text>
+              {author?.role === 'admin' || author?.role === 'superadmin' ? (
+                <Ionicons name="checkmark-circle" size={ms(14)} color={colors.status.info} />
+              ) : null}
+            </View>
+            <Ionicons name="chevron-forward" size={ms(20)} color={colors.text.light} />
+          </View>
+
+          <View style={styles.statsRow}>
+            <View style={styles.stat}>
+              <Ionicons name="heart" size={ms(14)} color={colors.status.error} />
+              <Text style={styles.statText}>{formatNumber(plan.likesCount ?? 0)}</Text>
+            </View>
+            <View style={styles.stat}>
+              <Ionicons name="people" size={ms(14)} color={colors.text.secondary} />
+              <Text style={styles.statText}>{formatNumber(plan.followersCount ?? 0)}</Text>
+            </View>
+            {plan.totalCalories ? (
+              <View style={styles.stat}>
+                <Ionicons name="flame" size={ms(14)} color={colors.status.warning} />
+                <Text style={styles.statText}>{plan.totalCalories} cal</Text>
+              </View>
             ) : null}
           </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.text.light} />
         </View>
-
-        {/* Stats row */}
-        <View style={styles.statsRow}>
-          <View style={styles.stat}>
-            <Ionicons name="heart" size={14} color={colors.status.error} />
-            <Text style={styles.statText}>{formatNumber(plan.likesCount ?? 0)}</Text>
-          </View>
-          <View style={styles.stat}>
-            <Ionicons name="people" size={14} color={colors.text.secondary} />
-            <Text style={styles.statText}>{formatNumber(plan.followersCount ?? 0)}</Text>
-          </View>
-          {plan.totalCalories ? (
-            <View style={styles.stat}>
-              <Ionicons name="flame" size={14} color={colors.status.warning} />
-              <Text style={styles.statText}>{plan.totalCalories} cal</Text>
-            </View>
-          ) : null}
-        </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
@@ -128,7 +123,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 160,
+    height: mvs(160),
     position: 'relative',
   },
   image: {
@@ -157,8 +152,8 @@ const styles = StyleSheet.create({
   },
   description: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: spacing.md,
   },
@@ -176,8 +171,8 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.primary,
     flexShrink: 1,
   },
@@ -193,8 +188,8 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
   },
 });

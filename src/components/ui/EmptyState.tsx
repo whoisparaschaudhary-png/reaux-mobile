@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, fontFamily, spacing } from '../theme';
 import { Button } from './Button';
 import { ScaleEntranceView, SlideInUpView } from '../animated/AnimatedComponents';
+import { ms, mvs } from '../../utils/responsive';
 
 interface EmptyStateProps {
   icon?: keyof typeof Ionicons.glyphMap;
@@ -26,7 +27,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         <View style={styles.iconContainer}>
           <Ionicons
             name={icon}
-            size={48}
+            size={ms(48)}
             color={colors.text.light}
           />
         </View>
@@ -68,9 +69,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: ms(80),
+    height: ms(80),
+    borderRadius: ms(40),
     backgroundColor: colors.border.light,
   },
   title: {
@@ -81,8 +82,8 @@ const styles = StyleSheet.create({
   },
   message: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.lg,

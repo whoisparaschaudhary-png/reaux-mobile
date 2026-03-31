@@ -4,7 +4,7 @@ import type { DietPlan } from '../../types/models';
 import type { CreateDietRequest } from '../../types/api';
 
 export const dietsApi = {
-  list: (params?: PaginationParams & { category?: string; includeUnpublished?: boolean }) =>
+  list: (params?: PaginationParams & { category?: string; dietType?: string; tag?: string; includeUnpublished?: boolean }) =>
     client.get<PaginatedResponse<DietPlan>>('/diets', { params }).then(r => r.data),
 
   getById: (id: string) =>
@@ -30,6 +30,6 @@ export const dietsApi = {
   like: (id: string) =>
     client.post<ApiResponse<DietPlan>>(`/diets/${id}/like`).then(r => r.data),
 
-  getSuggested: (params?: PaginationParams) =>
+  getSuggested: (params?: PaginationParams & { goal?: 'lose' | 'gain' | 'maintain'; dietType?: string }) =>
     client.get<PaginatedResponse<DietPlan>>('/diets/suggested', { params }).then(r => r.data),
 };

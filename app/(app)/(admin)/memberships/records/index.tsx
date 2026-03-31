@@ -11,6 +11,7 @@ import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { MembershipCard } from '../../../../../src/components/cards/MembershipCard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
+import { ms, mvs } from '../../../../../src/utils/responsive';
 
 const STATUS_FILTERS = ['All', 'Active', 'Expired', 'Cancelled'];
 
@@ -75,7 +76,7 @@ export default function UserMembershipsScreen() {
           onBack={() => router.back()}
           rightAction={
             <TouchableOpacity
-              onPress={() => router.push('/(app)/(admin)/memberships/memberships/assign')}
+              onPress={() => router.push('/(app)/(admin)/memberships/records/assign')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Ionicons name="person-add-outline" size={24} color={colors.text.primary} />
@@ -118,7 +119,7 @@ export default function UserMembershipsScreen() {
               <MembershipCard
                 membership={item}
                 onPress={() =>
-                  router.push(`/(app)/(admin)/memberships/memberships/${item._id}`)
+                  router.push(`/(app)/(admin)/memberships/records/${item._id}`)
                 }
               />
             )}
@@ -142,7 +143,7 @@ export default function UserMembershipsScreen() {
                 message="Assign memberships to users to get started."
                 actionLabel="Assign Membership"
                 onAction={() =>
-                  router.push('/(app)/(admin)/memberships/memberships/assign')
+                  router.push('/(app)/(admin)/memberships/records/assign')
                 }
               />
             }
@@ -174,8 +175,8 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   filterChipTextActive: {

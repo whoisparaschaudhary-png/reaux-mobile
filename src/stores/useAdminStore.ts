@@ -84,7 +84,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     try {
       const response = await usersApi.getUsers({ page, limit: 10 });
       set((state) => ({
-        users: page === 1 ? response.data : [...state.users, ...response.data],
+        users: page === 1 ? response.data : [...state.users, ...response.data.filter((u: any) => !state.users.some((existing: any) => existing._id === u._id))],
         pagination: response.pagination,
         isLoading: false,
       }));

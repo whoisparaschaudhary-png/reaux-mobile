@@ -27,6 +27,7 @@ import {
   borderRadius,
   shadows,
 } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { Workout, WorkoutCategory, WorkoutDifficulty } from '../../../src/types/models';
 
 const CATEGORIES: { key: WorkoutCategory | 'all'; label: string }[] = [
@@ -251,8 +252,8 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   categoryTextActive: {
@@ -287,14 +288,14 @@ const styles = StyleSheet.create({
   workoutTitle: {
     flex: 1,
     fontFamily: fontFamily.bold,
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: ms(17),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   workoutDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   tagRow: {
@@ -327,7 +328,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.secondary,
   },
   loadingContainer: {

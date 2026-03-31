@@ -18,7 +18,9 @@ import { Button } from '../../../src/components/ui/Button';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDietStore } from '../../../src/stores/useDietStore';
 import { useUIStore } from '../../../src/stores/useUIStore';
+import { exportDietPlanPDF } from '../../../src/utils/pdfExport';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { User, DietCategory, Meal } from '../../../src/types/models';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -26,9 +28,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const categoryBadgeVariant: Record<DietCategory, { variant: 'primary' | 'success' | 'error' | 'warning' | 'info' | 'default'; label: string }> = {
   'weight-loss': { variant: 'error', label: 'Weight Loss' },
   'muscle-gain': { variant: 'success', label: 'Muscle Gain' },
-  'maintenance': { variant: 'info', label: 'Maintenance' },
-  'keto': { variant: 'warning', label: 'Keto' },
-  'vegan': { variant: 'success', label: 'Vegan' },
+  'bulking': { variant: 'warning', label: 'Bulking' },
+  'cutting': { variant: 'info', label: 'Cutting' },
   'other': { variant: 'default', label: 'Other' },
 };
 
@@ -48,6 +49,7 @@ export default function DietPlanDetailScreen() {
     useDietStore();
   const showToast = useUIStore((s) => s.showToast);
   const [publishLoading, setPublishLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     if (id) getPlanById(id);
@@ -77,6 +79,19 @@ export default function DietPlanDetailScreen() {
   const handleLike = useCallback(() => {
     if (id) likePlan(id);
   }, [id, likePlan]);
+
+  const handleExportPDF = useCallback(async () => {
+    if (!selectedPlan) return;
+    setPdfLoading(true);
+    try {
+      await exportDietPlanPDF(selectedPlan);
+      showToast('PDF exported successfully', 'success');
+    } catch {
+      showToast('Failed to export PDF', 'error');
+    } finally {
+      setPdfLoading(false);
+    }
+  }, [selectedPlan, showToast]);
 
   if (isLoading && !selectedPlan) {
     return (
@@ -151,6 +166,18 @@ export default function DietPlanDetailScreen() {
             activeOpacity={0.7}
           >
             <Ionicons name="chevron-back" size={24} color={colors.text.white} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.exportButton}
+            onPress={handleExportPDF}
+            disabled={pdfLoading}
+            activeOpacity={0.7}
+          >
+            {pdfLoading ? (
+              <ActivityIndicator size="small" color={colors.text.white} />
+            ) : (
+              <Ionicons name="document-attach-outline" size={24} color={colors.text.white} />
+            )}
           </TouchableOpacity>
           <View style={styles.heroBadge}>
             <Badge text={categoryInfo.label} variant={categoryInfo.variant} size="md" />
@@ -349,7 +376,7 @@ const styles = StyleSheet.create({
   },
   heroContainer: {
     width: SCREEN_WIDTH,
-    height: 240,
+    height: mvs(240),
     position: 'relative',
   },
   heroImage: {
@@ -367,9 +394,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.md,
     left: spacing.lg,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: ms(36),
+    height: ms(36),
+    borderRadius: ms(18),
+    backgroundColor: colors.overlay.medium,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exportButton: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.lg,
+    width: ms(36),
+    height: ms(36),
+    borderRadius: ms(18),
     backgroundColor: colors.overlay.medium,
     alignItems: 'center',
     justifyContent: 'center',
@@ -390,8 +428,8 @@ const styles = StyleSheet.create({
   },
   description: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
@@ -418,8 +456,8 @@ const styles = StyleSheet.create({
   },
   authorRole: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
   },
@@ -445,8 +483,8 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   macroSection: {
@@ -470,20 +508,20 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   macroDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: ms(10),
+    height: ms(10),
+    borderRadius: ms(5),
   },
   macroValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   macroLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
   },
   mealsSection: {
@@ -511,8 +549,8 @@ const styles = StyleSheet.create({
   },
   mealTime: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   mealItem: {
@@ -532,21 +570,21 @@ const styles = StyleSheet.create({
   },
   mealItemName: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   mealItemQuantity: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
     marginTop: 1,
   },
   mealItemCals: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
   },
   tagsSection: {

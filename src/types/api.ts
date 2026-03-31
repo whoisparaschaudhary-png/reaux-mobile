@@ -1,4 +1,4 @@
-import type { Gender, DietCategory, DiscountType, ChallengeType } from './models';
+import type { Gender, DietCategory, DietType, DiscountType, ChallengeType, ProductVisibility } from './models';
 
 export interface LoginRequest {
   email: string;
@@ -40,6 +40,7 @@ export interface CreatePostRequest {
 export interface CreateDietRequest {
   title: string;
   category: DietCategory;
+  dietType?: DietType;
   description?: string;
   meals?: any[];
   image?: string;
@@ -56,6 +57,16 @@ export interface CreateProductRequest {
   images?: string[];
   category?: string;
   stock?: number;
+  visibility?: ProductVisibility;
+  isActive?: boolean;
+  nutrition?: {
+    servingSize?: string;
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+    sugar?: number;
+  };
 }
 
 export interface AddToCartRequest {

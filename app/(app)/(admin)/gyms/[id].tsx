@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Modal,
   FlatList,
   ActivityIndicator,
@@ -19,17 +18,60 @@ import { Input } from '../../../../src/components/ui/Input';
 import { Button } from '../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { gymsApi } from '../../../../src/api/endpoints/gyms';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { useAdminStore } from '../../../../src/stores/useAdminStore';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import client from '../../../../src/api/client';
 import type { User, Gym } from '../../../../src/types/models';
 
+const CITIES_BY_STATE: Record<string, string[]> = {
+  'Andhra Pradesh': ['Visakhapatnam', 'Vijayawada', 'Guntur', 'Nellore', 'Kurnool', 'Tirupati', 'Rajahmundry', 'Kakinada', 'Anantapur', 'Kadapa', 'Eluru', 'Ongole', 'Nandyal', 'Machilipatnam'],
+  'Arunachal Pradesh': ['Itanagar', 'Naharlagun', 'Pasighat', 'Tawang', 'Ziro', 'Bomdila'],
+  'Assam': ['Guwahati', 'Dibrugarh', 'Jorhat', 'Silchar', 'Nagaon', 'Tinsukia', 'Tezpur', 'Bongaigaon', 'Dhubri', 'Diphu'],
+  'Bihar': ['Patna', 'Gaya', 'Bhagalpur', 'Muzaffarpur', 'Purnia', 'Darbhanga', 'Bihar Sharif', 'Arrah', 'Begusarai', 'Katihar', 'Munger', 'Chapra'],
+  'Chhattisgarh': ['Raipur', 'Bhilai', 'Korba', 'Bilaspur', 'Durg', 'Rajnandgaon', 'Jagdalpur', 'Ambikapur', 'Raigarh'],
+  'Goa': ['Panaji', 'Vasco da Gama', 'Margao', 'Mapusa', 'Ponda', 'Calangute', 'Candolim'],
+  'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot', 'Bhavnagar', 'Jamnagar', 'Gandhinagar', 'Junagadh', 'Anand', 'Navsari', 'Morbi', 'Nadiad', 'Mehsana', 'Bharuch', 'Surendranagar'],
+  'Haryana': ['Gurgaon', 'Faridabad', 'Panipat', 'Ambala', 'Yamunanagar', 'Rohtak', 'Hisar', 'Karnal', 'Sonipat', 'Panchkula', 'Bhiwani', 'Sirsa', 'Rewari', 'Kaithal'],
+  'Himachal Pradesh': ['Shimla', 'Manali', 'Dharamshala', 'Solan', 'Mandi', 'Baddi', 'Nahan', 'Palampur', 'Kullu'],
+  'Jharkhand': ['Ranchi', 'Jamshedpur', 'Dhanbad', 'Bokaro', 'Hazaribagh', 'Deoghar', 'Giridih', 'Ramgarh', 'Phusro', 'Medininagar'],
+  'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore', 'Belgaum', 'Gulbarga', 'Davanagere', 'Bellary', 'Bijapur', 'Shimoga', 'Tumkur', 'Raichur', 'Hassan', 'Udupi'],
+  'Kerala': ['Kochi', 'Thiruvananthapuram', 'Kozhikode', 'Thrissur', 'Kannur', 'Kollam', 'Palakkad', 'Alappuzha', 'Kottayam', 'Malappuram', 'Kasaragod'],
+  'Madhya Pradesh': ['Indore', 'Bhopal', 'Jabalpur', 'Gwalior', 'Ujjain', 'Sagar', 'Ratlam', 'Satna', 'Murwara', 'Singrauli', 'Rewa', 'Dewas', 'Burhanpur', 'Chhindwara'],
+  'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Thane', 'Aurangabad', 'Navi Mumbai', 'Solapur', 'Kolhapur', 'Amravati', 'Nanded', 'Sangli', 'Malegaon', 'Jalgaon', 'Akola', 'Latur', 'Dhule', 'Chandrapur', 'Parbhani'],
+  'Manipur': ['Imphal', 'Thoubal', 'Bishnupur', 'Churachandpur', 'Kakching'],
+  'Meghalaya': ['Shillong', 'Tura', 'Jowai', 'Nongstoin', 'Williamnagar'],
+  'Mizoram': ['Aizawl', 'Lunglei', 'Champhai', 'Serchhip', 'Kolasib'],
+  'Nagaland': ['Kohima', 'Dimapur', 'Mokokchung', 'Tuensang', 'Wokha'],
+  'Odisha': ['Bhubaneswar', 'Cuttack', 'Rourkela', 'Brahmapur', 'Sambalpur', 'Puri', 'Balasore', 'Baripada', 'Bhadrak', 'Jharsuguda'],
+  'Punjab': ['Ludhiana', 'Amritsar', 'Jalandhar', 'Patiala', 'Bathinda', 'Mohali', 'Hoshiarpur', 'Batala', 'Pathankot', 'Moga', 'Ferozepur', 'Abohar', 'Gurdaspur', 'Sangrur', 'Rupnagar', 'Phagwara', 'Firozpur', 'Muktsar', 'Barnala', 'Mansa', 'Kapurthala', 'Fazilka', 'Nawanshahr', 'Tarn Taran', 'Ropar'],
+  'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota', 'Ajmer', 'Bikaner', 'Alwar', 'Bhilwara', 'Bharatpur', 'Pali', 'Sikar', 'Sri Ganganagar', 'Barmer', 'Tonk'],
+  'Sikkim': ['Gangtok', 'Namchi', 'Pelling', 'Rangpo', 'Singtam'],
+  'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem', 'Tirunelveli', 'Tiruppur', 'Vellore', 'Erode', 'Thoothukudi', 'Dindigul', 'Thanjavur', 'Ranipet', 'Hosur', 'Nagercoil'],
+  'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad', 'Karimnagar', 'Khammam', 'Ramagundam', 'Mahbubnagar', 'Nalgonda', 'Adilabad', 'Suryapet'],
+  'Tripura': ['Agartala', 'Dharmanagar', 'Udaipur', 'Kailashahar', 'Belonia'],
+  'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Agra', 'Varanasi', 'Meerut', 'Allahabad', 'Ghaziabad', 'Noida', 'Bareilly', 'Aligarh', 'Moradabad', 'Saharanpur', 'Gorakhpur', 'Firozabad', 'Jhansi', 'Mathura', 'Muzaffarnagar', 'Rampur', 'Shahjahanpur', 'Ayodhya'],
+  'Uttarakhand': ['Dehradun', 'Haridwar', 'Roorkee', 'Haldwani', 'Rudrapur', 'Kashipur', 'Rishikesh', 'Nainital', 'Mussoorie'],
+  'West Bengal': ['Kolkata', 'Howrah', 'Asansol', 'Siliguri', 'Durgapur', 'Bardhaman', 'Malda', 'Baharampur', 'Habra', 'Kharagpur', 'Shantipur', 'Darjeeling', 'Jalpaiguri'],
+  'Andaman and Nicobar Islands': ['Port Blair', 'Diglipur', 'Rangat'],
+  'Chandigarh': ['Chandigarh'],
+  'Dadra and Nagar Haveli and Daman and Diu': ['Silvassa', 'Daman', 'Diu'],
+  'Delhi': ['New Delhi', 'Delhi', 'Dwarka', 'Rohini', 'Janakpuri', 'Saket', 'Lajpat Nagar', 'Karol Bagh', 'Pitampura', 'Noida Extension'],
+  'Jammu and Kashmir': ['Srinagar', 'Jammu', 'Anantnag', 'Sopore', 'Baramulla', 'Kathua', 'Udhampur'],
+  'Ladakh': ['Leh', 'Kargil'],
+  'Lakshadweep': ['Kavaratti', 'Agatti'],
+  'Puducherry': ['Puducherry', 'Karaikal', 'Mahe', 'Yanam'],
+};
+const OTHER_CITY = '__OTHER__';
+
 export default function EditGymScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const { pickImage } = useImagePicker();
+  const { id, backRoute } = useLocalSearchParams<{ id: string; backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
+  const { pickImageWithCamera } = useImagePicker();
   const currentUser = useAuthStore((s) => s.user);
   const isSuperAdmin = currentUser?.role === 'superadmin';
   const { users, fetchUsers, isLoading: isLoadingUsers } = useAdminStore();
@@ -56,6 +98,10 @@ export default function EditGymScreen() {
   const [newImageUris, setNewImageUris] = useState<string[]>([]);
   const [newLogoUri, setNewLogoUri] = useState<string | null>(null);
 
+  const [showStatePicker, setShowStatePicker] = useState(false);
+  const [showCityPicker, setShowCityPicker] = useState(false);
+  const [showCustomCity, setShowCustomCity] = useState(false);
+
   const [selectedAdmin, setSelectedAdmin] = useState<string>('');
   const [showAdminPicker, setShowAdminPicker] = useState(false);
 
@@ -80,8 +126,13 @@ export default function EditGymScreen() {
       setPhone(gymData.phone || '');
       setEmail(gymData.email || '');
       setStreet(gymData.address?.street || '');
-      setCity(gymData.address?.city || '');
-      setState(gymData.address?.state || '');
+      const loadedState = gymData.address?.state || '';
+      const loadedCity = gymData.address?.city || '';
+      setState(loadedState);
+      setCity(loadedCity);
+      if (loadedCity && loadedState && !(CITIES_BY_STATE[loadedState] ?? []).includes(loadedCity)) {
+        setShowCustomCity(true);
+      }
       setPincode(gymData.address?.pincode || '');
       setAmenities((gymData.amenities || []).join(', '));
 
@@ -94,8 +145,8 @@ export default function EditGymScreen() {
         setSelectedAdmin(gymData.createdBy._id);
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to load gym');
-      router.back();
+      showAppAlert('Error', err.message || 'Failed to load gym');
+      handleBack();
     } finally {
       setIsLoadingGym(false);
     }
@@ -112,7 +163,7 @@ export default function EditGymScreen() {
   const totalImagesCount = existingImages.length + newImageUris.length;
 
   const handlePickImage = async () => {
-    const result = await pickImage();
+    const result = await pickImageWithCamera();
     if (result) {
       setNewImageUris((prev) => [...prev, result.uri]);
     }
@@ -127,7 +178,7 @@ export default function EditGymScreen() {
   };
 
   const handlePickLogo = async () => {
-    const result = await pickImage();
+    const result = await pickImageWithCamera();
     if (result) {
       setNewLogoUri(result.uri);
       // Clear existing logo if new one is selected
@@ -145,12 +196,12 @@ export default function EditGymScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Gym name is required');
+      showAppAlert('Validation', 'Gym name is required');
       return;
     }
 
     if (!id) {
-      Alert.alert('Error', 'Gym ID is missing');
+      showAppAlert('Error', 'Gym ID is missing');
       return;
     }
 
@@ -245,23 +296,23 @@ export default function EditGymScreen() {
           } catch (assignError: any) {
             console.error('Error assigning admin:', assignError);
             const assignErrorMsg = assignError?.message || 'Failed to assign admin';
-            Alert.alert(
+            showAppAlert(
               'Partial Success',
               `Gym updated successfully, but admin assignment failed: ${assignErrorMsg}`,
-              [{ text: 'OK', onPress: () => router.back() }]
+              [{ text: 'OK', onPress: handleBack }]
             );
             return;
           }
         }
       }
 
-      Alert.alert('Success', 'Gym updated successfully', [
-        { text: 'OK', onPress: () => router.back() },
+      showAppAlert('Success', 'Gym updated successfully', [
+        { text: 'OK', onPress: handleBack },
       ]);
     } catch (error: any) {
       console.error('Error updating gym:', error);
       const errorMessage = error?.message || error?.toString() || 'Failed to update gym';
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -271,7 +322,7 @@ export default function EditGymScreen() {
     return (
       <RoleGuard allowedRoles={['admin', 'superadmin']}>
         <SafeScreen>
-          <Header title="Edit Gym" showBack onBack={() => router.back()} />
+          <Header title="Edit Gym" showBack onBack={handleBack} />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary.yellow} />
             <Text style={styles.loadingText}>Loading gym...</Text>
@@ -285,7 +336,7 @@ export default function EditGymScreen() {
     return (
       <RoleGuard allowedRoles={['admin', 'superadmin']}>
         <SafeScreen>
-          <Header title="Edit Gym" showBack onBack={() => router.back()} />
+          <Header title="Edit Gym" showBack onBack={handleBack} />
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Gym not found</Text>
           </View>
@@ -297,7 +348,7 @@ export default function EditGymScreen() {
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
       <SafeScreen>
-        <Header title="Edit Gym" showBack onBack={() => router.back()} />
+        <Header title="Edit Gym" showBack onBack={handleBack} />
 
         <ScrollView
           style={styles.scroll}
@@ -458,22 +509,32 @@ export default function EditGymScreen() {
           </View>
           <View style={styles.row}>
             <View style={styles.halfField}>
+              <Text style={styles.dropdownLabel}>State</Text>
+              <TouchableOpacity style={styles.dropdownBtn} onPress={() => setShowStatePicker(true)} activeOpacity={0.7}>
+                <Text style={[styles.dropdownBtnText, !state && styles.dropdownPlaceholder]}>{state || 'Select State'}</Text>
+                <Ionicons name="chevron-down" size={16} color={colors.text.light} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.halfField}>
+              <Text style={styles.dropdownLabel}>City</Text>
+              <TouchableOpacity style={styles.dropdownBtn} onPress={() => setShowCityPicker(true)} activeOpacity={0.7}>
+                <Text style={[styles.dropdownBtnText, !city && !showCustomCity && styles.dropdownPlaceholder]}>
+                  {showCustomCity ? 'Other' : (city || 'Select City')}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={colors.text.light} />
+              </TouchableOpacity>
+            </View>
+          </View>
+          {showCustomCity && (
+            <View style={styles.field}>
               <Input
-                label="City"
-                placeholder="Mumbai"
+                label="Enter City Name"
+                placeholder="e.g. Hoshiarpur"
                 value={city}
                 onChangeText={setCity}
               />
             </View>
-            <View style={styles.halfField}>
-              <Input
-                label="State"
-                placeholder="Maharashtra"
-                value={state}
-                onChangeText={setState}
-              />
-            </View>
-          </View>
+          )}
           <View style={styles.field}>
             <Input
               label="Pincode"
@@ -537,6 +598,76 @@ export default function EditGymScreen() {
             />
           </View>
         </ScrollView>
+
+        {/* State Picker Modal */}
+        <Modal visible={showStatePicker} animationType="slide" transparent onRequestClose={() => setShowStatePicker(false)}>
+          <TouchableOpacity style={styles.pickerOverlay} activeOpacity={1} onPress={() => setShowStatePicker(false)}>
+            <View style={styles.pickerSheet}>
+              <View style={styles.pickerHandle} />
+              <Text style={styles.pickerTitle}>Select State</Text>
+              <FlatList
+                data={Object.keys(CITIES_BY_STATE).sort()}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.pickerOption, state === item && styles.pickerOptionActive]}
+                    onPress={() => { setState(item); setCity(''); setShowCustomCity(false); setShowStatePicker(false); }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.pickerOptionText, state === item && styles.pickerOptionTextActive]}>{item}</Text>
+                    {state === item && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
+                  </TouchableOpacity>
+                )}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* City Picker Modal */}
+        <Modal visible={showCityPicker} animationType="slide" transparent onRequestClose={() => setShowCityPicker(false)}>
+          <TouchableOpacity style={styles.pickerOverlay} activeOpacity={1} onPress={() => setShowCityPicker(false)}>
+            <View style={styles.pickerSheet}>
+              <View style={styles.pickerHandle} />
+              <Text style={styles.pickerTitle}>Select City</Text>
+              {!state ? (
+                <View style={styles.pickerPrompt}>
+                  <Text style={styles.pickerPromptText}>Please select a state first</Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={[...(CITIES_BY_STATE[state] ?? []), OTHER_CITY]}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => {
+                    if (item === OTHER_CITY) {
+                      return (
+                        <TouchableOpacity
+                          style={[styles.pickerOption, showCustomCity && styles.pickerOptionActive]}
+                          onPress={() => { setShowCustomCity(true); setCity(''); setShowCityPicker(false); }}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.pickerOptionText, showCustomCity && styles.pickerOptionTextActive]}>Other (type manually)</Text>
+                          {showCustomCity && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
+                        </TouchableOpacity>
+                      );
+                    }
+                    return (
+                      <TouchableOpacity
+                        style={[styles.pickerOption, city === item && !showCustomCity && styles.pickerOptionActive]}
+                        onPress={() => { setShowCustomCity(false); setCity(item); setShowCityPicker(false); }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pickerOptionText, city === item && !showCustomCity && styles.pickerOptionTextActive]}>{item}</Text>
+                        {city === item && !showCustomCity && <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />}
+                      </TouchableOpacity>
+                    );
+                  }}
+                  showsVerticalScrollIndicator={false}
+                />
+              )}
+            </View>
+          </TouchableOpacity>
+        </Modal>
 
         {/* Admin Picker Modal */}
         <Modal
@@ -639,15 +770,15 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginTop: spacing.md,
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -692,8 +823,8 @@ const styles = StyleSheet.create({
   },
   newBadgeText: {
     fontFamily: fontFamily.bold,
-    fontSize: 9,
-    lineHeight: 12,
+    fontSize: ms(9),
+    lineHeight: ms(12),
     color: colors.text.onPrimary,
   },
   addImageBtn: {
@@ -709,7 +840,7 @@ const styles = StyleSheet.create({
   },
   addImageText: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.light,
   },
   submitContainer: {
@@ -736,8 +867,8 @@ const styles = StyleSheet.create({
   },
   selectButtonText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
   },
   selectedAdminInfo: {
@@ -746,15 +877,15 @@ const styles = StyleSheet.create({
   },
   selectedAdminEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: 2,
   },
   selectedAdminRole: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.primary.yellow,
     textTransform: 'uppercase',
   },
@@ -781,8 +912,8 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   modalList: {
@@ -794,8 +925,8 @@ const styles = StyleSheet.create({
   },
   modalLoadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   modalEmpty: {
@@ -804,8 +935,8 @@ const styles = StyleSheet.create({
   },
   modalEmptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
   },
   adminItem: {
@@ -825,15 +956,15 @@ const styles = StyleSheet.create({
   },
   adminItemName: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: 2,
   },
   adminItemEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   adminItemRight: {
@@ -843,8 +974,8 @@ const styles = StyleSheet.create({
   },
   adminItemRole: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: ms(11),
+    lineHeight: ms(15),
     color: colors.text.light,
     textTransform: 'uppercase',
   },
@@ -852,6 +983,90 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.border.light,
     marginLeft: layout.screenPadding,
+  },
+  dropdownLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(14),
+    lineHeight: ms(20),
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+  },
+  dropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: colors.border.gray,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background.white,
+    paddingHorizontal: spacing.md,
+    height: 48,
+  },
+  dropdownBtnText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(15),
+    color: colors.text.primary,
+    flex: 1,
+  },
+  dropdownPlaceholder: {
+    color: colors.text.light,
+  },
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  pickerSheet: {
+    backgroundColor: colors.background.white,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxxl,
+    maxHeight: '70%',
+  },
+  pickerHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: colors.border.gray,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  pickerTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(17),
+    color: colors.text.primary,
+    marginBottom: spacing.md,
+  },
+  pickerOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  pickerOptionActive: {
+    backgroundColor: colors.primary.yellowLight,
+  },
+  pickerOptionText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(15),
+    color: colors.text.primary,
+  },
+  pickerOptionTextActive: {
+    fontFamily: fontFamily.medium,
+  },
+  pickerPrompt: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xxxl,
+  },
+  pickerPromptText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(14),
+    color: colors.text.light,
   },
   modalFooter: {
     padding: layout.screenPadding,

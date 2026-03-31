@@ -5,11 +5,12 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../../src/components/layout/Header';
@@ -19,21 +20,31 @@ import { Avatar } from '../../../../../src/components/ui/Avatar';
 import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
 import { usersApi } from '../../../../../src/api/endpoints/users';
+import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../../../src/utils/formatters';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
+import { ms, mvs } from '../../../../../src/utils/responsive';
 import type { User, MembershipPlan, Gym } from '../../../../../src/types/models';
 
 export default function AssignMembershipScreen() {
   const router = useRouter();
+  const { preselectedUserId, preselectedUserName } = useLocalSearchParams<{
+    preselectedUserId?: string;
+    preselectedUserName?: string;
+  }>();
   const { plans, assignMembership, membershipsLoading, fetchPlans } =
     useMembershipStore();
 
-  const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState(preselectedUserId ?? '');
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [startDate, setStartDate] = useState('');
+  const [feesAmount, setFeesAmount] = useState('');
+  const [feesPaid, setFeesPaid] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     loadUsers();
@@ -48,7 +59,7 @@ export default function AssignMembershipScreen() {
       const response = await usersApi.getUsers({ limit: 100 });
       setUsers(response.data || []);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to load users');
+      showAppAlert('Error', err.message || 'Failed to load users');
     } finally {
       setLoadingUsers(false);
     }
@@ -66,39 +77,54 @@ export default function AssignMembershipScreen() {
   const selectedUser = users.find((u) => u._id === selectedUserId);
   const selectedPlan = plans.find((p) => p._id === selectedPlanId);
 
+  // Auto-fill feesAmount when plan is selected
+  React.useEffect(() => {
+    if (selectedPlan && !feesAmount) {
+      setFeesAmount(String(selectedPlan.price));
+    }
+  }, [selectedPlanId]);
+
   const handleSubmit = async () => {
     if (!selectedUserId) {
-      Alert.alert('Validation', 'Please select a user');
+      showAppAlert('Validation', 'Please select a user');
       return;
     }
     if (!selectedPlanId) {
-      Alert.alert('Validation', 'Please select a membership plan');
+      showAppAlert('Validation', 'Please select a membership plan');
       return;
     }
     if (!startDate) {
-      Alert.alert('Validation', 'Please enter a start date');
+      showAppAlert('Validation', 'Please enter a start date');
       return;
     }
 
     try {
+      const feesAmountNum = feesAmount ? parseFloat(feesAmount) : undefined;
+      const feesPaidNum = feesPaid ? parseFloat(feesPaid) : undefined;
       await assignMembership({
         userId: selectedUserId,
         planId: selectedPlanId,
         startDate,
+        ...(feesAmountNum !== undefined && !isNaN(feesAmountNum) ? { feesAmount: feesAmountNum } : {}),
+        ...(feesPaidNum !== undefined && !isNaN(feesPaidNum) ? { feesPaid: feesPaidNum } : {}),
       });
 
-      Alert.alert('Success', 'Membership assigned successfully', [
+      showAppAlert('Success', 'Membership assigned successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to assign membership');
+      showAppAlert('Error', err.message || 'Failed to assign membership');
     }
   };
 
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
       <SafeScreen>
-        <Header title="Assign Membership" showBack onBack={() => router.back()} />
+        <Header
+          title={preselectedUserName ? `Assign Membership` : 'Assign Membership'}
+          showBack
+          onBack={() => router.back()}
+        />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -110,6 +136,16 @@ export default function AssignMembershipScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
+            {/* Pre-selected user banner */}
+            {preselectedUserId && preselectedUserName && (
+              <View style={styles.preselectedBanner}>
+                <Ionicons name="person-circle-outline" size={20} color={colors.primary.yellowDark} />
+                <Text style={styles.preselectedBannerText}>
+                  Assigning membership to <Text style={styles.preselectedBannerName}>{preselectedUserName}</Text>
+                </Text>
+              </View>
+            )}
+
             {/* Select User */}
             <Text style={styles.sectionTitle}>Select User *</Text>
             <View style={styles.field}>
@@ -210,12 +246,85 @@ export default function AssignMembershipScreen() {
 
             {/* Start Date */}
             <Text style={styles.sectionTitle}>Start Date *</Text>
+            <TouchableOpacity
+              style={styles.datePickerButton}
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="calendar-outline" size={20} color={colors.text.secondary} />
+              <Text style={styles.datePickerText}>
+                {startDate || 'Select start date'}
+              </Text>
+              <Ionicons name="chevron-down-outline" size={18} color={colors.text.light} />
+            </TouchableOpacity>
+
+            {Platform.OS === 'ios' ? (
+              <Modal
+                visible={showDatePicker}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowDatePicker(false)}
+              >
+                <TouchableOpacity
+                  style={styles.dateModalOverlay}
+                  activeOpacity={1}
+                  onPress={() => setShowDatePicker(false)}
+                >
+                  <View style={styles.dateModalContent}>
+                    <View style={styles.dateModalHeader}>
+                      <Text style={styles.dateModalTitle}>Select Start Date</Text>
+                      <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                        <Text style={styles.dateModalDone}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      value={selectedDate}
+                      mode="date"
+                      display="spinner"
+                      onChange={(_, date) => {
+                        if (date) {
+                          setSelectedDate(date);
+                          setStartDate(date.toISOString().split('T')[0]);
+                        }
+                      }}
+                      textColor={colors.text.primary}
+                    />
+                  </View>
+                </TouchableOpacity>
+              </Modal>
+            ) : showDatePicker ? (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="default"
+                onChange={(_, date) => {
+                  setShowDatePicker(false);
+                  if (date) {
+                    setSelectedDate(date);
+                    setStartDate(date.toISOString().split('T')[0]);
+                  }
+                }}
+              />
+            ) : null}
+
+            {/* Fee Details */}
+            <Text style={styles.sectionTitle}>Fee Details</Text>
             <View style={styles.field}>
               <Input
-                label="Start Date (YYYY-MM-DD)"
-                placeholder="2024-01-01"
-                value={startDate}
-                onChangeText={setStartDate}
+                label="Total Fee Amount (₹)"
+                placeholder={selectedPlan ? String(selectedPlan.price) : 'e.g. 1500'}
+                value={feesAmount}
+                onChangeText={setFeesAmount}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={styles.field}>
+              <Input
+                label="Amount Paid Now (₹) — optional"
+                placeholder="0"
+                value={feesPaid}
+                onChangeText={setFeesPaid}
+                keyboardType="numeric"
               />
             </View>
 
@@ -232,11 +341,19 @@ export default function AssignMembershipScreen() {
                   <Text style={styles.summaryValue}>{selectedPlan.name}</Text>
                 </View>
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Amount</Text>
+                  <Text style={styles.summaryLabel}>Total Fee</Text>
                   <Text style={styles.summaryValue}>
-                    {formatCurrency(selectedPlan.price)}
+                    {formatCurrency(feesAmount ? parseFloat(feesAmount) || selectedPlan.price : selectedPlan.price)}
                   </Text>
                 </View>
+                {feesPaid ? (
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Paid Now</Text>
+                    <Text style={[styles.summaryValue, { color: colors.status.success }]}>
+                      {formatCurrency(parseFloat(feesPaid) || 0)}
+                    </Text>
+                  </View>
+                ) : null}
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>Start Date</Text>
                   <Text style={styles.summaryValue}>{startDate || 'Not set'}</Text>
@@ -276,8 +393,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -287,16 +404,16 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     textAlign: 'center',
     paddingVertical: spacing.lg,
   },
   emptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
     textAlign: 'center',
     paddingVertical: spacing.lg,
@@ -323,15 +440,15 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: 2,
   },
   userEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   plansList: {
@@ -356,15 +473,15 @@ const styles = StyleSheet.create({
   },
   planName: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: 2,
   },
   planGym: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
@@ -375,14 +492,14 @@ const styles = StyleSheet.create({
   },
   planDuration: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   planPrice: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.primary.yellow,
   },
   summary: {
@@ -393,8 +510,8 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -406,17 +523,86 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   summaryValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   submitContainer: {
     marginTop: spacing.xxl,
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.background.card,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.gray,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+  },
+  datePickerText: {
+    flex: 1,
+    fontFamily: fontFamily.regular,
+    fontSize: ms(15),
+    lineHeight: ms(20),
+    color: colors.text.primary,
+  },
+  dateModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  dateModalContent: {
+    backgroundColor: colors.background.white,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    paddingBottom: 20,
+  },
+  dateModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  dateModalTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(16),
+    lineHeight: ms(22),
+    color: colors.text.primary,
+  },
+  dateModalDone: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(16),
+    lineHeight: ms(22),
+    color: colors.primary.yellowDark,
+  },
+  preselectedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.primary.yellowLight,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  preselectedBannerText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(14),
+    color: colors.text.primary,
+    flex: 1,
+  },
+  preselectedBannerName: {
+    fontFamily: fontFamily.bold,
   },
 });

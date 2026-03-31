@@ -9,6 +9,7 @@ import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { usersApi } from '../../../src/api/endpoints/users';
 import { colors, fontFamily, spacing, borderRadius } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { BirthdayUser, UpcomingBirthdayUser } from '../../../src/types/models';
 
 interface MenuItemProps {
@@ -172,6 +173,11 @@ export default function AdminDashboardScreen() {
                 label="Manage Orders"
                 onPress={() => router.push('/(app)/(admin)/orders')}
               />
+              <View style={styles.divider} />
+              <MenuItem
+                label="Sales Report"
+                onPress={() => router.push('/(app)/(admin)/sales-report')}
+              />
             </View>
           </View>
 
@@ -185,8 +191,8 @@ export default function AdminDashboardScreen() {
               />
               <View style={styles.divider} />
               <MenuItem
-                label="Sales Report"
-                onPress={() => router.push('/(app)/(admin)/sales-report')}
+                label="Gym Members"
+                onPress={() => router.push('/(app)/(admin)/memberships/gym-members')}
               />
               <View style={styles.divider} />
               <MenuItem
@@ -208,6 +214,15 @@ export default function AdminDashboardScreen() {
                 label="Promo Banners"
                 onPress={() => router.push('/(app)/(admin)/promo/past')}
               />
+              {isSuperadmin && (
+                <>
+                  <View style={styles.divider} />
+                  <MenuItem
+                    label="Contact Messages"
+                    onPress={() => router.push('/(app)/(admin)/contacts')}
+                  />
+                </>
+              )}
             </View>
           </View>
 
@@ -248,7 +263,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: 40,
+    paddingBottom: mvs(40),
   },
   profileSection: {
     alignItems: 'center',
@@ -256,15 +271,15 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: ms(22),
+    lineHeight: ms(28),
     color: colors.text.primary,
     marginTop: spacing.md,
   },
   userRole: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     textTransform: 'capitalize',
     marginTop: 2,
@@ -274,8 +289,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -293,8 +308,8 @@ const styles = StyleSheet.create({
   },
   menuLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   divider: {
@@ -312,7 +327,7 @@ const styles = StyleSheet.create({
   },
   birthdayHeaderText: {
     fontFamily: fontFamily.bold,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -329,14 +344,14 @@ const styles = StyleSheet.create({
   },
   birthdayName: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   birthdayGym: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
     marginTop: 1,
   },
@@ -348,7 +363,7 @@ const styles = StyleSheet.create({
   },
   daysUntilText: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.secondary,
   },
 });

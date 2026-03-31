@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontFamily, spacing, borderRadius } from '../../theme';
 import { formatRelative } from '../../utils/formatters';
+import { ms, mvs } from '../../utils/responsive';
 import type { Notification, NotificationType } from '../../types/models';
 
 interface NotificationCardProps {
@@ -12,27 +13,30 @@ interface NotificationCardProps {
 }
 
 const iconMap: Record<NotificationType, keyof typeof Ionicons.glyphMap> = {
-  order: 'cart-outline',
-  challenge: 'trophy-outline',
-  community: 'people-outline',
-  diet: 'leaf-outline',
-  system: 'settings-outline',
+  order:        'cart-outline',
+  challenge:    'trophy-outline',
+  community:    'people-outline',
+  diet:         'leaf-outline',
+  system:       'settings-outline',
+  announcement: 'megaphone-outline',
 };
 
 const iconColorMap: Record<NotificationType, string> = {
-  order: colors.status.info,
-  challenge: colors.status.warning,
-  community: colors.status.success,
-  diet: '#22c55e',
-  system: colors.text.secondary,
+  order:        colors.status.info,
+  challenge:    colors.status.warning,
+  community:    colors.status.success,
+  diet:         '#22c55e',
+  system:       colors.text.secondary,
+  announcement: colors.primary.yellowDark,
 };
 
 const iconBgMap: Record<NotificationType, string> = {
-  order: '#dbeafe',
-  challenge: '#fef3c7',
-  community: '#dcfce7',
-  diet: '#dcfce7',
-  system: colors.border.light,
+  order:        '#dbeafe',
+  challenge:    '#fef3c7',
+  community:    '#dcfce7',
+  diet:         '#dcfce7',
+  announcement: colors.primary.yellowLight,
+  system:       colors.border.light,
 };
 
 export const NotificationCard: React.FC<NotificationCardProps> = ({
@@ -41,14 +45,12 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
   onMarkAsRead,
 }) => {
   const { _id, title, message, type, isRead, createdAt } = notification;
-  const iconName = iconMap[type] || 'notifications-outline';
+  const iconName  = iconMap[type]  || 'notifications-outline';
   const iconColor = iconColorMap[type] || colors.text.secondary;
-  const iconBg = iconBgMap[type] || colors.border.light;
+  const iconBg    = iconBgMap[type] ?? colors.border.light;
 
   const handlePress = () => {
-    if (!isRead && onMarkAsRead) {
-      onMarkAsRead(_id);
-    }
+    if (!isRead && onMarkAsRead) onMarkAsRead(_id);
     onPress?.(notification);
   };
 
@@ -58,8 +60,8 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
-        <Ionicons name={iconName} size={20} color={iconColor} />
+      <View style={[styles.iconContainer, { backgroundColor: iconBg || colors.border.light }]}>
+        <Ionicons name={iconName} size={ms(20)} color={iconColor} />
       </View>
 
       <View style={styles.content}>
@@ -79,15 +81,26 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
           </Text>
         )}
 
+        {type === 'order' && notification.metadata && (
+          <View style={styles.metadataRow}>
+            {notification.metadata.orderId && (
+              <Text style={styles.metadataText}>
+                Order #{notification.metadata.orderId.slice(-6).toUpperCase()}
+              </Text>
+            )}
+            {notification.metadata.amount != null && (
+              <Text style={styles.metadataText}>
+                {'\u20B9'}{notification.metadata.amount}
+              </Text>
+            )}
+          </View>
+        )}
+
         <Text style={styles.timestamp}>{formatRelative(createdAt)}</Text>
       </View>
 
       <View style={styles.chevron}>
-        <Ionicons
-          name="chevron-forward"
-          size={16}
-          color={colors.text.light}
-        />
+        <Ionicons name="chevron-forward" size={ms(16)} color={colors.text.light} />
       </View>
     </TouchableOpacity>
   );
@@ -105,8 +118,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.yellowLight + '20',
   },
   iconContainer: {
-    width: 40,
-    height: 40,
+    width: ms(40),
+    height: ms(40),
     borderRadius: borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
@@ -123,8 +136,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     flex: 1,
   },
@@ -132,22 +145,33 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
   },
   unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: ms(8),
+    height: ms(8),
+    borderRadius: ms(4),
     backgroundColor: colors.primary.yellow,
   },
   message: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
-    marginTop: 2,
+    marginTop: mvs(2),
+  },
+  metadataRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: mvs(2),
+  },
+  metadataText: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(12),
+    lineHeight: ms(16),
+    color: colors.status.info,
   },
   timestamp: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: ms(11),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginTop: spacing.xs,
   },

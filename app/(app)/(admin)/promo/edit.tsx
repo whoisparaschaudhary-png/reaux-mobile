@@ -19,6 +19,7 @@ import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { promosApi } from '../../../../src/api/endpoints/promos';
 import { useUIStore } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { DiscountType } from '../../../../src/types/models';
 
 export default function EditPromoScreen() {
@@ -169,7 +170,7 @@ export default function EditPromoScreen() {
                 activeOpacity={0.7}
               >
                 <Ionicons
-                  name="percent-outline"
+                  name="pricetag-outline"
                   size={18}
                   color={
                     discountType === 'percentage'
@@ -354,8 +355,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -382,8 +383,8 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   typeTextActive: {
@@ -409,14 +410,14 @@ const styles = StyleSheet.create({
   },
   activeToggleText: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   activeToggleHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     paddingLeft: 36,
   },

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,7 @@ import { Header } from '../../../src/components/layout/Header';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { NotificationCard } from '../../../src/components/cards/NotificationCard';
 import { useNotificationStore } from '../../../src/stores/useNotificationStore';
+import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { formatDate } from '../../../src/utils/formatters';
 import {
   colors,
@@ -23,6 +25,7 @@ import {
   borderRadius,
   layout,
 } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 import type { Notification, NotificationType } from '../../../src/types/models';
 
 type TabKey = 'all' | 'unread' | 'activity';
@@ -47,6 +50,9 @@ export default function NotificationsScreen() {
     markAsRead,
     markAllAsRead,
   } = useNotificationStore();
+
+  const user = useAuthStore((s) => s.user);
+  const isSuperAdmin = user?.role === 'superadmin';
 
   const [activeTab, setActiveTab] = useState<TabKey>('all');
 
@@ -108,12 +114,76 @@ export default function NotificationsScreen() {
   }, [isLoading, pagination, fetchNotifications]);
 
   const handleNotificationPress = useCallback((notification: Notification) => {
-    // Navigate based on notification type/metadata if needed
-    // For now, just mark as read
+    // Mark as read
     if (!notification.isRead) {
       markAsRead(notification._id);
     }
-  }, [markAsRead]);
+
+    // Superadmin: navigate to related detail or show metadata
+    if (isSuperAdmin) {
+      const meta = notification.metadata ?? {};
+
+      switch (notification.type) {
+        case 'order':
+          if (meta.orderId) {
+            router.push(`/(app)/(admin)/orders/${meta.orderId}`);
+          } else {
+            Alert.alert(
+              notification.title,
+              [
+                notification.message,
+                '',
+                `Type: ${notification.type}`,
+                `ID: ${notification._id}`,
+                meta.orderId ? `Order: ${meta.orderId}` : '',
+              ]
+                .filter(Boolean)
+                .join('\n'),
+            );
+          }
+          break;
+        case 'community':
+          if (meta.postId) {
+            router.push(`/(app)/(feed)/${meta.postId}`);
+          } else if (meta.reelId) {
+            router.push(`/(app)/(reels)/${meta.reelId}`);
+          } else {
+            Alert.alert(
+              notification.title,
+              [
+                notification.message,
+                '',
+                `Type: ${notification.type}`,
+                `ID: ${notification._id}`,
+              ]
+                .filter(Boolean)
+                .join('\n'),
+            );
+          }
+          break;
+        case 'challenge':
+          router.push('/(app)/(admin)/challenges');
+          break;
+        default:
+          // Show notification details in an alert for other types
+          Alert.alert(
+            notification.title,
+            [
+              notification.message,
+              '',
+              `Type: ${notification.type}`,
+              `ID: ${notification._id}`,
+              Object.keys(meta).length > 0
+                ? `Metadata: ${JSON.stringify(meta, null, 2)}`
+                : '',
+            ]
+              .filter(Boolean)
+              .join('\n'),
+          );
+          break;
+      }
+    }
+  }, [markAsRead, isSuperAdmin]);
 
   const renderNotification = useCallback(
     ({ item }: { item: Notification }) => (
@@ -276,8 +346,8 @@ const styles = StyleSheet.create({
   },
   dateRangeText: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   tabBar: {
@@ -303,8 +373,8 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   tabTextActive: {
@@ -312,17 +382,17 @@ const styles = StyleSheet.create({
   },
   tabBadge: {
     backgroundColor: colors.status.error,
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
+    borderRadius: ms(10),
+    minWidth: ms(18),
+    height: ms(18),
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: ms(4),
   },
   tabBadgeText: {
     fontFamily: fontFamily.bold,
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: ms(10),
+    lineHeight: ms(14),
     color: colors.text.white,
   },
   centered: {
@@ -331,7 +401,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   listContent: {
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   sectionHeader: {
     paddingHorizontal: layout.screenPadding,
@@ -340,8 +410,8 @@ const styles = StyleSheet.create({
   },
   sectionHeaderText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,

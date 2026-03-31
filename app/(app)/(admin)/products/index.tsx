@@ -5,9 +5,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
-  Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
@@ -19,14 +18,24 @@ import { Button } from '../../../../src/components/ui/Button';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { useProductStore } from '../../../../src/stores/useProductStore';
-import { useUIStore } from '../../../../src/stores/useUIStore';
+import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { productsApi } from '../../../../src/api/endpoints/products';
 import { exportProductsListPDF } from '../../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
-import type { Product } from '../../../../src/types/models';
+import { ms } from '../../../../src/utils/responsive';
+import type { Product, ProductVisibility } from '../../../../src/types/models';
+
+function visibilityBadge(visibility: ProductVisibility | undefined) {
+  const v = visibility ?? 'all';
+  if (v === 'all') return { text: 'All users', variant: 'default' as const };
+  if (v === 'admin') return { text: 'Admin', variant: 'warning' as const };
+  return { text: 'Members', variant: 'info' as const };
+}
 
 export default function ProductListScreen() {
   const router = useRouter();
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { products, isLoading, fetchProducts } = useProductStore();
   const showToast = useUIStore((s) => s.showToast);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -56,7 +65,7 @@ export default function ProductListScreen() {
           await productsApi.update(product._id, { isActive: newStatus });
           await fetchProducts();
         } catch {
-          Alert.alert('Error', `Failed to ${action} product.`);
+          showAppAlert('Error', `Failed to ${action} product.`);
         } finally {
           setTogglingIds((prev) => {
             const next = new Set(prev);
@@ -67,7 +76,7 @@ export default function ProductListScreen() {
       };
 
       if (!newStatus) {
-        Alert.alert(
+        showAppAlert(
           'Deactivate Product',
           `Are you sure you want to deactivate "${product.name}"? It will be hidden from the shop.`,
           [
@@ -142,6 +151,7 @@ export default function ProductListScreen() {
           </View>
 
           <View style={styles.statusColumn}>
+            <Badge {...visibilityBadge(item.visibility)} size="sm" />
             <Badge
               text={item.isActive ? 'Active' : 'Hidden'}
               variant={item.isActive ? 'success' : 'error'}
@@ -182,7 +192,7 @@ export default function ProductListScreen() {
         <Header
           title="Products"
           showBack
-          onBack={() => router.back()}
+          onBack={handleBack}
           rightAction={
             <TouchableOpacity
               onPress={() => router.push('/(app)/(admin)/products/create')}
@@ -242,7 +252,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   productCard: {
     marginTop: spacing.md,
@@ -253,8 +263,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   productImage: {
-    width: 60,
-    height: 60,
+    width: ms(60),
+    height: ms(60),
     borderRadius: borderRadius.md,
   },
   productImagePlaceholder: {
@@ -267,8 +277,8 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   priceRow: {
@@ -279,14 +289,14 @@ const styles = StyleSheet.create({
   },
   productPrice: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   comparePrice: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     textDecorationLine: 'line-through',
   },
@@ -298,14 +308,14 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
   },
   stockText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   statusColumn: {
@@ -315,9 +325,9 @@ const styles = StyleSheet.create({
   toggleButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: ms(4),
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: ms(4),
     borderRadius: borderRadius.sm,
     borderWidth: 1,
   },
@@ -334,8 +344,8 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: ms(11),
+    lineHeight: ms(16),
   },
   exportButtonContainer: {
     marginTop: spacing.xxl,

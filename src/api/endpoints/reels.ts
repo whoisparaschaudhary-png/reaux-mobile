@@ -24,5 +24,5 @@ export const reelsApi = {
     client.get<PaginatedResponse<ReelComment>>(`/reels/${id}/comments`, { params }).then(r => r.data),
 
   addComment: (id: string, content: string) =>
-    client.post<ApiResponse<ReelComment>>(`/reels/${id}/comment`, { content }).then(r => r.data),
+    client.post<ApiResponse<ReelComment>>(`/reels/${id}/comments`, { content }).then(r => r.data),
 };

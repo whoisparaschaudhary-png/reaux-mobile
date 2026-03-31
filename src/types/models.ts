@@ -1,31 +1,50 @@
+// SavedAddress (user profile addresses)
+export interface SavedAddress {
+  _id: string;
+  label: string; // e.g. "Home", "Work"
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+  isDefault: boolean;
+}
+
 // Role types
 export type Role = 'user' | 'admin' | 'superadmin';
 export type UserStatus = 'active' | 'disabled';
 export type Gender = 'male' | 'female' | 'other';
 export type MediaType = 'text' | 'image' | 'video';
 export type BmiCategory = 'underweight' | 'normal' | 'overweight' | 'obese';
-export type DietCategory = 'weight-loss' | 'muscle-gain' | 'maintenance' | 'keto' | 'vegan' | 'other';
+export type DietCategory = 'weight-loss' | 'muscle-gain' | 'bulking' | 'cutting' | 'other';
+export type DietType = 'veg' | 'non-veg' | 'both';
 export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
 export type ChallengeType = 'steps' | 'workout' | 'diet' | 'custom';
 export type WorkoutCategory = 'strength' | 'cardio' | 'flexibility' | 'hiit' | 'yoga' | 'crossfit' | 'other';
 export type WorkoutDifficulty = 'beginner' | 'intermediate' | 'advanced';
-export type NotificationType = 'system' | 'order' | 'challenge' | 'community' | 'diet';
+export type NotificationType = 'system' | 'order' | 'challenge' | 'community' | 'diet' | 'announcement';
 export type DiscountType = 'percentage' | 'fixed';
+export type ProductVisibility = 'all' | 'admin' | 'user';
 export type MembershipStatus = 'active' | 'expired' | 'cancelled';
+export type ContactStatus = 'open' | 'resolved';
 
 // User
 export interface User {
   _id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   phone?: string;
   role: Role;
   gymId?: string | Gym;
+  gymIds?: (string | Gym)[];
   avatar?: string;
   height?: number;
   weight?: number;
   dateOfBirth?: string;
   gender?: Gender;
+  dateOfJoining?: string;
   status: UserStatus;
   createdAt: string;
   updatedAt: string;
@@ -115,6 +134,7 @@ export interface DietPlan {
   followers: string[];
   likes: string[];
   tags: string[];
+  dietType?: DietType;
   likesCount: number;
   followersCount: number;
   createdAt: string;
@@ -158,7 +178,7 @@ export interface Reel {
   linkedProduct?: string | Product;
   isLiked?: boolean;
   likesCount: number;
-  commentsCount: number;
+  commentsCount?: number;
   createdAt: string;
 }
 
@@ -189,6 +209,7 @@ export interface Product {
   images: string[];
   category?: string;
   stock: number;
+  visibility?: ProductVisibility;
   nutrition?: NutritionInfo;
   isActive: boolean;
   createdBy: string | User;
@@ -291,6 +312,20 @@ export interface Notification {
   createdAt: string;
 }
 
+// Contact
+export interface Contact {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  subject?: string;
+  message: string;
+  status: ContactStatus;
+  userId?: string | User;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 // Analytics
 export interface PlatformStats {
   totalUsers: number;
@@ -349,6 +384,15 @@ export interface MembershipPlan {
   updatedAt: string;
 }
 
+// Membership Fee Payment
+export interface FeePayment {
+  amount: number;
+  note?: string;
+  paidAt?: string; // legacy alias
+  date?: string;   // API returns this field
+  recordedBy?: string | User;
+}
+
 // Membership
 export interface Membership {
   _id: string;
@@ -358,6 +402,12 @@ export interface Membership {
   startDate: string;
   endDate: string;
   status: MembershipStatus;
+  feesAmount?: number;
+  feesPaid?: number;
+  feesDue?: number;
+  advanceCredit?: number;
+  lastPaymentDate?: string;
+  paymentHistory?: FeePayment[];
   assignedBy: string | User;
   createdAt: string;
   updatedAt: string;

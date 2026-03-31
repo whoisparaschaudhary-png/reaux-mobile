@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, layout } from '../theme';
+import { ms } from '../../utils/responsive';
 
 interface HeaderProps {
   title: string;
@@ -29,7 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Ionicons
               name="chevron-back"
-              size={24}
+              size={ms(24)}
               color={colors.text.primary}
             />
           </TouchableOpacity>
@@ -54,15 +55,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   left: {
-    width: 40,
+    width: ms(40),
     alignItems: 'flex-start',
   },
   backButton: {
-    width: 36,
-    height: 36,
+    width: ms(36),
+    height: ms(36),
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 18,
+    borderRadius: ms(18),
   },
   title: {
     ...typography.h3,
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   right: {
-    minWidth: 40,
+    minWidth: ms(40),
     alignItems: 'flex-end',
   },
 });

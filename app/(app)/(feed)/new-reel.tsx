@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,12 +16,14 @@ import { Input } from '../../../src/components/ui/Input';
 import { Button } from '../../../src/components/ui/Button';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { reelsApi } from '../../../src/api/endpoints/reels';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import {
   colors,
   fontFamily,
   spacing,
   borderRadius,
 } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 
 const REEL_CATEGORIES = ['Workout', 'Nutrition', 'Tips', 'Motivation', 'Other'] as const;
 type ReelCategory = (typeof REEL_CATEGORIES)[number];
@@ -46,7 +47,7 @@ export default function NewReelScreen() {
   const pickVideo = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
+      showAppAlert(
         'Permission needed',
         'Please grant camera roll permissions to upload videos.',
       );
@@ -73,7 +74,7 @@ export default function NewReelScreen() {
   const pickThumbnail = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
+      showAppAlert(
         'Permission needed',
         'Please grant camera roll permissions to select a thumbnail.',
       );
@@ -94,7 +95,7 @@ export default function NewReelScreen() {
 
   const handleSubmit = useCallback(async () => {
     if (!video) {
-      Alert.alert('Missing video', 'Please select a video for your reel.');
+      showAppAlert('Missing video', 'Please select a video for your reel.');
       return;
     }
 
@@ -126,7 +127,7 @@ export default function NewReelScreen() {
       await reelsApi.create(formData);
       router.back();
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to upload reel.');
+      showAppAlert('Error', err.message || 'Failed to upload reel.');
     } finally {
       setIsSubmitting(false);
     }
@@ -329,8 +330,8 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -338,7 +339,7 @@ const styles = StyleSheet.create({
   // Media picker
   mediaPicker: {
     width: '100%',
-    height: 180,
+    height: ms(180),
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,
     borderColor: colors.border.gray,
@@ -350,14 +351,14 @@ const styles = StyleSheet.create({
   },
   mediaPickerText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
   },
   mediaPickerHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
 
@@ -373,8 +374,8 @@ const styles = StyleSheet.create({
   videoFileName: {
     flex: 1,
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   changeButton: {
@@ -385,8 +386,8 @@ const styles = StyleSheet.create({
   },
   changeButtonText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.primary,
   },
   removeButton: {
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
   // Thumbnail
   thumbnailPicker: {
     width: '100%',
-    height: 120,
+    height: ms(120),
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,
     borderColor: colors.border.gray,
@@ -410,8 +411,8 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderRadius: borderRadius.lg,
     overflow: 'hidden',
-    width: 120,
-    height: 200,
+    width: ms(120),
+    height: ms(200),
   },
   thumbnailPreview: {
     width: '100%',
@@ -440,8 +441,8 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   categoryChipTextActive: {

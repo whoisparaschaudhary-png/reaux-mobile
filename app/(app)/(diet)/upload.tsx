@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,17 +16,24 @@ import { Button } from '../../../src/components/ui/Button';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDietStore } from '../../../src/stores/useDietStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
-import type { DietCategory } from '../../../src/types/models';
+import { ms, mvs } from '../../../src/utils/responsive';
+import type { DietCategory, DietType } from '../../../src/types/models';
 
 const CATEGORIES: { label: string; value: DietCategory }[] = [
   { label: 'Weight Loss', value: 'weight-loss' },
   { label: 'Muscle Gain', value: 'muscle-gain' },
-  { label: 'Maintenance', value: 'maintenance' },
-  { label: 'Keto', value: 'keto' },
-  { label: 'Vegan', value: 'vegan' },
+  { label: 'Bulking', value: 'bulking' },
+  { label: 'Cutting', value: 'cutting' },
   { label: 'Other', value: 'other' },
+];
+
+const DIET_TYPES: { label: string; value: DietType }[] = [
+  { label: 'Veg', value: 'veg' },
+  { label: 'Non-Veg', value: 'non-veg' },
+  { label: 'Both', value: 'both' },
 ];
 
 export default function UploadDietScreen() {
@@ -43,7 +49,9 @@ export default function UploadDietScreen() {
   const [snacks, setSnacks] = useState('');
   const [dinner, setDinner] = useState('');
   const [instructions, setInstructions] = useState('');
+  const [dietType, setDietType] = useState<DietType>('both');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showDietTypePicker, setShowDietTypePicker] = useState(false);
 
   const user = useAuthStore((s) => s.user);
   const { createPlan, isLoading } = useDietStore();
@@ -51,13 +59,13 @@ export default function UploadDietScreen() {
 
   const handleSubmit = useCallback(async () => {
     if (!title.trim()) {
-      Alert.alert('Validation', 'Please enter a plan title.');
+      showAppAlert('Validation', 'Please enter a plan title.');
       return;
     }
 
     const caloriesNum = calories.trim() ? Number(calories) : NaN;
     if (calories.trim() && (Number.isNaN(caloriesNum) || caloriesNum <= 0)) {
-      Alert.alert('Validation', 'Calories per day must be a number greater than 0.');
+      showAppAlert('Validation', 'Calories per day must be a number greater than 0.');
       return;
     }
 
@@ -79,10 +87,11 @@ export default function UploadDietScreen() {
         const form = new FormData();
         form.append('title', title.trim());
         form.append('category', category);
+        form.append('dietType', dietType);
         if (description.trim()) form.append('description', description.trim());
         if (caloriesNum > 0) form.append('totalCalories', String(caloriesNum));
         if (meals.length > 0) form.append('meals', JSON.stringify(meals));
-        form.append('isPublished', 'false');
+        form.append('isPublished', 'true');
 
         // React Native FormData requires proper typing
         const imageFile: any = {
@@ -98,15 +107,16 @@ export default function UploadDietScreen() {
           {
             title: title.trim(),
             category,
+            dietType,
             description: description.trim() || undefined,
             totalCalories: caloriesNum > 0 ? caloriesNum : undefined,
             meals,
-            isPublished: false,
+            isPublished: true,
           },
           user ?? undefined
         );
       }
-      Alert.alert('Success', 'Diet plan created successfully!', [
+      showAppAlert('Success', 'Diet plan created successfully!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
@@ -119,9 +129,9 @@ export default function UploadDietScreen() {
           errorMessage = firstMessages[0];
         }
       }
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     }
-  }, [title, category, description, calories, breakfast, lunch, snacks, dinner, image, createPlan]);
+  }, [title, category, dietType, description, calories, breakfast, lunch, snacks, dinner, image, createPlan]);
 
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>
@@ -192,6 +202,55 @@ export default function UploadDietScreen() {
                       {cat.label}
                     </Text>
                     {category === cat.value && (
+                      <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Diet Type Dropdown */}
+          <View style={styles.fieldSpacing}>
+            <Text style={styles.label}>Diet Type</Text>
+            <TouchableOpacity
+              style={styles.dropdown}
+              onPress={() => setShowDietTypePicker(!showDietTypePicker)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.dropdownText}>
+                {DIET_TYPES.find((d) => d.value === dietType)?.label || 'Select Diet Type'}
+              </Text>
+              <Ionicons
+                name={showDietTypePicker ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color={colors.text.secondary}
+              />
+            </TouchableOpacity>
+            {showDietTypePicker && (
+              <View style={[styles.categoryList, shadows.card]}>
+                {DIET_TYPES.map((dt) => (
+                  <TouchableOpacity
+                    key={dt.value}
+                    style={[
+                      styles.categoryOption,
+                      dietType === dt.value && styles.categoryOptionActive,
+                    ]}
+                    onPress={() => {
+                      setDietType(dt.value);
+                      setShowDietTypePicker(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryOptionText,
+                        dietType === dt.value && styles.categoryOptionTextActive,
+                      ]}
+                    >
+                      {dt.value === 'veg' ? '🟢 ' : dt.value === 'non-veg' ? '🔴 ' : '🟡 '}{dt.label}
+                    </Text>
+                    {dietType === dt.value && (
                       <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />
                     )}
                   </TouchableOpacity>
@@ -350,8 +409,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -361,8 +420,8 @@ const styles = StyleSheet.create({
   },
   mealHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.light,
     marginTop: spacing.xs,
   },
@@ -379,8 +438,8 @@ const styles = StyleSheet.create({
   },
   dropdownText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
   },
   categoryList: {
@@ -401,8 +460,8 @@ const styles = StyleSheet.create({
   },
   categoryOptionText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   categoryOptionTextActive: {
@@ -437,8 +496,8 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
   },
   macroRow: {

@@ -9,7 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
@@ -17,6 +17,7 @@ import { OrderCard } from '../../../src/components/cards/OrderCard';
 import { useOrderStore } from '../../../src/stores/useOrderStore';
 import { useRefreshOnFocus } from '../../../src/hooks/useRefreshOnFocus';
 import { colors, fontFamily, borderRadius, spacing, layout } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 import type { OrderStatus } from '../../../src/types/models';
 
 const STATUS_TABS: Array<{ label: string; value: string }> = [
@@ -29,6 +30,8 @@ const STATUS_TABS: Array<{ label: string; value: string }> = [
 ];
 
 export default function OrdersScreen() {
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { orders, isLoading, pagination, fetchMyOrders } = useOrderStore();
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -73,7 +76,7 @@ export default function OrdersScreen() {
 
   return (
     <SafeScreen>
-      <Header title="My Orders" showBack onBack={() => router.back()} />
+      <Header title="My Orders" showBack onBack={handleBack} />
 
       {/* Status Filter Tabs */}
       <ScrollView
@@ -153,7 +156,7 @@ const styles = StyleSheet.create({
 
   // Tabs
   tabsScroll: {
-    maxHeight: 50,
+    maxHeight: ms(50),
   },
   tabsContent: {
     paddingHorizontal: spacing.xl,
@@ -172,7 +175,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   tabTextActive: {

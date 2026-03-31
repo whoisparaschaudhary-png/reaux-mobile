@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { colors, fontFamily, borderRadius, spacing } from '../theme';
+import { ms, mvs } from '../../utils/responsive';
 
 type BadgeVariant = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'default';
 type BadgeSize = 'sm' | 'md';
@@ -12,30 +13,12 @@ interface BadgeProps {
 }
 
 const variantColors: Record<BadgeVariant, { bg: string; text: string }> = {
-  primary: {
-    bg: colors.primary.yellowLight,
-    text: colors.text.primary,
-  },
-  success: {
-    bg: '#dcfce7',
-    text: '#166534',
-  },
-  error: {
-    bg: '#fee2e2',
-    text: '#991b1b',
-  },
-  warning: {
-    bg: '#fef3c7',
-    text: '#92400e',
-  },
-  info: {
-    bg: '#dbeafe',
-    text: '#1e40af',
-  },
-  default: {
-    bg: colors.border.light,
-    text: colors.text.secondary,
-  },
+  primary: { bg: colors.primary.yellowLight, text: colors.text.primary },
+  success: { bg: '#dcfce7', text: '#166534' },
+  error:   { bg: '#fee2e2', text: '#991b1b' },
+  warning: { bg: '#fef3c7', text: '#92400e' },
+  info:    { bg: '#dbeafe', text: '#1e40af' },
+  default: { bg: colors.border.light, text: colors.text.secondary },
 };
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -43,14 +26,15 @@ export const Badge: React.FC<BadgeProps> = ({
   variant = 'default',
   size = 'md',
 }) => {
-  const colorScheme = variantColors[variant];
+  const resolvedVariant = variant && variantColors[variant] ? variant : 'default';
+  const colorScheme = variantColors[resolvedVariant];
 
   const containerStyle: ViewStyle = {
-    backgroundColor: colorScheme.bg,
+    backgroundColor: colorScheme.bg ?? colors.border.light,
   };
 
   const textStyle: TextStyle = {
-    color: colorScheme.text,
+    color: colorScheme.text ?? colors.text.secondary,
   };
 
   return (
@@ -72,22 +56,16 @@ const styles = StyleSheet.create({
 
 const sizeStyles: Record<BadgeSize, ViewStyle> = {
   sm: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingHorizontal: ms(8),
+    paddingVertical:   mvs(2),
   },
   md: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical:   spacing.xs,
   },
 };
 
 const textSizeStyles: Record<BadgeSize, TextStyle> = {
-  sm: {
-    fontSize: 10,
-    lineHeight: 14,
-  },
-  md: {
-    fontSize: 12,
-    lineHeight: 16,
-  },
+  sm: { fontSize: ms(10), lineHeight: ms(14) },
+  md: { fontSize: ms(12), lineHeight: ms(16) },
 };

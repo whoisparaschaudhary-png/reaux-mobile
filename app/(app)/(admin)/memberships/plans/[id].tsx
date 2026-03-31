@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../../../src/components/layout/SafeScreen';
@@ -10,6 +10,7 @@ import { Badge } from '../../../../../src/components/ui/Badge';
 import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
 import { useAuthStore } from '../../../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { formatCurrency, formatDate } from '../../../../../src/utils/formatters';
 import {
   colors,
@@ -19,6 +20,7 @@ import {
   layout,
   shadows,
 } from '../../../../../src/theme';
+import { ms, mvs } from '../../../../../src/utils/responsive';
 import type { Gym } from '../../../../../src/types/models';
 
 export default function MembershipPlanDetailScreen() {
@@ -47,7 +49,7 @@ export default function MembershipPlanDetailScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    showAppAlert(
       'Delete Plan',
       'Are you sure you want to delete this membership plan? This action cannot be undone.',
       [
@@ -58,11 +60,11 @@ export default function MembershipPlanDetailScreen() {
           onPress: async () => {
             try {
               await deletePlan(id);
-              Alert.alert('Success', 'Plan deleted successfully', [
+              showAppAlert('Success', 'Plan deleted successfully', [
                 { text: 'OK', onPress: () => router.back() },
               ]);
             } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to delete plan');
+              showAppAlert('Error', err.message || 'Failed to delete plan');
             }
           },
         },
@@ -240,16 +242,16 @@ const styles = StyleSheet.create({
   },
   planName: {
     fontFamily: fontFamily.bold,
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: ms(24),
+    lineHeight: ms(30),
     color: colors.text.primary,
     flex: 1,
     marginRight: spacing.md,
   },
   gymName: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
@@ -260,27 +262,27 @@ const styles = StyleSheet.create({
   },
   price: {
     fontFamily: fontFamily.bold,
-    fontSize: 32,
-    lineHeight: 40,
+    fontSize: ms(32),
+    lineHeight: ms(40),
     color: colors.primary.yellow,
   },
   duration: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   cardTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
   description: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   featureItem: {
@@ -291,8 +293,8 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.primary,
     flex: 1,
   },
@@ -306,14 +308,14 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   infoValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   dangerZone: {
@@ -321,8 +323,8 @@ const styles = StyleSheet.create({
   },
   dangerTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.status.error,
     marginBottom: spacing.md,
   },
@@ -340,8 +342,8 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.status.error,
   },
 });

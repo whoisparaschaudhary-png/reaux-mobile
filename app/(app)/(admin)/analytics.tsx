@@ -9,6 +9,7 @@ import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useAdminStore } from '../../../src/stores/useAdminStore';
 import { formatNumber } from '../../../src/utils/formatters';
 import { colors, fontFamily, spacing } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 
 interface StatCardProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   loadingContainer: {
     flex: 1,
@@ -116,8 +117,8 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: ms(20),
+    lineHeight: ms(28),
     color: colors.text.primary,
     marginBottom: spacing.xl,
     marginTop: spacing.sm,
@@ -134,24 +135,24 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: ms(48),
+    height: ms(48),
+    borderRadius: ms(24),
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
   },
   statValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: ms(28),
+    lineHeight: ms(34),
     color: colors.text.primary,
     marginBottom: 2,
   },
   statLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
 });

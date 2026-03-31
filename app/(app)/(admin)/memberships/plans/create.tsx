@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -18,7 +17,9 @@ import { Button } from '../../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
 import { gymsApi } from '../../../../../src/api/endpoints/gyms';
+import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
+import { ms, mvs } from '../../../../../src/utils/responsive';
 import type { Gym } from '../../../../../src/types/models';
 
 const DURATIONS = [
@@ -53,7 +54,7 @@ export default function CreateMembershipPlanScreen() {
         setSelectedGymId(response.data[0]._id);
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to load gyms');
+      showAppAlert('Error', err.message || 'Failed to load gyms');
     } finally {
       setLoadingGyms(false);
     }
@@ -75,15 +76,15 @@ export default function CreateMembershipPlanScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Plan name is required');
+      showAppAlert('Validation', 'Plan name is required');
       return;
     }
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      Alert.alert('Validation', 'Valid price is required');
+      showAppAlert('Validation', 'Valid price is required');
       return;
     }
     if (!selectedGymId) {
-      Alert.alert('Validation', 'Please select a gym');
+      showAppAlert('Validation', 'Please select a gym');
       return;
     }
 
@@ -99,11 +100,11 @@ export default function CreateMembershipPlanScreen() {
         features: filteredFeatures.length > 0 ? filteredFeatures : undefined,
       });
 
-      Alert.alert('Success', 'Membership plan created successfully', [
+      showAppAlert('Success', 'Membership plan created successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to create plan');
+      showAppAlert('Error', err.message || 'Failed to create plan');
     }
   };
 
@@ -267,8 +268,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -278,16 +279,16 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     textAlign: 'center',
     paddingVertical: spacing.lg,
   },
   emptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
     textAlign: 'center',
     paddingVertical: spacing.lg,
@@ -308,8 +309,8 @@ const styles = StyleSheet.create({
   },
   gymChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   gymChipTextActive: {
@@ -331,8 +332,8 @@ const styles = StyleSheet.create({
   },
   durationChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   durationChipTextActive: {

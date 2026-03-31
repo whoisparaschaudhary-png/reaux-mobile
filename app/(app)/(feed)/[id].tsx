@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -10,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Share,
+  Alert,
+  TextInput,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,19 +32,177 @@ import {
   spacing,
   borderRadius,
 } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 import type { Post, Comment, User, Role } from '../../../src/types/models';
+
+interface PostHeaderProps {
+  post: Post;
+  isLiked: boolean;
+  onLike: () => void;
+  onDelete: () => void;
+  isSuperAdmin: boolean;
+}
+
+const PostHeader = React.memo(({ post, isLiked, onLike, onDelete, isSuperAdmin }: PostHeaderProps) => {
+  const author = typeof post.author === 'object' ? (post.author as User) : null;
+  const authorName = author?.name ?? 'Unknown';
+  const authorAvatar = author?.avatar;
+  const authorRole = author?.role as Role | undefined;
+  const hasImage = post.mediaType === 'image' && post.mediaUrl;
+
+  return (
+    <View>
+      {hasImage && (
+        <Image
+          source={{ uri: post.mediaUrl }}
+          style={styles.postImage}
+          contentFit="cover"
+          transition={300}
+        />
+      )}
+
+      <View style={styles.authorRow}>
+        <Avatar uri={authorAvatar} name={authorName} size={44} />
+        <View style={styles.authorInfo}>
+          <View style={styles.authorNameRow}>
+            <Text style={styles.authorName}>{authorName}</Text>
+            {authorRole === 'admin' && (
+              <Badge text="Admin" variant="primary" size="sm" />
+            )}
+            {authorRole === 'superadmin' && (
+              <Badge text="Coach" variant="success" size="sm" />
+            )}
+          </View>
+          <Text style={styles.timestamp}>{formatRelative(post.createdAt)}</Text>
+        </View>
+      </View>
+
+      {post.content ? (
+        <Text style={styles.content}>{post.content}</Text>
+      ) : null}
+
+      {post.hashtags && post.hashtags.length > 0 && (
+        <View style={styles.hashtagRow}>
+          {post.hashtags.map((tag) => (
+            <Text key={tag} style={styles.hashtag}>#{tag}</Text>
+          ))}
+        </View>
+      )}
+
+      <View style={styles.actionsRow}>
+        <TouchableOpacity
+          onPress={onLike}
+          style={styles.actionButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons
+            name={isLiked ? 'heart' : 'heart-outline'}
+            size={24}
+            color={isLiked ? colors.status.error : colors.text.secondary}
+          />
+          <Text style={styles.actionCount}>{formatNumber(post.likesCount)}</Text>
+        </TouchableOpacity>
+
+        <View style={styles.actionButton}>
+          <Ionicons name="chatbubble-outline" size={22} color={colors.text.secondary} />
+          <Text style={styles.actionCount}>{formatNumber(post.commentsCount)}</Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.actionButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          onPress={() => {
+            const storeUrl = Platform.OS === 'ios'
+              ? 'https://apps.apple.com/app/id' + 'YOUR_APP_STORE_ID'
+              : 'https://play.google.com/store/apps/details?id=com.babbaranish.reauxlabsmobile';
+            Share.share({
+              message: post.content
+                ? `${post.content}\n\n— Shared from REAUX Labs\nFollow us: https://www.instagram.com/reauxlabs/\nDownload: ${storeUrl}`
+                : `Check out REAUX Labs – your fitness community!\nFollow us: https://www.instagram.com/reauxlabs/\nDownload: ${storeUrl}`,
+            });
+          }}
+        >
+          <Ionicons name="share-outline" size={22} color={colors.text.secondary} />
+        </TouchableOpacity>
+
+        {isSuperAdmin && (
+          <TouchableOpacity
+            onPress={onDelete}
+            style={styles.actionButton}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="trash-outline" size={22} color={colors.status.error} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={styles.commentsHeader}>
+        <Text style={styles.commentsTitle}>Comments</Text>
+      </View>
+    </View>
+  );
+});
+
+interface CommentInputProps {
+  onSend: (text: string) => Promise<void>;
+}
+
+const CommentInput = React.memo(({ onSend }: CommentInputProps) => {
+  const [text, setText] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSend = useCallback(async () => {
+    if (!text.trim()) return;
+    setIsSending(true);
+    try {
+      await onSend(text.trim());
+      setText('');
+    } finally {
+      setIsSending(false);
+    }
+  }, [text, onSend]);
+
+  return (
+    <View style={styles.commentInputContainer}>
+      <TextInput
+        style={styles.commentInput}
+        placeholder="Write a comment..."
+        placeholderTextColor={colors.text.light}
+        value={text}
+        onChangeText={setText}
+        multiline
+        maxLength={500}
+      />
+      <TouchableOpacity
+        onPress={handleSend}
+        disabled={!text.trim() || isSending}
+        style={[
+          styles.sendButton,
+          (!text.trim() || isSending) && styles.sendButtonDisabled,
+        ]}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        {isSending ? (
+          <ActivityIndicator size="small" color={colors.text.onPrimary} />
+        ) : (
+          <Ionicons name="send" size={20} color={colors.text.onPrimary} />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+});
 
 export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const likePost = useFeedStore((s) => s.likePost);
+  const deletePost = useFeedStore((s) => s.deletePost);
+  const isSuperAdmin = user?.role === 'superadmin';
 
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [commentText, setCommentText] = useState('');
-  const [isSending, setIsSending] = useState(false);
 
   const loadPost = useCallback(async () => {
     if (!id) return;
@@ -75,23 +234,75 @@ export default function PostDetailScreen() {
     }
   }, [id, likePost]);
 
-  const handleSendComment = useCallback(async () => {
-    if (!id || !commentText.trim()) return;
-    setIsSending(true);
-    try {
-      const response = await postsApi.comment(id, commentText.trim());
-      setComments((prev) => [...prev, response.data]);
-      setCommentText('');
-      // Update comment count on post
-      setPost((prev) =>
-        prev ? { ...prev, commentsCount: prev.commentsCount + 1 } : prev,
-      );
-    } catch {
-      // Error handled silently
-    } finally {
-      setIsSending(false);
-    }
-  }, [id, commentText]);
+  const handleSendComment = useCallback(async (text: string) => {
+    if (!id) return;
+    const response = await postsApi.comment(id, text);
+    setComments((prev) => [...prev, response.data]);
+    setPost((prev) =>
+      prev ? { ...prev, commentsCount: prev.commentsCount + 1 } : prev,
+    );
+  }, [id]);
+
+  const handleDelete = useCallback(() => {
+    if (!id) return;
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deletePost(id);
+              router.back();
+            } catch {
+              Alert.alert('Error', 'Failed to delete post. Please try again.');
+            }
+          },
+        },
+      ],
+    );
+  }, [id, deletePost, router]);
+
+  const handleDeleteComment = useCallback(
+    (commentId: string) => {
+      if (!id) return;
+      Alert.alert('Delete Comment', 'Are you sure you want to delete this comment?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await postsApi.deleteComment(id, commentId);
+              setComments((prev) => prev.filter((c) => c._id !== commentId));
+              setPost((prev) =>
+                prev ? { ...prev, commentsCount: Math.max(0, prev.commentsCount - 1) } : prev,
+              );
+            } catch {
+              Alert.alert('Error', 'Failed to delete comment. Please try again.');
+            }
+          },
+        },
+      ]);
+    },
+    [id],
+  );
+
+  const headerElement = useMemo(
+    () => post ? (
+      <PostHeader
+        post={post}
+        isLiked={post.isLiked}
+        onLike={handleLike}
+        onDelete={handleDelete}
+        isSuperAdmin={isSuperAdmin}
+      />
+    ) : null,
+    [post, handleLike, handleDelete, isSuperAdmin],
+  );
 
   if (isLoading) {
     return (
@@ -117,126 +328,13 @@ export default function PostDetailScreen() {
     );
   }
 
-  const author =
-    typeof post.author === 'object' ? (post.author as User) : null;
-  const authorName = author?.name ?? 'Unknown';
-  const authorAvatar = author?.avatar;
-  const authorRole = author?.role as Role | undefined;
-  const hasImage = post.mediaType === 'image' && post.mediaUrl;
-
-  // Check if current user has liked this post
-  const isLiked = user && post.isLiked !== undefined
-    ? post.isLiked
-    : user && post.likes?.includes(user._id);
-
-  const renderHeader = () => (
-    <View>
-      {/* Post image */}
-      {hasImage && (
-        <Image
-          source={{ uri: post.mediaUrl }}
-          style={styles.postImage}
-          contentFit="cover"
-          transition={300}
-        />
-      )}
-
-      {/* Author info */}
-      <View style={styles.authorRow}>
-        <Avatar uri={authorAvatar} name={authorName} size={44} />
-        <View style={styles.authorInfo}>
-          <View style={styles.authorNameRow}>
-            <Text style={styles.authorName}>{authorName}</Text>
-            {authorRole === 'admin' && (
-              <Badge text="Admin" variant="primary" size="sm" />
-            )}
-            {authorRole === 'superadmin' && (
-              <Badge text="Coach" variant="success" size="sm" />
-            )}
-          </View>
-          <Text style={styles.timestamp}>
-            {formatRelative(post.createdAt)}
-          </Text>
-        </View>
-      </View>
-
-      {/* Content */}
-      {post.content ? (
-        <Text style={styles.content}>{post.content}</Text>
-      ) : null}
-
-      {/* Hashtags */}
-      {post.hashtags && post.hashtags.length > 0 && (
-        <View style={styles.hashtagRow}>
-          {post.hashtags.map((tag) => (
-            <Text key={tag} style={styles.hashtag}>
-              #{tag}
-            </Text>
-          ))}
-        </View>
-      )}
-
-      {/* Actions */}
-      <View style={styles.actionsRow}>
-        <TouchableOpacity
-          onPress={handleLike}
-          style={styles.actionButton}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Ionicons
-            name={isLiked ? 'heart' : 'heart-outline'}
-            size={24}
-            color={
-              isLiked
-                ? colors.status.error
-                : colors.text.secondary
-            }
-          />
-          <Text style={styles.actionCount}>
-            {formatNumber(post.likesCount)}
-          </Text>
-        </TouchableOpacity>
-
-        <View style={styles.actionButton}>
-          <Ionicons
-            name="chatbubble-outline"
-            size={22}
-            color={colors.text.secondary}
-          />
-          <Text style={styles.actionCount}>
-            {formatNumber(post.commentsCount)}
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          onPress={() => {
-            Share.share({
-              message: post.caption
-                ? `${post.caption} — shared from REAUX Labs`
-                : 'Check out this post on REAUX Labs!',
-            });
-          }}
-        >
-          <Ionicons
-            name="share-outline"
-            size={22}
-            color={colors.text.secondary}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Comments header */}
-      <View style={styles.commentsHeader}>
-        <Text style={styles.commentsTitle}>Comments</Text>
-      </View>
-    </View>
-  );
-
   return (
     <SafeScreen>
-      <Header title="Post" showBack onBack={() => router.back()} />
+      <Header
+        title="Post"
+        showBack
+        onBack={() => router.back()}
+      />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -246,8 +344,14 @@ export default function PostDetailScreen() {
         <FlatList
           data={comments}
           keyExtractor={(item) => item._id}
-          renderItem={({ item }) => <CommentCard comment={item} />}
-          ListHeaderComponent={renderHeader}
+          renderItem={({ item }) => (
+            <CommentCard
+              comment={item}
+              showDelete={isSuperAdmin}
+              onDelete={handleDeleteComment}
+            />
+          )}
+          ListHeaderComponent={() => headerElement}
           ListEmptyComponent={
             <View style={styles.emptyComments}>
               <Text style={styles.emptyText}>
@@ -259,37 +363,7 @@ export default function PostDetailScreen() {
           showsVerticalScrollIndicator={false}
         />
 
-        {/* Comment input */}
-        <View style={styles.commentInputContainer}>
-          <TextInput
-            style={styles.commentInput}
-            placeholder="Write a comment..."
-            placeholderTextColor={colors.text.light}
-            value={commentText}
-            onChangeText={setCommentText}
-            multiline
-            maxLength={500}
-          />
-          <TouchableOpacity
-            onPress={handleSendComment}
-            disabled={!commentText.trim() || isSending}
-            style={[
-              styles.sendButton,
-              (!commentText.trim() || isSending) && styles.sendButtonDisabled,
-            ]}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            {isSending ? (
-              <ActivityIndicator size="small" color={colors.text.onPrimary} />
-            ) : (
-              <Ionicons
-                name="send"
-                size={20}
-                color={colors.text.onPrimary}
-              />
-            )}
-          </TouchableOpacity>
-        </View>
+        <CommentInput onSend={handleSendComment} />
       </KeyboardAvoidingView>
     </SafeScreen>
   );
@@ -308,7 +382,7 @@ const styles = StyleSheet.create({
   // Post image
   postImage: {
     width: '100%',
-    height: 300,
+    aspectRatio: 4 / 5,
   },
 
   // Author
@@ -329,14 +403,14 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   timestamp: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginTop: 2,
   },
@@ -359,8 +433,8 @@ const styles = StyleSheet.create({
   },
   hashtag: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.primary.yellowDark,
   },
 
@@ -381,8 +455,8 @@ const styles = StyleSheet.create({
   },
   actionCount: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
 
@@ -406,8 +480,8 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
     textAlign: 'center',
   },
@@ -425,20 +499,20 @@ const styles = StyleSheet.create({
   commentInput: {
     flex: 1,
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.primary,
     backgroundColor: colors.border.light,
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    maxHeight: 100,
-    minHeight: 40,
+    maxHeight: ms(100),
+    minHeight: ms(40),
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: ms(40),
+    height: ms(40),
+    borderRadius: ms(20),
     backgroundColor: colors.primary.yellow,
     alignItems: 'center',
     justifyContent: 'center',

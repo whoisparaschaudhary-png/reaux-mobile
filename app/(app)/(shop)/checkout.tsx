@@ -4,8 +4,9 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Alert,
   StyleSheet,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,10 +16,25 @@ import { Button } from '../../../src/components/ui/Button';
 import { Input } from '../../../src/components/ui/Input';
 import { useCartStore } from '../../../src/stores/useCartStore';
 import { useOrderStore } from '../../../src/stores/useOrderStore';
+import { addressesApi } from '../../../src/api/endpoints/users';
+import { promosApi } from '../../../src/api/endpoints/promos';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
-import type { Product } from '../../../src/types/models';
+import { ms, mvs } from '../../../src/utils/responsive';
+import type { Product, SavedAddress } from '../../../src/types/models';
 import type { ShippingAddressState } from '../../../src/stores/useCartStore';
+
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+  'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry',
+];
 
 const emptyAddress: ShippingAddressState = {
   street: '',
@@ -29,17 +45,31 @@ const emptyAddress: ShippingAddressState = {
 };
 
 export default function CheckoutScreen() {
-  const { cart, cartTotal, fetchCart, selectedAddress, loadSavedAddress } = useCartStore();
+  const { cart, cartTotal, fetchCart, selectedAddress } = useCartStore();
   const { createOrder, isLoading: orderLoading } = useOrderStore();
 
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
   const [address, setAddress] = useState<ShippingAddressState>(emptyAddress);
+  const [showStatePicker, setShowStatePicker] = useState(false);
+  const [showAddressPicker, setShowAddressPicker] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
 
-  // Load persisted address and prefill when user has already saved one
+  // Load saved addresses from API + prefill default
   useEffect(() => {
-    loadSavedAddress();
-  }, [loadSavedAddress]);
+    addressesApi.list().then((res) => {
+      const list = res.data ?? [];
+      setSavedAddresses(list);
+      const defaultAddr = list.find((a) => a.isDefault) ?? list[0];
+      if (defaultAddr && !selectedAddress) {
+        setAddress({ street: defaultAddr.street, city: defaultAddr.city, state: defaultAddr.state, pincode: defaultAddr.pincode, phone: defaultAddr.phone });
+      }
+    }).catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (selectedAddress) setAddress(selectedAddress);
   }, [selectedAddress]);
@@ -50,7 +80,7 @@ export default function CheckoutScreen() {
 
   const handlePlaceOrder = useCallback(async () => {
     if (!address.street || !address.city || !address.state || !address.pincode || !address.phone) {
-      Alert.alert('Missing Address', 'Please fill in all address fields to continue.');
+      showAppAlert('Missing Address', 'Please fill in all address fields to continue.');
       return;
     }
 
@@ -60,12 +90,12 @@ export default function CheckoutScreen() {
         promoCode: promoCode || undefined,
       });
       await fetchCart();
-      Alert.alert('Order Placed!', `Your order #${order._id?.slice(-8).toUpperCase() ?? ''} has been placed successfully.`, [
+      showAppAlert('Order Placed!', `Your order #${order._id?.slice(-8).toUpperCase() ?? ''} has been placed successfully.`, [
         { text: 'View Orders', onPress: () => router.replace('/(app)/(shop)/orders') },
         { text: 'OK', onPress: () => router.replace('/(app)/(shop)/') },
       ]);
     } catch (err: any) {
-      Alert.alert('Order Failed', err.message || 'Something went wrong. Please try again.');
+      showAppAlert('Order Failed', err.message || 'Something went wrong. Please try again.');
     }
   }, [address, promoCode]);
 
@@ -134,15 +164,68 @@ export default function CheckoutScreen() {
                 <Input
                   placeholder="Enter promo code"
                   value={promoCode}
-                  onChangeText={setPromoCode}
+                  onChangeText={(t) => {
+                    setPromoCode(t.toUpperCase());
+                    if (promoApplied) {
+                      setPromoApplied(false);
+                      setDiscount(0);
+                    }
+                    setPromoError(null);
+                  }}
+                  error={promoError ?? undefined}
                 />
               </View>
-              <Button
-                title="Apply"
-                onPress={() => router.push('/(app)/(shop)/promo')}
-                variant="outline"
-                size="md"
-              />
+              {promoApplied ? (
+                <Button
+                  title="Remove"
+                  onPress={() => {
+                    setPromoCode('');
+                    setDiscount(0);
+                    setPromoApplied(false);
+                    setPromoError(null);
+                  }}
+                  variant="outline"
+                  size="md"
+                />
+              ) : (
+                <Button
+                  title="Apply"
+                  onPress={async () => {
+                    if (!promoCode.trim()) {
+                      setPromoError('Enter a code');
+                      return;
+                    }
+                    setPromoLoading(true);
+                    setPromoError(null);
+                    try {
+                      const response = await promosApi.validate(promoCode.trim());
+                      const promo = response.data;
+                      let discountAmt = 0;
+                      if (promo.discountType === 'percentage') {
+                        discountAmt = (total * promo.discountValue) / 100;
+                        if (promo.maxDiscount && discountAmt > promo.maxDiscount) {
+                          discountAmt = promo.maxDiscount;
+                        }
+                      } else {
+                        discountAmt = promo.discountValue;
+                      }
+                      if (promo.minOrderAmount && total < promo.minOrderAmount) {
+                        setPromoError(`Minimum order ₹${promo.minOrderAmount}`);
+                      } else {
+                        setDiscount(Math.min(discountAmt, total));
+                        setPromoApplied(true);
+                      }
+                    } catch (err: any) {
+                      setPromoError(err.message || 'Invalid promo code');
+                    } finally {
+                      setPromoLoading(false);
+                    }
+                  }}
+                  variant="outline"
+                  size="md"
+                  loading={promoLoading}
+                />
+              )}
             </View>
           </View>
 
@@ -150,12 +233,23 @@ export default function CheckoutScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Shipping Address</Text>
-              <TouchableOpacity
-                onPress={() => router.push('/(app)/(shop)/address')}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.changeLink}>Add New</Text>
-              </TouchableOpacity>
+              <View style={styles.addressActions}>
+                {savedAddresses.length > 1 && (
+                  <TouchableOpacity
+                    onPress={() => setShowAddressPicker(true)}
+                    activeOpacity={0.7}
+                    style={styles.addressActionBtn}
+                  >
+                    <Text style={styles.changeLink}>Saved ({savedAddresses.length})</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  onPress={() => router.push('/(app)/(shop)/address')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.changeLink}>Add New</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <Input
@@ -175,12 +269,17 @@ export default function CheckoutScreen() {
                 />
               </View>
               <View style={styles.halfInput}>
-                <Input
-                  label="State"
-                  placeholder="State"
-                  value={address.state}
-                  onChangeText={(t) => setAddress((a) => ({ ...a, state: t }))}
-                />
+                <Text style={styles.fieldLabel}>State</Text>
+                <TouchableOpacity
+                  style={styles.stateDropdown}
+                  onPress={() => setShowStatePicker(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.stateDropdownText, !address.state && styles.statePlaceholder]}>
+                    {address.state || 'Select State'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={colors.text.light} />
+                </TouchableOpacity>
               </View>
             </View>
             <View style={styles.inputSpacer} />
@@ -196,11 +295,12 @@ export default function CheckoutScreen() {
               </View>
               <View style={styles.halfInput}>
                 <Input
-                  label="Phone"
-                  placeholder="+91 98765 43210"
+                  label="Phone (10 digits)"
+                  placeholder="9876543210"
                   value={address.phone}
-                  onChangeText={(t) => setAddress((a) => ({ ...a, phone: t }))}
-                  keyboardType="phone-pad"
+                  onChangeText={(t) => setAddress((a) => ({ ...a, phone: t.replace(/\D/g, '') }))}
+                  keyboardType="number-pad"
+                  maxLength={10}
                 />
               </View>
             </View>
@@ -246,6 +346,94 @@ export default function CheckoutScreen() {
           </View>
         </View>
       </View>
+
+      {/* Saved Address Picker Modal */}
+      <Modal
+        visible={showAddressPicker}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAddressPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowAddressPicker(false)}
+        >
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Select Saved Address</Text>
+            <FlatList
+              data={savedAddresses}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.addressOption,
+                    address.street === item.street && address.pincode === item.pincode && styles.addressOptionActive,
+                  ]}
+                  onPress={() => {
+                    setAddress({ street: item.street, city: item.city, state: item.state, pincode: item.pincode, phone: item.phone });
+                    setShowAddressPicker(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="location-outline" size={18} color={colors.primary.yellowDark} />
+                  <View style={styles.addressOptionText}>
+                    <Text style={styles.addressOptionStreet} numberOfLines={1}>{item.label} — {item.street}</Text>
+                    <Text style={styles.addressOptionDetail}>{item.city}, {item.state} - {item.pincode}</Text>
+                    <Text style={styles.addressOptionPhone}>{item.phone}</Text>
+                  </View>
+                  {address.street === item.street && address.pincode === item.pincode && (
+                    <Ionicons name="checkmark-circle" size={20} color={colors.primary.yellowDark} />
+                  )}
+                </TouchableOpacity>
+              )}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* State Picker Modal */}
+      <Modal
+        visible={showStatePicker}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowStatePicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowStatePicker(false)}
+        >
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Select State</Text>
+            <FlatList
+              data={INDIAN_STATES}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.stateOption, address.state === item && styles.stateOptionActive]}
+                  onPress={() => {
+                    setAddress((a) => ({ ...a, state: item }));
+                    setShowStatePicker(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.stateOptionText, address.state === item && styles.stateOptionTextActive]}>
+                    {item}
+                  </Text>
+                  {address.state === item && (
+                    <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />
+                  )}
+                </TouchableOpacity>
+              )}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeScreen>
   );
 }
@@ -257,7 +445,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
-    paddingBottom: 120,
+    paddingBottom: mvs(120),
   },
 
   // Sections
@@ -269,16 +457,53 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  addressActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    alignItems: 'center',
+  },
+  addressActionBtn: {},
+  addressOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  addressOptionActive: {
+    backgroundColor: colors.primary.yellowLight,
+  },
+  addressOptionText: {
+    flex: 1,
+  },
+  addressOptionStreet: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(14),
+    color: colors.text.primary,
+  },
+  addressOptionDetail: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(13),
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  addressOptionPhone: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(12),
+    color: colors.text.light,
+    marginTop: 2,
+  },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
   changeLink: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.primary.yellowDark,
     marginBottom: spacing.md,
   },
@@ -299,29 +524,29 @@ const styles = StyleSheet.create({
   },
   summaryName: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
     flex: 1,
     marginRight: spacing.md,
   },
   summaryPrice: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   summaryLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   summaryValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   summaryFree: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.status.success,
   },
   divider: {
@@ -331,12 +556,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.primary,
   },
   totalValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
+    fontSize: ms(18),
     color: colors.text.primary,
   },
 
@@ -377,9 +602,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   paymentIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: ms(48),
+    height: ms(48),
+    borderRadius: ms(24),
     backgroundColor: colors.primary.yellowLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -389,15 +614,15 @@ const styles = StyleSheet.create({
   },
   paymentMethodName: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: 2,
   },
   paymentMethodDesc: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
 
@@ -421,15 +646,91 @@ const styles = StyleSheet.create({
   },
   bottomTotalLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   bottomTotalAmount: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
+    fontSize: ms(20),
     color: colors.text.primary,
   },
   placeOrderWrap: {
     flex: 1,
+  },
+  // State dropdown
+  fieldLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(14),
+    lineHeight: ms(20),
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+  },
+  stateDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: colors.border.gray,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background.white,
+    paddingHorizontal: spacing.md,
+    height: ms(48),
+  },
+  stateDropdownText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(15),
+    color: colors.text.primary,
+    flex: 1,
+  },
+  statePlaceholder: {
+    color: colors.text.light,
+  },
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: colors.background.white,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxxl,
+    maxHeight: '70%',
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: colors.border.gray,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  modalTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(17),
+    color: colors.text.primary,
+    marginBottom: spacing.md,
+  },
+  stateOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  stateOptionActive: {
+    backgroundColor: colors.primary.yellowLight,
+  },
+  stateOptionText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(15),
+    color: colors.text.primary,
+  },
+  stateOptionTextActive: {
+    fontFamily: fontFamily.medium,
   },
 });

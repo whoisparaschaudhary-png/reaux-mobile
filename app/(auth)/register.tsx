@@ -20,6 +20,7 @@ import { useAuthStore } from '../../src/stores/useAuthStore';
 import { useUIStore } from '../../src/stores/useUIStore';
 import { isValidEmail, isValidIndianPhone, isValidName, isValidPassword, isValidDateOfBirth } from '../../src/utils/validators';
 import { colors, fontFamily, spacing, borderRadius } from '../../src/theme';
+import { ms, mvs } from '../../src/utils/responsive';
 
 const maxDate = new Date();
 maxDate.setFullYear(maxDate.getFullYear() - 10);
@@ -268,36 +269,36 @@ const styles = StyleSheet.create({
   },
   logoSection: {
     paddingHorizontal: spacing.xl,
-    paddingTop: 100,
-    paddingBottom: 20,
+    paddingTop: mvs(100),
+    paddingBottom: mvs(20),
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
   logo: {
-    width: 200,
-    height: 60,
+    width: ms(200),
+    height: ms(60),
   },
   formSection: {
     flex: 1,
     justifyContent: 'flex-end',
     paddingHorizontal: spacing.xl,
-    paddingBottom: 40,
+    paddingBottom: mvs(40),
     alignItems: 'center',
   },
   heading: {
     fontFamily: fontFamily.bold,
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: ms(28),
+    lineHeight: ms(34),
     color: colors.text.primary,
-    marginBottom: 6,
+    marginBottom: mvs(6),
     textAlign: 'center',
   },
   subtext: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
-    marginBottom: 20,
+    marginBottom: mvs(20),
     textAlign: 'center',
   },
   formInputs: {
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
   },
   phonePrefix: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.primary,
     marginRight: spacing.xs,
   },
@@ -323,8 +324,8 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -341,8 +342,8 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
   },
   datePlaceholder: {
@@ -360,23 +361,23 @@ const styles = StyleSheet.create({
   },
   datePickerDoneText: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.primary,
   },
   signinRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: mvs(8),
   },
   signinText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   signinLink: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
 });

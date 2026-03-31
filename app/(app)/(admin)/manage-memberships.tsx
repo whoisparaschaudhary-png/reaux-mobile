@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 
 interface MenuItemProps {
   label: string;
@@ -21,10 +22,12 @@ const MenuItem: React.FC<MenuItemProps> = ({ label, onPress }) => (
 
 function ManageMembershipsContent() {
   const router = useRouter();
+  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
 
   return (
     <SafeScreen>
-      <Header title="Manage Memberships" showBack onBack={() => router.back()} />
+      <Header title="Manage Memberships" showBack onBack={handleBack} />
 
       <View style={styles.container}>
         <View style={styles.menuCard}>
@@ -35,7 +38,7 @@ function ManageMembershipsContent() {
           <View style={styles.divider} />
           <MenuItem
             label="User Memberships"
-            onPress={() => router.push('/(app)/(profile)/user-memberships')}
+            onPress={() => router.navigate('/(app)/(profile)/user-memberships' as any)}
           />
         </View>
       </View>
@@ -72,8 +75,8 @@ const styles = StyleSheet.create({
   },
   menuLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   divider: {

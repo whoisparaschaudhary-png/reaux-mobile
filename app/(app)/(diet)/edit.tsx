@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -17,18 +16,25 @@ import { Input } from '../../../src/components/ui/Input';
 import { Button } from '../../../src/components/ui/Button';
 import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useDietStore } from '../../../src/stores/useDietStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { dietsApi } from '../../../src/api/endpoints/diets';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
-import type { DietCategory, DietPlan } from '../../../src/types/models';
+import { ms, mvs } from '../../../src/utils/responsive';
+import type { DietCategory, DietType, DietPlan } from '../../../src/types/models';
 
 const CATEGORIES: { label: string; value: DietCategory }[] = [
   { label: 'Weight Loss', value: 'weight-loss' },
   { label: 'Muscle Gain', value: 'muscle-gain' },
-  { label: 'Maintenance', value: 'maintenance' },
-  { label: 'Keto', value: 'keto' },
-  { label: 'Vegan', value: 'vegan' },
+  { label: 'Bulking', value: 'bulking' },
+  { label: 'Cutting', value: 'cutting' },
   { label: 'Other', value: 'other' },
+];
+
+const DIET_TYPES: { label: string; value: DietType }[] = [
+  { label: 'Veg', value: 'veg' },
+  { label: 'Non-Veg', value: 'non-veg' },
+  { label: 'Both', value: 'both' },
 ];
 
 export default function EditDietScreen() {
@@ -46,7 +52,9 @@ export default function EditDietScreen() {
   const [snacks, setSnacks] = useState('');
   const [dinner, setDinner] = useState('');
   const [instructions, setInstructions] = useState('');
+  const [dietType, setDietType] = useState<DietType>('both');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showDietTypePicker, setShowDietTypePicker] = useState(false);
   const [existingImage, setExistingImage] = useState<string | undefined>();
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
 
@@ -65,6 +73,7 @@ export default function EditDietScreen() {
         setTitle(plan.title || '');
         setCalories(plan.totalCalories ? String(plan.totalCalories) : '');
         setCategory(plan.category || 'weight-loss');
+        setDietType(plan.dietType || 'both');
         setDescription(plan.description || '');
         setExistingImage(plan.image);
 
@@ -82,7 +91,7 @@ export default function EditDietScreen() {
         setSnacks(getMealText('Snacks'));
         setDinner(getMealText('Dinner'));
       } catch {
-        Alert.alert('Error', 'Failed to load diet plan.', [
+        showAppAlert('Error', 'Failed to load diet plan.', [
           { text: 'OK', onPress: () => router.back() },
         ]);
       } finally {
@@ -106,7 +115,7 @@ export default function EditDietScreen() {
   const handleSubmit = useCallback(async () => {
     if (!id) return;
     if (!title.trim()) {
-      Alert.alert('Validation', 'Please enter a plan title.');
+      showAppAlert('Validation', 'Please enter a plan title.');
       return;
     }
 
@@ -129,6 +138,7 @@ export default function EditDietScreen() {
         const form = new FormData();
         form.append('title', title.trim());
         form.append('category', category);
+        form.append('dietType', dietType);
         if (description.trim()) form.append('description', description.trim());
         if (calories) form.append('totalCalories', calories);
         if (meals.length > 0) form.append('meals', JSON.stringify(meals));
@@ -147,21 +157,22 @@ export default function EditDietScreen() {
         await updatePlan(id, {
           title: title.trim(),
           category,
+          dietType,
           description: description.trim() || undefined,
           totalCalories: calories ? Number(calories) : undefined,
           meals,
           image: existingImage,
         });
       }
-      Alert.alert('Success', 'Diet plan updated successfully!', [
+      showAppAlert('Success', 'Diet plan updated successfully!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
       console.error('Update diet plan error:', error);
       const errorMessage = error?.message || error?.toString() || 'Failed to update diet plan';
-      Alert.alert('Error', errorMessage);
+      showAppAlert('Error', errorMessage);
     }
-  }, [id, title, category, description, calories, breakfast, lunch, snacks, dinner, image, existingImage, updatePlan]);
+  }, [id, title, category, dietType, description, calories, breakfast, lunch, snacks, dinner, image, existingImage, updatePlan]);
 
   if (isLoadingPlan) {
     return (
@@ -245,6 +256,55 @@ export default function EditDietScreen() {
                       {cat.label}
                     </Text>
                     {category === cat.value && (
+                      <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Diet Type Dropdown */}
+          <View style={styles.fieldSpacing}>
+            <Text style={styles.label}>Diet Type</Text>
+            <TouchableOpacity
+              style={styles.dropdown}
+              onPress={() => setShowDietTypePicker(!showDietTypePicker)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.dropdownText}>
+                {DIET_TYPES.find((d) => d.value === dietType)?.label || 'Select Diet Type'}
+              </Text>
+              <Ionicons
+                name={showDietTypePicker ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color={colors.text.secondary}
+              />
+            </TouchableOpacity>
+            {showDietTypePicker && (
+              <View style={[styles.categoryList, shadows.card]}>
+                {DIET_TYPES.map((dt) => (
+                  <TouchableOpacity
+                    key={dt.value}
+                    style={[
+                      styles.categoryOption,
+                      dietType === dt.value && styles.categoryOptionActive,
+                    ]}
+                    onPress={() => {
+                      setDietType(dt.value);
+                      setShowDietTypePicker(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryOptionText,
+                        dietType === dt.value && styles.categoryOptionTextActive,
+                      ]}
+                    >
+                      {dt.value === 'veg' ? '🟢 ' : dt.value === 'non-veg' ? '🔴 ' : '🟡 '}{dt.label}
+                    </Text>
+                    {dietType === dt.value && (
                       <Ionicons name="checkmark" size={18} color={colors.primary.yellowDark} />
                     )}
                   </TouchableOpacity>
@@ -408,8 +468,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -419,8 +479,8 @@ const styles = StyleSheet.create({
   },
   mealHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.light,
     marginTop: spacing.xs,
   },
@@ -437,8 +497,8 @@ const styles = StyleSheet.create({
   },
   dropdownText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
   },
   categoryList: {
@@ -459,8 +519,8 @@ const styles = StyleSheet.create({
   },
   categoryOptionText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   categoryOptionTextActive: {
@@ -495,8 +555,8 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
   },
   macroRow: {
