@@ -19,6 +19,7 @@ import { productsApi } from '../../../../src/api/endpoints/products';
 import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import client from '../../../../src/api/client';
 import type { Product, ProductVisibility } from '../../../../src/types/models';
 
@@ -459,15 +460,15 @@ const styles = StyleSheet.create({
   },
   hintText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
     marginBottom: spacing.md,
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -514,7 +515,7 @@ const styles = StyleSheet.create({
   },
   addImageText: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.light,
   },
   categoryGrid: {
@@ -533,8 +534,8 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   categoryChipTextActive: {

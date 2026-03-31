@@ -24,6 +24,7 @@ import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { useUIStore } from '../../../../src/stores/useUIStore';
 import { isValidEmail, isValidIndianPhone, isValidName, isValidPassword } from '../../../../src/utils/validators';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { Role, UserStatus, Gender, Gym } from '../../../../src/types/models';
 
 const ROLES: { value: Role; label: string }[] = [
@@ -624,7 +625,7 @@ const styles = StyleSheet.create({
   },
   createButtonText: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.primary.yellow,
   },
   createButtonTextDisabled: {
@@ -635,15 +636,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
   sectionDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
@@ -668,7 +669,7 @@ const styles = StyleSheet.create({
   },
   dateSelectorText: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
     flex: 1,
   },
@@ -683,7 +684,7 @@ const styles = StyleSheet.create({
   },
   pickerDoneText: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.primary.yellow,
   },
   roleGrid: {
@@ -726,8 +727,8 @@ const styles = StyleSheet.create({
   },
   roleLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   roleLabelActive: {
@@ -736,15 +737,15 @@ const styles = StyleSheet.create({
   },
   roleDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
   },
   fieldLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
     textTransform: 'uppercase' as const,
     letterSpacing: 0.5,
@@ -769,7 +770,7 @@ const styles = StyleSheet.create({
   },
   genderChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   genderChipTextActive: {
@@ -784,7 +785,7 @@ const styles = StyleSheet.create({
   },
   gymLoadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   gymNotice: {
@@ -799,8 +800,8 @@ const styles = StyleSheet.create({
   gymNoticeText: {
     flex: 1,
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.status.warning,
   },
   gymSelector: {
@@ -818,7 +819,7 @@ const styles = StyleSheet.create({
   gymSelectorText: {
     flex: 1,
     fontFamily: fontFamily.medium,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.primary,
   },
   gymSelectorPlaceholder: {
@@ -842,7 +843,7 @@ const styles = StyleSheet.create({
   },
   gymItemName: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   gymItemNameActive: {
@@ -850,13 +851,13 @@ const styles = StyleSheet.create({
   },
   gymItemCity: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
     marginTop: 2,
   },
   gymEmptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
     padding: spacing.lg,
     textAlign: 'center',

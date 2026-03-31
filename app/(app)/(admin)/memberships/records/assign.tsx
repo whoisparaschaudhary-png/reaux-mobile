@@ -23,6 +23,7 @@ import { usersApi } from '../../../../../src/api/endpoints/users';
 import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../../../src/utils/formatters';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
+import { ms, mvs } from '../../../../../src/utils/responsive';
 import type { User, MembershipPlan, Gym } from '../../../../../src/types/models';
 
 export default function AssignMembershipScreen() {
@@ -392,8 +393,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -403,16 +404,16 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     textAlign: 'center',
     paddingVertical: spacing.lg,
   },
   emptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
     textAlign: 'center',
     paddingVertical: spacing.lg,
@@ -439,15 +440,15 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: 2,
   },
   userEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   plansList: {
@@ -472,15 +473,15 @@ const styles = StyleSheet.create({
   },
   planName: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: 2,
   },
   planGym: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
@@ -491,14 +492,14 @@ const styles = StyleSheet.create({
   },
   planDuration: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   planPrice: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.primary.yellow,
   },
   summary: {
@@ -509,8 +510,8 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -522,14 +523,14 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   summaryValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   submitContainer: {
@@ -550,8 +551,8 @@ const styles = StyleSheet.create({
   datePickerText: {
     flex: 1,
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   dateModalOverlay: {
@@ -576,14 +577,14 @@ const styles = StyleSheet.create({
   },
   dateModalTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   dateModalDone: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.primary.yellowDark,
   },
   preselectedBanner: {
@@ -597,7 +598,7 @@ const styles = StyleSheet.create({
   },
   preselectedBannerText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
     flex: 1,
   },

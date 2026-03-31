@@ -4,16 +4,15 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '../ui/Avatar';
 import { formatRelative, formatNumber } from '../../utils/formatters';
 import { colors, fontFamily, spacing } from '../../theme';
+import { ms, mvs } from '../../utils/responsive';
 import type { Reel, User } from '../../types/models';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface ReelCardProps {
   reel: Reel;
@@ -32,6 +31,7 @@ export const ReelCard: React.FC<ReelCardProps> = ({
   onShare,
   height,
 }) => {
+  const { width: screenW } = useWindowDimensions();
   const [isMuted, setIsMuted] = React.useState(false);
   const author = typeof reel.author === 'object' ? (reel.author as User) : null;
   const authorName = author?.name ?? 'Unknown';
@@ -53,27 +53,17 @@ export const ReelCard: React.FC<ReelCardProps> = ({
     } catch {
       // Player may not be ready yet
     }
-
-    // Cleanup: pause video when component unmounts
     return () => {
-      try {
-        player.pause();
-      } catch {
-        // Player may not be available
-      }
+      try { player.pause(); } catch { /* noop */ }
     };
   }, [isVisible, player]);
 
   useEffect(() => {
-    try {
-      player.muted = isMuted;
-    } catch {
-      // Player may not be ready yet
-    }
+    try { player.muted = isMuted; } catch { /* noop */ }
   }, [isMuted, player]);
 
   return (
-    <View style={[styles.card, { height }]}>
+    <View style={[styles.card, { height, width: screenW }]}>
       <VideoView
         player={player}
         style={StyleSheet.absoluteFill}
@@ -81,7 +71,6 @@ export const ReelCard: React.FC<ReelCardProps> = ({
         nativeControls={false}
       />
 
-      {/* Mute toggle */}
       <TouchableOpacity
         style={styles.muteButton}
         onPress={() => setIsMuted((p) => !p)}
@@ -89,39 +78,37 @@ export const ReelCard: React.FC<ReelCardProps> = ({
       >
         <Ionicons
           name={isMuted ? 'volume-mute' : 'volume-high'}
-          size={20}
+          size={ms(20)}
           color={colors.text.white}
         />
       </TouchableOpacity>
 
-      {/* Right side actions */}
       <View style={styles.actions}>
         <TouchableOpacity onPress={onLike} style={styles.actionItem}>
           <Ionicons
             name={isLiked ? 'heart' : 'heart-outline'}
-            size={28}
+            size={ms(28)}
             color={isLiked ? colors.status.error : colors.text.white}
           />
           <Text style={styles.actionText}>{formatNumber(reel.likesCount)}</Text>
         </TouchableOpacity>
         {onComment != null && (
           <TouchableOpacity onPress={onComment} style={styles.actionItem}>
-            <Ionicons name="chatbubble-outline" size={26} color={colors.text.white} />
+            <Ionicons name="chatbubble-outline" size={ms(26)} color={colors.text.white} />
             <Text style={styles.actionText}>{formatNumber(reel.commentsCount ?? 0)}</Text>
           </TouchableOpacity>
         )}
         {onShare != null && (
           <TouchableOpacity onPress={onShare} style={styles.actionItem}>
-            <Ionicons name="share-outline" size={26} color={colors.text.white} />
+            <Ionicons name="share-outline" size={ms(26)} color={colors.text.white} />
             <Text style={styles.actionText}>Share</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Bottom info */}
       <View style={styles.bottomInfo}>
         <View style={styles.authorRow}>
-          <Avatar uri={authorAvatar} name={authorName} size={36} />
+          <Avatar uri={authorAvatar} name={authorName} size={ms(36)} />
           <Text style={styles.authorName}>{authorName}</Text>
         </View>
         {reel.caption ? (
@@ -137,29 +124,26 @@ export const ReelCard: React.FC<ReelCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    width: SCREEN_WIDTH,
     backgroundColor: colors.background.dark,
     overflow: 'hidden',
   },
 
-  // Mute
   muteButton: {
     position: 'absolute',
-    top: spacing.xxl + spacing.xl,
+    top: mvs(80),
     right: spacing.md,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: ms(36),
+    height: ms(36),
+    borderRadius: ms(18),
     backgroundColor: colors.overlay.medium,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  // Right-side actions
   actions: {
     position: 'absolute',
     right: spacing.md,
-    bottom: 120,
+    bottom: mvs(120),
     alignItems: 'center',
     gap: spacing.xl,
   },
@@ -169,16 +153,15 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontFamily: fontFamily.bold,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.white,
   },
 
-  // Bottom info
   bottomInfo: {
     position: 'absolute',
     bottom: 0,
     left: 0,
-    right: 60,
+    right: ms(60),
     padding: spacing.lg,
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
@@ -190,19 +173,19 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.white,
   },
   caption: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.white,
     marginBottom: spacing.xs,
   },
   timestamp: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: 'rgba(255,255,255,0.6)',
   },
 });

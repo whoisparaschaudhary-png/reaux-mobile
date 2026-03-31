@@ -42,6 +42,7 @@ import {
   borderRadius,
   shadows,
 } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { Post, Workout, WorkoutCategory, WorkoutDifficulty, User, Membership, MembershipPlan, BirthdayUser, UpcomingBirthdayUser, PromoCode } from '../../../src/types/models';
 
 const CATEGORIES = ['For You', 'My Admins', 'Workouts', 'Nutrition'] as const;
@@ -861,8 +862,8 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   tabTextActive: {
@@ -888,11 +889,11 @@ const styles = StyleSheet.create({
   // FAB
   fab: {
     position: 'absolute',
-    bottom: 24,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    bottom: ms(24),
+    right: ms(20),
+    width: ms(56),
+    height: ms(56),
+    borderRadius: ms(28),
     backgroundColor: colors.primary.yellow,
     alignItems: 'center',
     justifyContent: 'center',
@@ -934,14 +935,14 @@ const styles = StyleSheet.create({
   },
   feeSummaryLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: ms(11),
+    lineHeight: ms(14),
     color: colors.text.secondary,
   },
   feeSummaryValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
   },
   creditSummaryBanner: {
     flexDirection: 'row',
@@ -960,7 +961,7 @@ const styles = StyleSheet.create({
   creditSummaryLabel: {
     flex: 1,
     fontFamily: fontFamily.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
   },
   membersSearchContainer: {
@@ -992,8 +993,8 @@ const styles = StyleSheet.create({
   },
   workoutCategoryText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   workoutCategoryTextActive: {
@@ -1014,7 +1015,7 @@ const styles = StyleSheet.create({
   },
   workoutImage: {
     width: '100%',
-    height: 160,
+    height: mvs(160),
   },
   workoutContent: {
     padding: spacing.lg,
@@ -1029,14 +1030,14 @@ const styles = StyleSheet.create({
   workoutTitle: {
     flex: 1,
     fontFamily: fontFamily.bold,
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: ms(17),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   workoutDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
@@ -1052,7 +1053,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   tagRow: {
@@ -1069,7 +1070,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.secondary,
   },
 
@@ -1084,8 +1085,8 @@ const styles = StyleSheet.create({
   },
   birthdaySectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: ms(17),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -1095,7 +1096,7 @@ const styles = StyleSheet.create({
   },
   birthdayEmptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.light,
   },
   birthdayCard: {
@@ -1113,43 +1114,43 @@ const styles = StyleSheet.create({
   },
   birthdayName: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   birthdayEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
-    marginTop: 1,
+    marginTop: mvs(1),
   },
   birthdayGym: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.light,
-    marginTop: 2,
+    marginTop: mvs(2),
   },
   birthdayBadge: {
     alignItems: 'center',
-    gap: 2,
+    gap: mvs(2),
   },
   birthdayBadgeText: {
     fontFamily: fontFamily.bold,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.primary.yellowDark,
   },
   birthdayDaysLeft: {
     alignItems: 'center',
-    minWidth: 44,
+    minWidth: ms(44),
   },
   birthdayDaysNum: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
-    lineHeight: 24,
+    fontSize: ms(20),
+    lineHeight: ms(24),
     color: colors.text.primary,
   },
   birthdayDaysLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 10,
+    fontSize: ms(10),
     color: colors.text.secondary,
   },
 
@@ -1187,7 +1188,7 @@ const styles = StyleSheet.create({
   },
   promoCodeText: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
     letterSpacing: 1,
   },
@@ -1196,14 +1197,14 @@ const styles = StyleSheet.create({
   },
   promoDiscount: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
+    fontSize: ms(18),
     color: colors.text.primary,
   },
   promoMeta: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
-    marginTop: 2,
+    marginTop: mvs(2),
   },
   promoFooter: {
     flexDirection: 'row',

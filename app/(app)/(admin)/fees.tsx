@@ -22,6 +22,7 @@ import { RoleGuard } from '../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../src/stores/useMembershipStore';
 import { formatCurrency, formatDate } from '../../../src/utils/formatters';
 import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 import type { Membership, User, MembershipPlan } from '../../../src/types/models';
 
 function getUserName(membership: Membership): string {
@@ -749,7 +750,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   centered: {
     flex: 1,
@@ -769,20 +770,20 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   summaryValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: ms(22),
+    lineHeight: ms(28),
     color: colors.text.primary,
   },
   summaryCount: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   tabsRow: {
@@ -804,7 +805,7 @@ const styles = StyleSheet.create({
   },
   filterTabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
   },
   filterTabTextActive: {
@@ -827,7 +828,7 @@ const styles = StyleSheet.create({
     paddingRight: spacing.md,
   },
   sortChip: {
-    paddingVertical: 6,
+    paddingVertical: ms(6),
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.pill,
     backgroundColor: colors.border.light,
@@ -837,7 +838,7 @@ const styles = StyleSheet.create({
   },
   sortChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   sortChipTextActive: {
@@ -848,15 +849,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   sectionSubtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.light,
     marginBottom: spacing.lg,
   },
@@ -874,14 +875,14 @@ const styles = StyleSheet.create({
   },
   feeName: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   feePlan: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
     marginTop: 1,
   },
@@ -892,21 +893,21 @@ const styles = StyleSheet.create({
   },
   feeAmountLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
   },
   feeDate: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: ms(11),
+    lineHeight: ms(14),
     color: colors.text.light,
     marginTop: 2,
   },
   emptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
     textAlign: 'center',
     paddingVertical: spacing.xl,
@@ -923,20 +924,20 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.card,
     padding: spacing.xxl,
     width: '100%',
-    maxWidth: 400,
+    maxWidth: ms(400),
     ...shadows.large,
   },
   modalTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: ms(20),
+    lineHeight: ms(28),
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   modalSubtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: spacing.xl,
   },
@@ -960,12 +961,12 @@ const styles = StyleSheet.create({
   },
   modalFeeLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
   },
   modalFeeValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   creditNotice: {
@@ -979,7 +980,7 @@ const styles = StyleSheet.create({
   },
   creditNoticeText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.status.info,
     flex: 1,
   },
@@ -1000,19 +1001,19 @@ const styles = StyleSheet.create({
   },
   creditBannerTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   creditBannerSubtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
     marginTop: 1,
   },
   addCreditBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: ms(4),
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.pill,
@@ -1021,7 +1022,7 @@ const styles = StyleSheet.create({
   },
   addCreditText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.status.info,
   },
   extendToggleRow: {
@@ -1032,24 +1033,24 @@ const styles = StyleSheet.create({
   },
   extendToggleLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   toggleTrack: {
-    width: 44,
-    height: 24,
-    borderRadius: 12,
+    width: ms(44),
+    height: ms(24),
+    borderRadius: ms(12),
     backgroundColor: colors.border.gray,
     justifyContent: 'center',
-    paddingHorizontal: 2,
+    paddingHorizontal: ms(2),
   },
   toggleTrackActive: {
     backgroundColor: colors.primary.yellow,
   },
   toggleThumb: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: ms(20),
+    height: ms(20),
+    borderRadius: ms(10),
     backgroundColor: colors.background.white,
   },
   toggleThumbActive: {

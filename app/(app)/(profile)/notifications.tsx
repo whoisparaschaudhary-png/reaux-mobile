@@ -25,6 +25,7 @@ import {
   borderRadius,
   layout,
 } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 import type { Notification, NotificationType } from '../../../src/types/models';
 
 type TabKey = 'all' | 'unread' | 'activity';
@@ -345,8 +346,8 @@ const styles = StyleSheet.create({
   },
   dateRangeText: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   tabBar: {
@@ -372,8 +373,8 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   tabTextActive: {
@@ -381,17 +382,17 @@ const styles = StyleSheet.create({
   },
   tabBadge: {
     backgroundColor: colors.status.error,
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
+    borderRadius: ms(10),
+    minWidth: ms(18),
+    height: ms(18),
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: ms(4),
   },
   tabBadgeText: {
     fontFamily: fontFamily.bold,
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: ms(10),
+    lineHeight: ms(14),
     color: colors.text.white,
   },
   centered: {
@@ -400,7 +401,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   listContent: {
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   sectionHeader: {
     paddingHorizontal: layout.screenPadding,
@@ -409,8 +410,8 @@ const styles = StyleSheet.create({
   },
   sectionHeaderText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,

@@ -18,6 +18,7 @@ import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { gymsApi } from '../../../../src/api/endpoints/gyms';
 import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms } from '../../../../src/utils/responsive';
 import type { Gym } from '../../../../src/types/models';
 
 export default function GymListScreen() {
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   gymCard: {
     marginTop: spacing.md,
@@ -195,21 +196,21 @@ const styles = StyleSheet.create({
   },
   gymName: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   gymLocation: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
   },
   gymDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
@@ -222,12 +223,12 @@ const styles = StyleSheet.create({
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: ms(4),
   },
   metaText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   gymActions: {
@@ -254,8 +255,8 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.primary.yellowDark,
   },
   deleteButton: {
@@ -264,8 +265,8 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.status.error,
   },
 });

@@ -19,6 +19,7 @@ import { useMembershipStore } from '../../../../../src/stores/useMembershipStore
 import { gymsApi } from '../../../../../src/api/endpoints/gyms';
 import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
+import { ms, mvs } from '../../../../../src/utils/responsive';
 import type { Gym } from '../../../../../src/types/models';
 
 const DURATIONS = [
@@ -267,8 +268,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -278,16 +279,16 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     textAlign: 'center',
     paddingVertical: spacing.lg,
   },
   emptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
     textAlign: 'center',
     paddingVertical: spacing.lg,
@@ -308,8 +309,8 @@ const styles = StyleSheet.create({
   },
   gymChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   gymChipTextActive: {
@@ -331,8 +332,8 @@ const styles = StyleSheet.create({
   },
   durationChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   durationChipTextActive: {

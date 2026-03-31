@@ -11,6 +11,7 @@ import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { MembershipCard } from '../../../../../src/components/cards/MembershipCard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
+import { ms, mvs } from '../../../../../src/utils/responsive';
 
 const STATUS_FILTERS = ['All', 'Active', 'Expired', 'Cancelled'];
 
@@ -174,8 +175,8 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   filterChipTextActive: {

@@ -17,6 +17,7 @@ import { BmiRecordCard } from '../../../src/components/cards/BmiRecordCard';
 import { useBmiStore } from '../../../src/stores/useBmiStore';
 import { useRefreshOnFocus } from '../../../src/hooks/useRefreshOnFocus';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import { format } from 'date-fns';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -284,8 +285,8 @@ const styles = StyleSheet.create({
   },
   currentBmi: {
     fontFamily: fontFamily.bold,
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: ms(32),
+    lineHeight: ms(38),
     color: colors.text.primary,
   },
   trendBadge: {
@@ -298,8 +299,8 @@ const styles = StyleSheet.create({
   },
   trendText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
   },
   chartCard: {
     backgroundColor: colors.background.card,

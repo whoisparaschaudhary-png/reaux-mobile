@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontFamily, borderRadius, spacing } from '../theme';
+import { ms, mvs } from '../../utils/responsive';
 
 interface SearchBarProps {
   value: string;
@@ -23,7 +24,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     <View style={styles.container}>
       <Ionicons
         name="search"
-        size={20}
+        size={ms(20)}
         color={colors.text.light}
         style={styles.searchIcon}
       />
@@ -45,7 +46,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         >
           <Ionicons
             name="close-circle"
-            size={20}
+            size={ms(20)}
             color={colors.text.light}
           />
         </TouchableOpacity>
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border.light,
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.md,
-    minHeight: 44,
+    minHeight: mvs(44),
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -69,8 +70,8 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
     paddingVertical: spacing.sm,
   },

@@ -21,6 +21,7 @@ import { promosApi } from '../../../src/api/endpoints/promos';
 import { showAppAlert } from '../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { Product, SavedAddress } from '../../../src/types/models';
 import type { ShippingAddressState } from '../../../src/stores/useCartStore';
 
@@ -444,7 +445,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
-    paddingBottom: 120,
+    paddingBottom: mvs(120),
   },
 
   // Sections
@@ -478,31 +479,31 @@ const styles = StyleSheet.create({
   },
   addressOptionStreet: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   addressOptionDetail: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
     marginTop: 2,
   },
   addressOptionPhone: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.light,
     marginTop: 2,
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
   changeLink: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.primary.yellowDark,
     marginBottom: spacing.md,
   },
@@ -523,29 +524,29 @@ const styles = StyleSheet.create({
   },
   summaryName: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
     flex: 1,
     marginRight: spacing.md,
   },
   summaryPrice: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   summaryLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   summaryValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   summaryFree: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.status.success,
   },
   divider: {
@@ -555,12 +556,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.primary,
   },
   totalValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
+    fontSize: ms(18),
     color: colors.text.primary,
   },
 
@@ -601,9 +602,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   paymentIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: ms(48),
+    height: ms(48),
+    borderRadius: ms(24),
     backgroundColor: colors.primary.yellowLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -613,15 +614,15 @@ const styles = StyleSheet.create({
   },
   paymentMethodName: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: 2,
   },
   paymentMethodDesc: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
 
@@ -645,12 +646,12 @@ const styles = StyleSheet.create({
   },
   bottomTotalLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   bottomTotalAmount: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
+    fontSize: ms(20),
     color: colors.text.primary,
   },
   placeOrderWrap: {
@@ -659,8 +660,8 @@ const styles = StyleSheet.create({
   // State dropdown
   fieldLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -673,11 +674,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     backgroundColor: colors.background.white,
     paddingHorizontal: spacing.md,
-    height: 48,
+    height: ms(48),
   },
   stateDropdownText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
     flex: 1,
   },
@@ -709,7 +710,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 17,
+    fontSize: ms(17),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -726,7 +727,7 @@ const styles = StyleSheet.create({
   },
   stateOptionText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   stateOptionTextActive: {

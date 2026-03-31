@@ -28,6 +28,7 @@ import {
   borderRadius,
   layout,
 } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { Gym, BirthdayUser, UpcomingBirthdayUser } from '../../../src/types/models';
 
 export default function ProfileScreen() {
@@ -630,7 +631,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: layout.screenPadding,
-    paddingBottom: 40,
+    paddingBottom: mvs(40),
   },
   avatarSection: {
     alignItems: 'center',
@@ -641,20 +642,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   gymImage: {
-    width: 120,
-    height: 120,
+    width: ms(120),
+    height: ms(120),
     borderRadius: borderRadius.card,
   },
   uploadLink: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.status.info,
     marginTop: spacing.md,
   },
   uploadHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginTop: spacing.xs,
     textAlign: 'center',
@@ -675,8 +676,8 @@ const styles = StyleSheet.create({
   },
   readOnlyHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: ms(11),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginTop: spacing.xs,
   },
@@ -699,24 +700,24 @@ const styles = StyleSheet.create({
   },
   linkCardTitle: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   linkCardSubtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
-    marginTop: 2,
+    marginTop: mvs(2),
   },
   birthdaySection: {
     marginBottom: spacing.md,
   },
   birthdaySectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -733,7 +734,7 @@ const styles = StyleSheet.create({
   },
   birthdayHeaderText: {
     fontFamily: fontFamily.bold,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -749,33 +750,33 @@ const styles = StyleSheet.create({
   },
   birthdayName: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: ms(14),
+    lineHeight: ms(18),
     color: colors.text.primary,
   },
   birthdayGym: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.secondary,
   },
   daysUntilText: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.secondary,
   },
   notificationBadge: {
     backgroundColor: colors.status.error,
-    borderRadius: 12,
-    minWidth: 20,
-    height: 20,
+    borderRadius: ms(12),
+    minWidth: ms(20),
+    height: ms(20),
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: ms(6),
   },
   notificationBadgeText: {
     fontFamily: fontFamily.bold,
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: ms(11),
+    lineHeight: ms(14),
     color: colors.text.white,
   },
   headerActions: {
@@ -788,20 +789,20 @@ const styles = StyleSheet.create({
   },
   headerBadge: {
     position: 'absolute',
-    top: -4,
-    right: -6,
+    top: mvs(-4),
+    right: ms(-6),
     backgroundColor: colors.status.error,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
+    borderRadius: ms(8),
+    minWidth: ms(16),
+    height: ms(16),
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 3,
+    paddingHorizontal: ms(3),
   },
   headerBadgeText: {
     fontFamily: fontFamily.bold,
-    fontSize: 9,
-    lineHeight: 12,
+    fontSize: ms(9),
+    lineHeight: ms(12),
     color: colors.text.white,
   },
   saveButtonContainer: {
@@ -814,7 +815,7 @@ const styles = StyleSheet.create({
   },
   sectionGroupTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.primary,
     marginBottom: spacing.sm,
     marginTop: spacing.md,

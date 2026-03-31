@@ -15,6 +15,7 @@ import { DietPlanCard } from '../../../src/components/cards/DietPlanCard';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { useDietStore } from '../../../src/stores/useDietStore';
 import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { DietPlan } from '../../../src/types/models';
 
 export default function SuggestedDietsScreen() {
@@ -134,15 +135,15 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: ms(16),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   infoText: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   centered: {

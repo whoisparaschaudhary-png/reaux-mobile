@@ -19,6 +19,7 @@ import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDietStore } from '../../../src/stores/useDietStore';
 import { useRefreshOnFocus } from '../../../src/hooks/useRefreshOnFocus';
 import { colors, fontFamily, typography, spacing, borderRadius } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { DietCategory, DietType, DietPlan } from '../../../src/types/models';
 
 const CATEGORIES: { label: string; value: DietCategory | undefined }[] = [
@@ -243,8 +244,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   analyticsButton: {
@@ -261,12 +262,12 @@ const styles = StyleSheet.create({
   analyticsText: {
     flex: 1,
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   categoryRow: {
-    height: 40,
+    height: ms(40),
     marginBottom: spacing.md,
     paddingLeft: spacing.xl,
   },
@@ -286,8 +287,8 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   categoryChipTextActive: {

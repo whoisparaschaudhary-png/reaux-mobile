@@ -22,6 +22,7 @@ import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { productsApi } from '../../../../src/api/endpoints/products';
 import { exportProductsListPDF } from '../../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms } from '../../../../src/utils/responsive';
 import type { Product, ProductVisibility } from '../../../../src/types/models';
 
 function visibilityBadge(visibility: ProductVisibility | undefined) {
@@ -251,7 +252,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   productCard: {
     marginTop: spacing.md,
@@ -262,8 +263,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   productImage: {
-    width: 60,
-    height: 60,
+    width: ms(60),
+    height: ms(60),
     borderRadius: borderRadius.md,
   },
   productImagePlaceholder: {
@@ -276,8 +277,8 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   priceRow: {
@@ -288,14 +289,14 @@ const styles = StyleSheet.create({
   },
   productPrice: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   comparePrice: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     textDecorationLine: 'line-through',
   },
@@ -307,14 +308,14 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
   },
   stockText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   statusColumn: {
@@ -324,9 +325,9 @@ const styles = StyleSheet.create({
   toggleButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: ms(4),
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: ms(4),
     borderRadius: borderRadius.sm,
     borderWidth: 1,
   },
@@ -343,8 +344,8 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: ms(11),
+    lineHeight: ms(16),
   },
   exportButtonContainer: {
     marginTop: spacing.xxl,

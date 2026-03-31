@@ -64,6 +64,7 @@ import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { useAdminStore } from '../../../../src/stores/useAdminStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
+import { ms } from '../../../../src/utils/responsive';
 import client from '../../../../src/api/client';
 import type { User } from '../../../../src/types/models';
 
@@ -620,12 +621,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: layout.screenPadding,
     paddingTop: spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -650,29 +651,29 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   imagePreview: {
-    width: 80,
-    height: 80,
+    width: ms(80),
+    height: ms(80),
     borderRadius: borderRadius.md,
   },
   removeImageBtn: {
     position: 'absolute',
-    top: -6,
-    right: -6,
+    top: ms(-6),
+    right: ms(-6),
   },
   addImageBtn: {
-    width: 80,
-    height: 80,
+    width: ms(80),
+    height: ms(80),
     borderRadius: borderRadius.md,
     borderWidth: 1.5,
     borderColor: colors.border.gray,
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: ms(2),
   },
   addImageText: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.light,
   },
   submitContainer: {
@@ -699,8 +700,8 @@ const styles = StyleSheet.create({
   },
   selectButtonText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
   },
   selectedAdminInfo: {
@@ -709,15 +710,15 @@ const styles = StyleSheet.create({
   },
   selectedAdminEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: 2,
   },
   selectedAdminRole: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.primary.yellow,
     textTransform: 'uppercase',
   },
@@ -744,8 +745,8 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   modalList: {
@@ -757,8 +758,8 @@ const styles = StyleSheet.create({
   },
   modalLoadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   modalEmpty: {
@@ -767,8 +768,8 @@ const styles = StyleSheet.create({
   },
   modalEmptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
   },
   adminItem: {
@@ -788,15 +789,15 @@ const styles = StyleSheet.create({
   },
   adminItemName: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: 2,
   },
   adminItemEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   adminItemRight: {
@@ -806,8 +807,8 @@ const styles = StyleSheet.create({
   },
   adminItemRole: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: ms(11),
+    lineHeight: ms(15),
     color: colors.text.light,
     textTransform: 'uppercase',
   },
@@ -823,8 +824,8 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -837,11 +838,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     backgroundColor: colors.background.white,
     paddingHorizontal: spacing.md,
-    height: 48,
+    height: ms(48),
   },
   dropdownBtnText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
     flex: 1,
   },
@@ -863,16 +864,16 @@ const styles = StyleSheet.create({
     maxHeight: '70%',
   },
   pickerHandle: {
-    width: 36,
-    height: 4,
+    width: ms(36),
+    height: ms(4),
     backgroundColor: colors.border.gray,
-    borderRadius: 2,
+    borderRadius: ms(2),
     alignSelf: 'center',
     marginBottom: spacing.md,
   },
   pickerTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 17,
+    fontSize: ms(17),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -889,7 +890,7 @@ const styles = StyleSheet.create({
   },
   pickerOptionText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   pickerOptionTextActive: {
@@ -903,7 +904,7 @@ const styles = StyleSheet.create({
   },
   pickerPromptText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.light,
     textAlign: 'center',
   },

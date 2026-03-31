@@ -31,6 +31,7 @@ import {
   layout,
   shadows,
 } from '../../../../../src/theme';
+import { ms, mvs } from '../../../../../src/utils/responsive';
 import type {
   User,
   MembershipPlan,
@@ -598,12 +599,12 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
+    fontSize: ms(18),
     color: colors.text.primary,
   },
   errorMessage: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
     textAlign: 'center',
   },
@@ -616,7 +617,7 @@ const styles = StyleSheet.create({
   },
   retryBtnText: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.onPrimary,
   },
   statusContainer: {
@@ -631,8 +632,8 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -646,22 +647,22 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: 2,
   },
   userEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: 2,
   },
   userPhone: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   infoRow: {
@@ -674,14 +675,14 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   infoValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   dateRow: {
@@ -695,14 +696,14 @@ const styles = StyleSheet.create({
   },
   dateLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   dateValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   actionContainer: {
@@ -730,7 +731,7 @@ const styles = StyleSheet.create({
   },
   feeBtnText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.background.white,
   },
   historyContainer: {
@@ -742,7 +743,7 @@ const styles = StyleSheet.create({
   },
   historyTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
@@ -759,17 +760,17 @@ const styles = StyleSheet.create({
   },
   historyAmount: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   historyNote: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   historyDate: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.light,
   },
   // Modal
@@ -787,19 +788,19 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
+    fontSize: ms(18),
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   modalHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
   inputLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
@@ -810,7 +811,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
     marginBottom: spacing.lg,
   },
@@ -836,7 +837,7 @@ const styles = StyleSheet.create({
   },
   modalBtnCancelText: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   modalBtnConfirm: {
@@ -844,7 +845,7 @@ const styles = StyleSheet.create({
   },
   modalBtnConfirmText: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.onPrimary,
   },
   applyBtn: {
@@ -861,7 +862,7 @@ const styles = StyleSheet.create({
   },
   applyBtnText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.status.info,
   },
   extendToggleRow: {
@@ -872,7 +873,7 @@ const styles = StyleSheet.create({
   },
   extendToggleLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   toggleTrack: {

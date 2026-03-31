@@ -23,6 +23,7 @@ import { useImagePicker } from '../../../../src/hooks/useImagePicker';
 import { useAdminStore } from '../../../../src/stores/useAdminStore';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import client from '../../../../src/api/client';
 import type { User, Gym } from '../../../../src/types/models';
 
@@ -769,15 +770,15 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginTop: spacing.md,
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -822,8 +823,8 @@ const styles = StyleSheet.create({
   },
   newBadgeText: {
     fontFamily: fontFamily.bold,
-    fontSize: 9,
-    lineHeight: 12,
+    fontSize: ms(9),
+    lineHeight: ms(12),
     color: colors.text.onPrimary,
   },
   addImageBtn: {
@@ -839,7 +840,7 @@ const styles = StyleSheet.create({
   },
   addImageText: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.light,
   },
   submitContainer: {
@@ -866,8 +867,8 @@ const styles = StyleSheet.create({
   },
   selectButtonText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
   },
   selectedAdminInfo: {
@@ -876,15 +877,15 @@ const styles = StyleSheet.create({
   },
   selectedAdminEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: 2,
   },
   selectedAdminRole: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.primary.yellow,
     textTransform: 'uppercase',
   },
@@ -911,8 +912,8 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   modalList: {
@@ -924,8 +925,8 @@ const styles = StyleSheet.create({
   },
   modalLoadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   modalEmpty: {
@@ -934,8 +935,8 @@ const styles = StyleSheet.create({
   },
   modalEmptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
   },
   adminItem: {
@@ -955,15 +956,15 @@ const styles = StyleSheet.create({
   },
   adminItemName: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: 2,
   },
   adminItemEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   adminItemRight: {
@@ -973,8 +974,8 @@ const styles = StyleSheet.create({
   },
   adminItemRole: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: ms(11),
+    lineHeight: ms(15),
     color: colors.text.light,
     textTransform: 'uppercase',
   },
@@ -985,8 +986,8 @@ const styles = StyleSheet.create({
   },
   dropdownLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -1003,7 +1004,7 @@ const styles = StyleSheet.create({
   },
   dropdownBtnText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
     flex: 1,
   },
@@ -1034,7 +1035,7 @@ const styles = StyleSheet.create({
   },
   pickerTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 17,
+    fontSize: ms(17),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -1051,7 +1052,7 @@ const styles = StyleSheet.create({
   },
   pickerOptionText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   pickerOptionTextActive: {
@@ -1064,7 +1065,7 @@ const styles = StyleSheet.create({
   },
   pickerPromptText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.light,
   },
   modalFooter: {

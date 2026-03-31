@@ -16,6 +16,7 @@ import { Badge } from '../../../src/components/ui/Badge';
 import { useBmiStore } from '../../../src/stores/useBmiStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { BmiCategory, BmiRecord, Gender } from '../../../src/types/models';
 
 // Mifflin-St Jeor formula (most accurate for BMR)
@@ -163,27 +164,27 @@ function CustomSlider({ value, min, max, step, onValueChange }: CustomSliderProp
 
 const sliderStyles = StyleSheet.create({
   container: {
-    height: 40,
+    height: ms(40),
     justifyContent: 'center',
     paddingHorizontal: SLIDER_PADDING,
   },
   track: {
-    height: 6,
-    borderRadius: 3,
+    height: ms(6),
+    borderRadius: ms(3),
     backgroundColor: colors.border.gray,
     overflow: 'hidden',
   },
   filledTrack: {
     height: '100%',
     backgroundColor: colors.primary.yellow,
-    borderRadius: 3,
+    borderRadius: ms(3),
   },
   thumb: {
     position: 'absolute',
-    top: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: ms(8),
+    width: ms(24),
+    height: ms(24),
+    borderRadius: ms(12),
     backgroundColor: colors.primary.yellow,
     borderWidth: 3,
     borderColor: colors.background.white,
@@ -588,8 +589,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   sliderSection: {
@@ -603,14 +604,14 @@ const styles = StyleSheet.create({
   },
   sliderLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   sliderValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.primary.yellowDark,
   },
   sliderRange: {
@@ -621,8 +622,8 @@ const styles = StyleSheet.create({
   },
   rangeText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   genderSection: {
@@ -646,7 +647,7 @@ const styles = StyleSheet.create({
   },
   genderChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   genderChipTextActive: {
@@ -661,16 +662,16 @@ const styles = StyleSheet.create({
   },
   resultLabel: {
     fontFamily: fontFamily.bold,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     letterSpacing: 1.5,
     marginBottom: spacing.md,
   },
   resultBmi: {
     fontFamily: fontFamily.bold,
-    fontSize: 56,
-    lineHeight: 64,
+    fontSize: ms(56),
+    lineHeight: ms(64),
     marginBottom: spacing.md,
   },
   colorBar: {
@@ -686,7 +687,7 @@ const styles = StyleSheet.create({
   },
   indicatorContainer: {
     width: '100%',
-    height: 20,
+    height: ms(20),
     position: 'relative',
     marginBottom: spacing.md,
   },
@@ -698,21 +699,21 @@ const styles = StyleSheet.create({
   },
   barIndicatorLine: {
     width: 2,
-    height: 8,
+    height: ms(8),
     backgroundColor: colors.background.dark,
   },
   barIndicatorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: ms(10),
+    height: ms(10),
+    borderRadius: ms(5),
     backgroundColor: colors.background.dark,
     borderWidth: 2,
     borderColor: colors.background.white,
   },
   resultMessage: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     textAlign: 'center',
   },
@@ -727,7 +728,7 @@ const styles = StyleSheet.create({
   },
   bmiDetailsTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
     marginBottom: spacing.md,
     letterSpacing: 0.5,
@@ -740,7 +741,7 @@ const styles = StyleSheet.create({
   },
   bmiDetailText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
     flex: 1,
   },
@@ -750,8 +751,8 @@ const styles = StyleSheet.create({
   },
   bmiDetailNote: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.primary,
     marginTop: spacing.xs,
     marginBottom: spacing.md,
@@ -764,7 +765,7 @@ const styles = StyleSheet.create({
   },
   bmiScaleTitle: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -775,25 +776,25 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   bmiScaleDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: ms(8),
+    height: ms(8),
+    borderRadius: ms(4),
   },
   bmiScaleRange: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.primary,
-    minWidth: 72,
+    minWidth: ms(72),
   },
   bmiScaleDesc: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.light,
   },
   bmiWhatIs: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: ms(12),
+    lineHeight: ms(17),
     color: colors.text.light,
     marginTop: spacing.md,
     fontStyle: 'italic',
@@ -816,23 +817,23 @@ const styles = StyleSheet.create({
   },
   bmrCardTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
     letterSpacing: 0.5,
   },
   bmrCardValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 28,
+    fontSize: ms(28),
     color: colors.text.primary,
   },
   bmrCardUnit: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.secondary,
   },
   bmrCardHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
     marginTop: spacing.xs,
   },
@@ -845,7 +846,7 @@ const styles = StyleSheet.create({
   },
   tdeeLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -866,7 +867,7 @@ const styles = StyleSheet.create({
   },
   activityChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
   },
   activityChipTextActive: {
@@ -879,7 +880,7 @@ const styles = StyleSheet.create({
   },
   tdeeText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
     flex: 1,
   },
@@ -889,7 +890,7 @@ const styles = StyleSheet.create({
   },
   tdeeHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.light,
     marginTop: spacing.xs,
   },
@@ -909,14 +910,14 @@ const styles = StyleSheet.create({
   },
   dietSuggestionTitle: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   dietSuggestionSubtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
   },
@@ -933,8 +934,8 @@ const styles = StyleSheet.create({
   },
   historyButtonText: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   workoutCard: {
@@ -948,9 +949,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   workoutCardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: ms(48),
+    height: ms(48),
+    borderRadius: ms(24),
     backgroundColor: colors.primary.yellowLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -962,14 +963,14 @@ const styles = StyleSheet.create({
   },
   workoutCardTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   workoutCardSubtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
   },

@@ -32,6 +32,7 @@ import {
   spacing,
   borderRadius,
 } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 import type { Post, Comment, User, Role } from '../../../src/types/models';
 
 interface PostHeaderProps {
@@ -402,14 +403,14 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   timestamp: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginTop: 2,
   },
@@ -432,8 +433,8 @@ const styles = StyleSheet.create({
   },
   hashtag: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.primary.yellowDark,
   },
 
@@ -454,8 +455,8 @@ const styles = StyleSheet.create({
   },
   actionCount: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
 
@@ -479,8 +480,8 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
     textAlign: 'center',
   },
@@ -498,20 +499,20 @@ const styles = StyleSheet.create({
   commentInput: {
     flex: 1,
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.primary,
     backgroundColor: colors.border.light,
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    maxHeight: 100,
-    minHeight: 40,
+    maxHeight: ms(100),
+    minHeight: ms(40),
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: ms(40),
+    height: ms(40),
+    borderRadius: ms(20),
     backgroundColor: colors.primary.yellow,
     alignItems: 'center',
     justifyContent: 'center',

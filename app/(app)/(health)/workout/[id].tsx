@@ -23,6 +23,7 @@ import {
   borderRadius,
   shadows,
 } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { WorkoutDifficulty, Exercise } from '../../../../src/types/models';
 
 const DIFFICULTY_CONFIG: Record<WorkoutDifficulty, { variant: 'success' | 'warning' | 'error' }> = {
@@ -233,8 +234,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fontFamily.bold,
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: ms(24),
+    lineHeight: ms(30),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -258,13 +259,13 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
-    lineHeight: 26,
+    fontSize: ms(20),
+    lineHeight: ms(26),
     color: colors.text.primary,
   },
   statLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   section: {
@@ -273,15 +274,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
   description: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   tagRow: {
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   exerciseCard: {
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
   },
   exerciseIndexText: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   exerciseContent: {
@@ -328,8 +329,8 @@ const styles = StyleSheet.create({
   },
   exerciseName: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: 4,
   },
@@ -340,13 +341,13 @@ const styles = StyleSheet.create({
   },
   exerciseDetail: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
   },
   exerciseNotes: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginTop: spacing.xs,
     fontStyle: 'italic',

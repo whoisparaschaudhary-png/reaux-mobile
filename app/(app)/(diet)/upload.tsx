@@ -19,6 +19,7 @@ import { useDietStore } from '../../../src/stores/useDietStore';
 import { showAppAlert } from '../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { DietCategory, DietType } from '../../../src/types/models';
 
 const CATEGORIES: { label: string; value: DietCategory }[] = [
@@ -408,8 +409,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -419,8 +420,8 @@ const styles = StyleSheet.create({
   },
   mealHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.light,
     marginTop: spacing.xs,
   },
@@ -437,8 +438,8 @@ const styles = StyleSheet.create({
   },
   dropdownText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: ms(16),
+    lineHeight: ms(24),
     color: colors.text.primary,
   },
   categoryList: {
@@ -459,8 +460,8 @@ const styles = StyleSheet.create({
   },
   categoryOptionText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   categoryOptionTextActive: {
@@ -495,8 +496,8 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
   },
   macroRow: {

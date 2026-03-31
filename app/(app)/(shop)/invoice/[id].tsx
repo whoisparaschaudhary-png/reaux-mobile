@@ -18,6 +18,7 @@ import { useUIStore } from '../../../../src/stores/useUIStore';
 import { exportSingleOrderPDF } from '../../../../src/utils/pdfExport';
 import { formatCurrency, formatDate } from '../../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { OrderStatus } from '../../../../src/types/models';
 
 const statusBadgeVariant: Record<OrderStatus, 'warning' | 'info' | 'primary' | 'success' | 'error'> = {
@@ -280,13 +281,13 @@ const styles = StyleSheet.create({
   },
   invoiceLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
     marginBottom: 2,
   },
   invoiceId: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
+    fontSize: ms(20),
     color: colors.text.primary,
   },
   invoiceMeta: {
@@ -300,7 +301,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
 
@@ -310,8 +311,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -331,7 +332,7 @@ const styles = StyleSheet.create({
   },
   tableHeaderText: {
     fontFamily: fontFamily.bold,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.white,
   },
   tableRow: {
@@ -344,7 +345,7 @@ const styles = StyleSheet.create({
   },
   tableCell: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   colQty: {
@@ -376,17 +377,17 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   totalValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   totalFree: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.status.success,
   },
   totalDivider: {
@@ -396,12 +397,12 @@ const styles = StyleSheet.create({
   },
   grandTotalLabel: {
     fontFamily: fontFamily.bold,
-    fontSize: 17,
+    fontSize: ms(17),
     color: colors.text.primary,
   },
   grandTotalValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
+    fontSize: ms(20),
     color: colors.text.primary,
   },
 
@@ -421,12 +422,12 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   infoTextSub: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
     marginTop: 2,
   },

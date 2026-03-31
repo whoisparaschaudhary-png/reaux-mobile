@@ -19,6 +19,7 @@ import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { promosApi } from '../../../../src/api/endpoints/promos';
 import { formatCurrency, formatDate } from '../../../../src/utils/formatters';
 import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { PromoCode } from '../../../../src/types/models';
 
 const getPromoStatus = (promo: PromoCode) => {
@@ -256,8 +257,8 @@ const styles = StyleSheet.create({
   },
   codeText: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     letterSpacing: 0.5,
   },
@@ -269,14 +270,14 @@ const styles = StyleSheet.create({
   },
   discountText: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.status.success,
   },
   minOrderText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   detailsRow: {
@@ -292,8 +293,8 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
   },
   datesRow: {
@@ -303,8 +304,8 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   loadingMore: {
@@ -325,8 +326,8 @@ const styles = StyleSheet.create({
   },
   fabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.onPrimary,
   },
 });

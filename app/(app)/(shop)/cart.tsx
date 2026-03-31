@@ -18,6 +18,7 @@ import { CartItemCard } from '../../../src/components/cards/CartItemCard';
 import { useCartStore } from '../../../src/stores/useCartStore';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import type { Product } from '../../../src/types/models';
 
 const PAYMENT_METHODS = [
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
-    paddingBottom: 120,
+    paddingBottom: mvs(120),
   },
 
   // Sections
@@ -234,14 +235,14 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
   editLink: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.primary.yellowDark,
     marginBottom: spacing.md,
   },
@@ -257,9 +258,9 @@ const styles = StyleSheet.create({
     borderColor: colors.border.light,
   },
   addressIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: ms(40),
+    height: ms(40),
+    borderRadius: ms(20),
     backgroundColor: colors.primary.yellowLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -270,13 +271,13 @@ const styles = StyleSheet.create({
   },
   addressLabel: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
     marginBottom: 2,
   },
   addressText: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
   },
 
@@ -298,7 +299,7 @@ const styles = StyleSheet.create({
   },
   paymentLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.secondary,
     flex: 1,
   },
@@ -307,18 +308,18 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
   },
   radioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: ms(22),
+    height: ms(22),
+    borderRadius: ms(11),
     borderWidth: 2,
     borderColor: colors.border.gray,
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: ms(12),
+    height: ms(12),
+    borderRadius: ms(6),
     backgroundColor: colors.primary.yellow,
   },
 
@@ -342,12 +343,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   totalAmount: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
+    fontSize: ms(20),
     color: colors.text.primary,
   },
   continueWrap: {

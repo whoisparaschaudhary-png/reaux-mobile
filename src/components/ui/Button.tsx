@@ -10,6 +10,7 @@ import {
 import Animated from 'react-native-reanimated';
 import { colors, typography, fontFamily, borderRadius, spacing, shadows } from '../theme';
 import { useScalePress } from '../../hooks/useAnimations';
+import { ms, mvs } from '../../utils/responsive';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -125,49 +126,32 @@ const variantStyles: Record<ButtonVariant, ViewStyle> = {
 };
 
 const textVariantStyles: Record<ButtonVariant, TextStyle> = {
-  primary: {
-    color: colors.text.onPrimary,
-  },
-  secondary: {
-    color: colors.text.white,
-  },
-  outline: {
-    color: colors.text.primary,
-  },
-  ghost: {
-    color: colors.text.primary,
-  },
+  primary:   { color: colors.text.onPrimary },
+  secondary: { color: colors.text.white },
+  outline:   { color: colors.text.primary },
+  ghost:     { color: colors.text.primary },
 };
 
 const sizeStyles: Record<ButtonSize, ViewStyle> = {
   sm: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    minHeight: 36,
+    paddingVertical:   mvs(8),
+    paddingHorizontal: ms(16),
+    minHeight:         mvs(36),
   },
   md: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    minHeight: 44,
+    paddingVertical:   mvs(12),
+    paddingHorizontal: ms(20),
+    minHeight:         mvs(44),
   },
   lg: {
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xxl,
-    minHeight: 52,
+    paddingVertical:   mvs(16),
+    paddingHorizontal: ms(24),
+    minHeight:         mvs(52),
   },
 };
 
 const textSizeStyles: Record<ButtonSize, TextStyle> = {
-  sm: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  md: {
-    fontSize: 15,
-    lineHeight: 20,
-  },
-  lg: {
-    fontSize: 17,
-    lineHeight: 22,
-  },
+  sm: { fontSize: ms(13), lineHeight: ms(18) },
+  md: { fontSize: ms(15), lineHeight: ms(20) },
+  lg: { fontSize: ms(17), lineHeight: ms(22) },
 };

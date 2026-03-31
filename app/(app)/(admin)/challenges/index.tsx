@@ -20,6 +20,7 @@ import { useChallengeStore } from '../../../../src/stores/useChallengeStore';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { formatDate } from '../../../../src/utils/formatters';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { Challenge, ChallengeType } from '../../../../src/types/models';
 
 const TYPE_VARIANT: Record<ChallengeType, 'primary' | 'success' | 'info' | 'warning'> = {
@@ -191,14 +192,14 @@ const styles = StyleSheet.create({
   challengeTitle: {
     flex: 1,
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   challengeDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginTop: spacing.xs,
   },
@@ -215,8 +216,8 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   dateRow: {
@@ -224,8 +225,8 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
   },
   joinContainer: {
@@ -240,8 +241,8 @@ const styles = StyleSheet.create({
   },
   joinedText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.status.success,
   },
 });

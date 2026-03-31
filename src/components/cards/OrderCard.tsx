@@ -3,12 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../theme';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import { ms, mvs } from '../../utils/responsive';
 import type { Order, OrderStatus } from '../../types/models';
 
 const statusConfig: Record<OrderStatus, { label: string; bg: string; text: string }> = {
-  pending: { label: 'Pending', bg: '#fef3c7', text: '#92400e' },
+  pending:   { label: 'Pending',   bg: '#fef3c7', text: '#92400e' },
   confirmed: { label: 'Confirmed', bg: '#dbeafe', text: '#1e40af' },
-  shipped: { label: 'Shipped', bg: '#ede9fe', text: '#5b21b6' },
+  shipped:   { label: 'Shipped',   bg: '#ede9fe', text: '#5b21b6' },
   delivered: { label: 'Delivered', bg: '#dcfce7', text: '#166534' },
   cancelled: { label: 'Cancelled', bg: '#fee2e2', text: '#991b1b' },
 };
@@ -19,7 +20,7 @@ interface OrderCardProps {
 }
 
 export const OrderCard: React.FC<OrderCardProps> = ({ order, onPress }) => {
-  const status = statusConfig[order.status] ?? statusConfig.pending;
+  const status    = statusConfig[order.status] ?? statusConfig.pending;
   const itemCount = (order.items ?? []).reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -46,7 +47,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onPress }) => {
 
       <View style={styles.bottomRow}>
         <View style={styles.detailItem}>
-          <Ionicons name="cube-outline" size={16} color={colors.text.secondary} />
+          <Ionicons name="cube-outline" size={ms(16)} color={colors.text.secondary} />
           <Text style={styles.detailText}>
             {itemCount} {itemCount === 1 ? 'item' : 'items'}
           </Text>
@@ -55,7 +56,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onPress }) => {
           <Text style={styles.totalLabel}>Total:</Text>
           <Text style={styles.totalAmount}>{formatCurrency(order.finalAmount)}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.text.light} />
+        <Ionicons name="chevron-forward" size={ms(20)} color={colors.text.light} />
       </View>
     </TouchableOpacity>
   );
@@ -79,15 +80,15 @@ const styles = StyleSheet.create({
   },
   orderId: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
-    marginBottom: 2,
+    marginBottom: mvs(2),
   },
   date: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   statusBadge: {
@@ -97,8 +98,8 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
   },
   divider: {
     height: 1,
@@ -117,17 +118,17 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   totalLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   totalAmount: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.primary,
   },
 });

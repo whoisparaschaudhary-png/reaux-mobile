@@ -20,6 +20,7 @@ import {
   layout,
   shadows,
 } from '../../../../../src/theme';
+import { ms, mvs } from '../../../../../src/utils/responsive';
 import type { Gym } from '../../../../../src/types/models';
 
 export default function MembershipPlanDetailScreen() {
@@ -241,16 +242,16 @@ const styles = StyleSheet.create({
   },
   planName: {
     fontFamily: fontFamily.bold,
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: ms(24),
+    lineHeight: ms(30),
     color: colors.text.primary,
     flex: 1,
     marginRight: spacing.md,
   },
   gymName: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
@@ -261,27 +262,27 @@ const styles = StyleSheet.create({
   },
   price: {
     fontFamily: fontFamily.bold,
-    fontSize: 32,
-    lineHeight: 40,
+    fontSize: ms(32),
+    lineHeight: ms(40),
     color: colors.primary.yellow,
   },
   duration: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   cardTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
   description: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   featureItem: {
@@ -292,8 +293,8 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.primary,
     flex: 1,
   },
@@ -307,14 +308,14 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   infoValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   dangerZone: {
@@ -322,8 +323,8 @@ const styles = StyleSheet.create({
   },
   dangerTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.status.error,
     marginBottom: spacing.md,
   },
@@ -341,8 +342,8 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.status.error,
   },
 });

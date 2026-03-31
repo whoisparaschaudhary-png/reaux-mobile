@@ -15,6 +15,7 @@ import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { useChallengeStore } from '../../../../src/stores/useChallengeStore';
 import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { ChallengeType } from '../../../../src/types/models';
 
 const CHALLENGE_TYPES: ChallengeType[] = ['steps', 'workout', 'diet', 'custom'];
@@ -187,8 +188,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -220,8 +221,8 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   categoryChipTextActive: {

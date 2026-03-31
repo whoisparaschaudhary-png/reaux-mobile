@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, borderRadius } from '../../theme';
+import { ms, mvs, screenWidth } from '../../utils/responsive';
 
 interface SkeletonLoaderProps {
   width?: number | string;
@@ -22,14 +23,13 @@ interface SkeletonLoaderProps {
 
 export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   width = '100%',
-  height = 16,
+  height = mvs(16),
   borderRadius: radius = borderRadius.md,
   style,
 }) => {
   const shimmerTranslate = useSharedValue(-1);
 
   useEffect(() => {
-    // Premium shimmer animation
     shimmerTranslate.value = withRepeat(
       withSequence(
         withTiming(1, { duration: 1500, easing: Easing.bezier(0.4, 0.0, 0.2, 1) }),
@@ -44,13 +44,10 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
     const translateX = interpolate(
       shimmerTranslate.value,
       [-1, 1],
-      [-300, 300],
+      [-screenWidth, screenWidth],
       Extrapolation.CLAMP
     );
-
-    return {
-      transform: [{ translateX }],
-    };
+    return { transform: [{ translateX }] };
   });
 
   return (
@@ -82,11 +79,11 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
 /** A pre-built card skeleton for list placeholders */
 export const SkeletonCard: React.FC<{ style?: ViewStyle }> = ({ style }) => (
   <View style={[styles.card, style]}>
-    <SkeletonLoader width="100%" height={160} borderRadius={borderRadius.lg} />
+    <SkeletonLoader width="100%" height={mvs(160)} borderRadius={borderRadius.lg} />
     <View style={styles.cardBody}>
-      <SkeletonLoader width="60%" height={18} />
-      <SkeletonLoader width="90%" height={14} style={{ marginTop: 8 }} />
-      <SkeletonLoader width="40%" height={14} style={{ marginTop: 8 }} />
+      <SkeletonLoader width="60%" height={mvs(18)} />
+      <SkeletonLoader width="90%" height={mvs(14)} style={{ marginTop: ms(8) }} />
+      <SkeletonLoader width="40%" height={mvs(14)} style={{ marginTop: ms(8) }} />
     </View>
   </View>
 );
@@ -101,13 +98,13 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   shimmerGradient: {
-    width: 300,
+    width: screenWidth,
     height: '100%',
   },
   card: {
-    marginBottom: 16,
+    marginBottom: ms(16),
   },
   cardBody: {
-    paddingTop: 12,
+    paddingTop: ms(12),
   },
 });

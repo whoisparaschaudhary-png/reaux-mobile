@@ -20,6 +20,7 @@ import { useUIStore } from '../../../../src/stores/useUIStore';
 import { useFeedStore } from '../../../../src/stores/useFeedStore';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { WorkoutCategory, WorkoutDifficulty, Exercise } from '../../../../src/types/models';
 
 const CATEGORIES: { value: WorkoutCategory; label: string }[] = [
@@ -369,8 +370,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -391,7 +392,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   chipTextActive: {
@@ -423,7 +424,7 @@ const styles = StyleSheet.create({
   },
   exerciseFormTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   submitContainer: {

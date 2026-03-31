@@ -22,6 +22,7 @@ import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { formatCurrency, formatDate } from '../../../../src/utils/formatters';
 import { exportOrdersListPDF, exportSingleOrderPDF } from '../../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { Order, OrderStatus } from '../../../../src/types/models';
 
 type BadgeVariant = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'default';
@@ -414,8 +415,8 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   tabTextActive: {
@@ -448,8 +449,8 @@ const styles = StyleSheet.create({
   },
   orderId: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   orderDetails: {
@@ -462,32 +463,32 @@ const styles = StyleSheet.create({
   },
   customerName: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   orderAmount: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   orderDate: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   itemCount: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
   },
   discountText: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.status.success,
   },
   expandIndicator: {
@@ -505,8 +506,8 @@ const styles = StyleSheet.create({
   },
   itemsTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
@@ -518,21 +519,21 @@ const styles = StyleSheet.create({
   itemName: {
     flex: 1,
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.primary,
   },
   itemQty: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginHorizontal: spacing.md,
   },
   itemPrice: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.primary,
     minWidth: 60,
     textAlign: 'right',
@@ -542,8 +543,8 @@ const styles = StyleSheet.create({
   },
   addressText: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   statusUpdateSection: {
@@ -551,8 +552,8 @@ const styles = StyleSheet.create({
   },
   statusUpdateTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
@@ -569,8 +570,8 @@ const styles = StyleSheet.create({
   },
   statusFinalText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.light,
     fontStyle: 'italic',
   },
@@ -583,8 +584,8 @@ const styles = StyleSheet.create({
   },
   updatingText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   exportInvoiceSection: {

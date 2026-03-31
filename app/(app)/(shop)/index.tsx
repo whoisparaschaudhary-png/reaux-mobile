@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   RefreshControl,
+  useWindowDimensions,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
@@ -23,6 +24,7 @@ import { useDebounce } from '../../../src/hooks/useDebounce';
 import { useRefreshOnFocus } from '../../../src/hooks/useRefreshOnFocus';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows, layout } from '../../../src/theme';
+import { ms, mvs, getColumns } from '../../../src/utils/responsive';
 
 const CATEGORIES = ['All', 'Whey', 'Creatine', 'BCAA', 'Pre-Workout', 'Vitamins'];
 
@@ -42,24 +44,24 @@ export default function MarketplaceScreen() {
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
+  const { width: screenW } = useWindowDimensions();
+  const numCols  = getColumns({ sm: 2, md: 3, lg: 4 });
+  const colWidth = (screenW - spacing.xl * 2 - spacing.md * (numCols - 1)) / numCols;
+
   const [refreshing, setRefreshing] = useState(false);
   const debouncedSearch = useDebounce(searchQuery, 400);
 
-  // Initial fetch
   useEffect(() => {
     fetchProducts(1);
     fetchCart();
   }, []);
 
-  // Refetch when search or category changes
   useEffect(() => {
     fetchProducts(1, debouncedSearch, category);
   }, [debouncedSearch, category]);
 
   useRefreshOnFocus(
-    useCallback(() => {
-      fetchCart();
-    }, []),
+    useCallback(() => { fetchCart(); }, []),
   );
 
   const onRefresh = useCallback(async () => {
@@ -75,19 +77,13 @@ export default function MarketplaceScreen() {
 
   const handleCategoryPress = useCallback(
     (cat: string) => {
-      if (cat === 'All') {
-        setCategory('');
-      } else {
-        setCategory(cat === category ? '' : cat);
-      }
+      setCategory(cat === 'All' ? '' : (cat === category ? '' : cat));
     },
     [category],
   );
 
   const handleAddToCart = useCallback(
-    (productId: string) => {
-      addToCart(productId, 1);
-    },
+    (productId: string) => { addToCart(productId, 1); },
     [],
   );
 
@@ -100,44 +96,15 @@ export default function MarketplaceScreen() {
         product={item}
         onPress={() => router.push(`/(app)/(shop)/${item._id}`)}
         onAddToCart={() => handleAddToCart(item._id)}
+        numColumns={numCols}
       />
     ),
-    [handleAddToCart],
+    [handleAddToCart, numCols],
   );
 
   const ListHeader = useCallback(
     () => (
       <View>
-        {/* Promo Banner */}
-        {/* <TouchableOpacity
-          style={styles.promoBanner}
-          activeOpacity={0.8}
-          onPress={() => router.push('/(app)/(shop)/promo')}
-        >
-          <View style={styles.promoContent}>
-            <Ionicons name="pricetag" size={20} color={colors.text.onPrimary} />
-            <View style={styles.promoTextWrap}>
-              <Text style={styles.promoTitle}>Apply Promo Code</Text>
-              <Text style={styles.promoSub}>
-                Get 15% OFF on all supplements
-              </Text>
-            </View>
-          </View>
-          <View style={styles.promoApplyBtn}>
-            <Text style={styles.promoApplyText}>Apply</Text>
-          </View>
-        </TouchableOpacity> */}
-
-        {/* Admin Dashboard Button */}
-        {/* {isAdmin && (
-          <TouchableOpacity style={styles.adminBtn} activeOpacity={0.7}>
-            <Ionicons name="bar-chart-outline" size={18} color={colors.text.white} />
-            <Text style={styles.adminBtnText}>Superadmin Sales Dashboard</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.text.white} />
-          </TouchableOpacity>
-        )} */}
-
-        {/* Section: In House Products */}
         <Text style={styles.sectionTitle}>In House Products</Text>
       </View>
     ),
@@ -211,8 +178,8 @@ export default function MarketplaceScreen() {
             data={products}
             renderItem={renderProduct}
             keyExtractor={(item) => item._id}
-            numColumns={2}
-            // estimatedItemSize={220}
+            numColumns={numCols}
+            estimatedItemSize={colWidth + ms(90)}
             ListHeaderComponent={ListHeader}
             ListFooterComponent={ListFooter}
             onEndReached={handleLoadMore}
@@ -233,11 +200,11 @@ export default function MarketplaceScreen() {
         {isLoading && products.length === 0 && (
           <View style={styles.loadingOverlay}>
             <View style={styles.skeletonGrid}>
-              {[1, 2, 3, 4].map((i) => (
-                <View key={i} style={styles.skeletonItem}>
-                  <SkeletonLoader width="100%" height={140} borderRadius={12} />
-                  <SkeletonLoader width="70%" height={14} style={{ marginTop: 10 }} />
-                  <SkeletonLoader width="40%" height={14} style={{ marginTop: 6 }} />
+              {Array.from({ length: numCols * 2 }).map((_, i) => (
+                <View key={i} style={[styles.skeletonItem, { width: colWidth }]}>
+                  <SkeletonLoader width="100%" height={mvs(140)} borderRadius={ms(12)} />
+                  <SkeletonLoader width="70%" height={mvs(14)} style={{ marginTop: ms(10) }} />
+                  <SkeletonLoader width="40%" height={mvs(14)} style={{ marginTop: ms(6) }} />
                 </View>
               ))}
             </View>
@@ -252,7 +219,7 @@ export default function MarketplaceScreen() {
             onPress={() => router.push('/(app)/(shop)/cart')}
           >
             <View style={styles.floatingCartLeft}>
-              <Ionicons name="cart" size={22} color={colors.text.onPrimary} />
+              <Ionicons name="cart" size={ms(22)} color={colors.text.onPrimary} />
               <View style={styles.cartCountBadge}>
                 <Text style={styles.cartCountText}>{count}</Text>
               </View>
@@ -272,8 +239,8 @@ const styles = StyleSheet.create({
   },
   header: {
     fontFamily: fontFamily.bold,
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: ms(28),
+    lineHeight: ms(34),
     color: colors.text.primary,
     marginTop: spacing.lg,
     marginBottom: spacing.lg,
@@ -284,7 +251,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
 
-  // Categories
   categoriesScroll: {
     marginBottom: spacing.lg,
     flexGrow: 0,
@@ -305,7 +271,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   categoryTextActive: {
@@ -313,75 +279,14 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
   },
 
-  // Promo Banner
-  promoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.primary.yellow,
-    borderRadius: borderRadius.card,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  promoContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: spacing.md,
-  },
-  promoTextWrap: {
-    flex: 1,
-  },
-  promoTitle: {
-    fontFamily: fontFamily.bold,
-    fontSize: 14,
-    color: colors.text.onPrimary,
-  },
-  promoSub: {
-    fontFamily: fontFamily.regular,
-    fontSize: 12,
-    color: 'rgba(28, 28, 13, 0.7)',
-    marginTop: 1,
-  },
-  promoApplyBtn: {
-    backgroundColor: colors.background.dark,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.pill,
-  },
-  promoApplyText: {
-    fontFamily: fontFamily.medium,
-    fontSize: 13,
-    color: colors.text.white,
-  },
-
-  // Admin
-  adminBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background.dark,
-    borderRadius: borderRadius.card,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    gap: spacing.sm,
-  },
-  adminBtnText: {
-    fontFamily: fontFamily.medium,
-    fontSize: 14,
-    color: colors.text.white,
-    flex: 1,
-  },
-
-  // Section
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: ms(18),
+    lineHeight: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
 
-  // List
   listContent: {
     paddingHorizontal: spacing.xl,
   },
@@ -391,10 +296,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerSpacer: {
-    height: layout.tabBarHeight + 60,
+    height: layout.tabBarHeight + ms(60),
   },
 
-  // Loading
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.background.light,
@@ -407,11 +311,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   skeletonItem: {
-    width: '47%',
     marginBottom: spacing.md,
   },
 
-  // Floating Cart
   floatingCart: {
     position: 'absolute',
     bottom: spacing.lg,
@@ -424,7 +326,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.card,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    height: 56,
+    height: mvs(56),
   },
   floatingCartLeft: {
     flexDirection: 'row',
@@ -433,28 +335,28 @@ const styles = StyleSheet.create({
   },
   cartCountBadge: {
     position: 'absolute',
-    top: -6,
-    right: -10,
+    top: ms(-6),
+    right: ms(-10),
     backgroundColor: colors.background.dark,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: ms(18),
+    height: ms(18),
+    borderRadius: ms(9),
     alignItems: 'center',
     justifyContent: 'center',
   },
   cartCountText: {
     fontFamily: fontFamily.bold,
-    fontSize: 10,
+    fontSize: ms(10),
     color: colors.text.white,
   },
   floatingCartText: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.onPrimary,
   },
   floatingCartTotal: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.onPrimary,
   },
 });

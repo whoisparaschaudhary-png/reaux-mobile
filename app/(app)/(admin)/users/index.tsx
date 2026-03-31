@@ -16,6 +16,7 @@ import { useUIStore } from '../../../../src/stores/useUIStore';
 import { membershipsApi } from '../../../../src/api/endpoints/memberships';
 import { exportUsersListPDF } from '../../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { User, Role } from '../../../../src/types/models';
 
 type TabFilter = 'all' | 'admin' | 'user';
@@ -255,8 +256,8 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   tabTextActive: {

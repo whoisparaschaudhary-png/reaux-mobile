@@ -16,6 +16,7 @@ import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { showAppAlert } from '../../../src/stores/useUIStore';
 import client from '../../../src/api/client';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 
 export default function ContactUsScreen() {
   const router = useRouter();
@@ -152,14 +153,14 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 17,
+    fontSize: ms(17),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   infoText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   field: {

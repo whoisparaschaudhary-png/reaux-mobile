@@ -21,6 +21,7 @@ import {
   borderRadius,
   layout,
 } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 import type { User, Role } from '../../../src/types/models';
 
 const roleBadgeVariant: Record<Role, 'primary' | 'success' | 'info'> = {
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: layout.screenPadding,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   centered: {
     flex: 1,
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.status.error,
     textAlign: 'center',
   },
@@ -171,14 +172,14 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   infoValue: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
     textAlign: 'right',
     flex: 1,

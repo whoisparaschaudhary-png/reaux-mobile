@@ -20,6 +20,7 @@ import { useReelStore } from '../../../src/stores/useReelStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { colors, fontFamily, typography, spacing, shadows } from '../../../src/theme';
 import { STORE_URLS, INSTAGRAM_URL } from '../../../src/utils/constants';
+import { ms } from '../../../src/utils/responsive';
 import type { Reel } from '../../../src/types/models';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
+    fontSize: ms(22),
     color: colors.text.white,
   },
   footerLoader: {
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.light,
   },
 });

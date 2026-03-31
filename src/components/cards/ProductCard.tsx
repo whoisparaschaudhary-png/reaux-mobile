@@ -1,33 +1,38 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import Animated, { useSharedValue, withSequence, withSpring, withTiming, useAnimatedStyle, Easing } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../theme';
 import { formatCurrency } from '../../utils/formatters';
+import { ms, getColumns } from '../../utils/responsive';
 import type { Product } from '../../types/models';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_GAP = spacing.md;
-const CARD_WIDTH = (SCREEN_WIDTH - spacing.xl * 2 - CARD_GAP) / 2;
 
 interface ProductCardProps {
   product: Product;
   onPress: () => void;
   onAddToCart: () => void;
+  /** Column count — passed from parent so all cards in a row share the same width */
+  numColumns?: number;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onPress,
   onAddToCart,
+  numColumns,
 }) => {
+  const { width: screenW } = useWindowDimensions();
+  const cols = numColumns ?? getColumns();
+  const screenPadding = ms(16) * 2;
+  const gapTotal = spacing.md * (cols - 1);
+  const cardWidth = (screenW - screenPadding - gapTotal) / cols;
+
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
   const discountPercent = hasDiscount
     ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
     : 0;
 
-  // Card fade-in animation on mount
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.9);
 
@@ -41,7 +46,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     transform: [{ scale: scale.value }],
   }));
 
-  // Add to cart animation
   const addToCartScale = useSharedValue(1);
   const addToCartAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: addToCartScale.value }],
@@ -49,7 +53,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleAddToCart = (e: any) => {
     e.stopPropagation?.();
-    // Trigger bounce animation
     addToCartScale.value = withSequence(
       withSpring(1.2, { damping: 10, stiffness: 300 }),
       withSpring(0.9, { damping: 10, stiffness: 300 }),
@@ -59,70 +62,67 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <Animated.View style={cardAnimatedStyle}>
+    <Animated.View style={[cardAnimatedStyle, { width: cardWidth }]}>
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.8}
         style={[styles.container, shadows.card]}
       >
-      {/* Product Image */}
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: product.images?.[0] }}
-          style={styles.image}
-          contentFit="cover"
-          placeholder={{ blurhash: 'LGF5]+Yk^6#M@-5c,1J5@[or[Q6.' }}
-          transition={200}
-        />
+        {/* Product Image */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: product.images?.[0] }}
+            style={styles.image}
+            contentFit="cover"
+            placeholder={{ blurhash: 'LGF5]+Yk^6#M@-5c,1J5@[or[Q6.' }}
+            transition={200}
+          />
 
-        {/* Discount Badge */}
-        {hasDiscount && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>{discountPercent}% OFF</Text>
-          </View>
-        )}
-
-        {/* Add to Cart Button */}
-        <TouchableOpacity
-          onPress={handleAddToCart}
-          activeOpacity={0.7}
-          hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-        >
-          <Animated.View style={[styles.addButton, addToCartAnimatedStyle]}>
-            <Ionicons name="add" size={22} color={colors.text.onPrimary} />
-          </Animated.View>
-        </TouchableOpacity>
-      </View>
-
-      {/* Product Info */}
-      <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={2}>
-          {product.name}
-        </Text>
-
-        {product.category && (
-          <Text style={styles.vendor} numberOfLines={1}>
-            {product.category}
-          </Text>
-        )}
-
-        <View style={styles.priceRow}>
-          <Text style={styles.price}>{formatCurrency(product.price)}</Text>
           {hasDiscount && (
-            <Text style={styles.comparePrice}>
-              {formatCurrency(product.compareAtPrice!)}
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountText}>{discountPercent}% OFF</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            onPress={handleAddToCart}
+            activeOpacity={0.7}
+            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+          >
+            <Animated.View style={[styles.addButton, addToCartAnimatedStyle]}>
+              <Ionicons name="add" size={ms(22)} color={colors.text.onPrimary} />
+            </Animated.View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Product Info */}
+        <View style={styles.info}>
+          <Text style={styles.name} numberOfLines={2}>
+            {product.name}
+          </Text>
+
+          {product.category && (
+            <Text style={styles.vendor} numberOfLines={1}>
+              {product.category}
             </Text>
           )}
+
+          <View style={styles.priceRow}>
+            <Text style={styles.price}>{formatCurrency(product.price)}</Text>
+            {hasDiscount && (
+              <Text style={styles.comparePrice}>
+                {formatCurrency(product.compareAtPrice!)}
+              </Text>
+            )}
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: CARD_WIDTH,
     backgroundColor: colors.background.card,
     borderRadius: borderRadius.card,
     overflow: 'hidden',
@@ -144,21 +144,21 @@ const styles = StyleSheet.create({
     left: spacing.sm,
     backgroundColor: colors.status.error,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: ms(3),
     borderRadius: borderRadius.sm,
   },
   discountText: {
     fontFamily: fontFamily.bold,
-    fontSize: 10,
+    fontSize: ms(10),
     color: colors.text.white,
   },
   addButton: {
     position: 'absolute',
     bottom: spacing.sm,
     right: spacing.sm,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: ms(36),
+    height: ms(36),
+    borderRadius: ms(18),
     backgroundColor: colors.primary.yellow,
     alignItems: 'center',
     justifyContent: 'center',
@@ -169,15 +169,15 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: ms(14),
+    lineHeight: ms(18),
     color: colors.text.primary,
-    marginBottom: 2,
+    marginBottom: ms(2),
   },
   vendor: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
@@ -188,14 +188,14 @@ const styles = StyleSheet.create({
   },
   price: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: ms(16),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   comparePrice: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.light,
     textDecorationLine: 'line-through',
   },

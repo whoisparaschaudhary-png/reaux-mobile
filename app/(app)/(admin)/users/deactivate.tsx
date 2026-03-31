@@ -17,6 +17,7 @@ import { Badge } from '../../../../src/components/ui/Badge';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { useAdminStore } from '../../../../src/stores/useAdminStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 
 type DeactivateStep = 'search' | 'confirm' | 'success';
 
@@ -217,8 +218,8 @@ const styles = StyleSheet.create({
   },
   instruction: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
@@ -239,21 +240,21 @@ const styles = StyleSheet.create({
   },
   resultName: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   resultEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
   },
   noResults: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
     textAlign: 'center',
     paddingVertical: spacing.xxl,
@@ -270,16 +271,16 @@ const styles = StyleSheet.create({
   },
   successTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: ms(22),
+    lineHeight: ms(28),
     color: colors.text.primary,
     textAlign: 'center',
     marginBottom: spacing.md,
   },
   successMessage: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.xxxl,
@@ -310,8 +311,8 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: ms(20),
+    lineHeight: ms(28),
     color: colors.text.primary,
     marginBottom: spacing.lg,
   },
@@ -329,21 +330,21 @@ const styles = StyleSheet.create({
   },
   modalUserName: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   modalUserEmail: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginTop: 2,
   },
   modalMessage: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.xxl,

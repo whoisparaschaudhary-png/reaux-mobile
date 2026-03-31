@@ -24,6 +24,7 @@ import { useReelStore } from '../../../src/stores/useReelStore';
 import { formatRelative, formatNumber } from '../../../src/utils/formatters';
 import { STORE_URLS } from '../../../src/utils/constants';
 import { colors, fontFamily, spacing, borderRadius } from '../../../src/theme';
+import { ms, mvs } from '../../../src/utils/responsive';
 import { useUIStore } from '../../../src/stores/useUIStore';
 import type { Reel, User } from '../../../src/types/models';
 
@@ -288,12 +289,12 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.primary,
   },
   timestamp: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.light,
     marginTop: 2,
   },
@@ -304,13 +305,13 @@ const styles = StyleSheet.create({
   },
   likeCount: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   caption: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   commentsSection: {
@@ -319,7 +320,7 @@ const styles = StyleSheet.create({
   },
   commentsTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
+    fontSize: ms(18),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -329,8 +330,8 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
     textAlign: 'center',
   },
@@ -346,8 +347,8 @@ const styles = StyleSheet.create({
   commentInput: {
     flex: 1,
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.primary,
     backgroundColor: colors.border.light,
     borderRadius: borderRadius.xl,

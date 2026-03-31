@@ -21,6 +21,7 @@ import { gymsApi } from '../../../../src/api/endpoints/gyms';
 import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { formatDate, formatCurrency } from '../../../../src/utils/formatters';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import type { Membership, Gym, MembershipPlan, User } from '../../../../src/types/models';
 
 export default function GymMembersScreen() {
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
   gymSelectorText: {
     flex: 1,
     fontFamily: fontFamily.medium,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   gymBanner: {
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
   },
   gymBannerText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   statsBar: {
@@ -425,12 +426,12 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
+    fontSize: ms(22),
     color: colors.text.primary,
   },
   statLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.secondary,
     marginTop: 2,
   },
@@ -462,7 +463,7 @@ const styles = StyleSheet.create({
   },
   memberIndexText: {
     fontFamily: fontFamily.bold,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
   },
   memberInfo: {
@@ -470,18 +471,18 @@ const styles = StyleSheet.create({
   },
   memberName: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   memberContact: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
     marginTop: 1,
   },
   memberPlan: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.primary.yellowDark,
     marginTop: 2,
   },
@@ -490,7 +491,7 @@ const styles = StyleSheet.create({
   },
   memberDate: {
     fontFamily: fontFamily.regular,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.text.light,
   },
   memberRight: {
@@ -504,12 +505,12 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontFamily: fontFamily.medium,
-    fontSize: 11,
+    fontSize: ms(11),
     textTransform: 'capitalize',
   },
   dueText: {
     fontFamily: fontFamily.bold,
-    fontSize: 11,
+    fontSize: ms(11),
     color: colors.status.error,
   },
   exportBtn: {
@@ -526,12 +527,12 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   emptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.light,
   },
   modalOverlay: {
@@ -562,7 +563,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 17,
+    fontSize: ms(17),
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -579,7 +580,7 @@ const styles = StyleSheet.create({
   },
   gymOptionText: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   gymOptionTextActive: {

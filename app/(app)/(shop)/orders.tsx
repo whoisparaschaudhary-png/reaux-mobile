@@ -17,6 +17,7 @@ import { OrderCard } from '../../../src/components/cards/OrderCard';
 import { useOrderStore } from '../../../src/stores/useOrderStore';
 import { useRefreshOnFocus } from '../../../src/hooks/useRefreshOnFocus';
 import { colors, fontFamily, borderRadius, spacing, layout } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 import type { OrderStatus } from '../../../src/types/models';
 
 const STATUS_TABS: Array<{ label: string; value: string }> = [
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
 
   // Tabs
   tabsScroll: {
-    maxHeight: 50,
+    maxHeight: ms(50),
   },
   tabsContent: {
     paddingHorizontal: spacing.xl,
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   tabTextActive: {

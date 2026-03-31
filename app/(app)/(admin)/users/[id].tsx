@@ -26,6 +26,7 @@ import { useMembershipStore } from '../../../../src/stores/useMembershipStore';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
 import { useUIStore, showAppAlert } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, typography } from '../../../../src/theme';
+import { ms, mvs } from '../../../../src/utils/responsive';
 import { formatCurrency } from '../../../../src/utils/formatters';
 import type { User, Role, Gym, Membership, MembershipPlan } from '../../../../src/types/models';
 
@@ -654,7 +655,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
+    fontSize: ms(16),
     color: colors.text.secondary,
   },
   profileSection: {
@@ -663,8 +664,8 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: ms(22),
+    lineHeight: ms(28),
     color: colors.text.primary,
     marginTop: spacing.md,
   },
@@ -689,22 +690,22 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
   },
   section: {
     marginBottom: spacing.xxl,
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   sectionDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
@@ -722,12 +723,12 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   infoValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
     maxWidth: '60%',
     textAlign: 'right',
@@ -774,8 +775,8 @@ const styles = StyleSheet.create({
   },
   roleLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   roleLabelActive: {
@@ -789,7 +790,7 @@ const styles = StyleSheet.create({
   },
   gymLoadingText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.secondary,
   },
   gymSelector: {
@@ -819,7 +820,7 @@ const styles = StyleSheet.create({
   },
   gymItemName: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   gymItemNameActive: {
@@ -827,7 +828,7 @@ const styles = StyleSheet.create({
   },
   gymItemCity: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: colors.text.secondary,
     marginTop: 2,
   },
@@ -852,7 +853,7 @@ const styles = StyleSheet.create({
   },
   extendToggleLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   toggleTrack: {
@@ -891,7 +892,7 @@ const styles = StyleSheet.create({
   },
   membershipStatusText: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: ms(12),
   },
   noMembershipCard: {
     backgroundColor: colors.background.card,
@@ -903,7 +904,7 @@ const styles = StyleSheet.create({
   },
   noMembershipText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.light,
     marginTop: spacing.sm,
   },
@@ -921,7 +922,7 @@ const styles = StyleSheet.create({
   },
   assignMembershipBtnText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.primary.yellowDark,
   },
   membershipActions: {
@@ -944,7 +945,7 @@ const styles = StyleSheet.create({
   },
   recordPaymentBtnText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.background.white,
   },
   viewHistoryBtn: {
@@ -960,7 +961,7 @@ const styles = StyleSheet.create({
   },
   viewHistoryBtnText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.status.info,
   },
   modalOverlay: {
@@ -977,19 +978,19 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
+    fontSize: ms(18),
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   modalHint: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
   inputLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
@@ -1000,7 +1001,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
     marginBottom: spacing.lg,
   },
@@ -1026,7 +1027,7 @@ const styles = StyleSheet.create({
   },
   modalBtnCancelText: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.primary,
   },
   modalBtnConfirm: {
@@ -1034,7 +1035,7 @@ const styles = StyleSheet.create({
   },
   modalBtnConfirmText: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.onPrimary,
   },
 });

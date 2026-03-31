@@ -12,6 +12,7 @@ import { useUIStore } from '../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { exportSalesReportPDF } from '../../../src/utils/pdfExport';
 import { colors, fontFamily, spacing, borderRadius } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 
 export default function SalesReportScreen() {
   const router = useRouter();
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   loadingContainer: {
     flex: 1,
@@ -168,16 +169,16 @@ const styles = StyleSheet.create({
   },
   revenueLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.white,
     opacity: 0.7,
     marginBottom: spacing.xs,
   },
   revenueValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 36,
-    lineHeight: 44,
+    fontSize: ms(36),
+    lineHeight: ms(44),
     color: colors.primary.yellow,
   },
   section: {
@@ -185,8 +186,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: ms(18),
+    lineHeight: ms(24),
     color: colors.text.primary,
     marginBottom: spacing.lg,
   },
@@ -203,21 +204,21 @@ const styles = StyleSheet.create({
   },
   monthName: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   monthOrders: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
   },
   monthRevenue: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: ms(16),
+    lineHeight: ms(22),
     color: colors.text.primary,
   },
   productCard: {
@@ -228,9 +229,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rankBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: ms(32),
+    height: ms(32),
+    borderRadius: ms(16),
     backgroundColor: colors.primary.yellowLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   },
   rankText: {
     fontFamily: fontFamily.bold,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.primary,
   },
   productInfo: {
@@ -247,27 +248,27 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
   productSold: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
   },
   productRevenue: {
     fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: ms(15),
+    lineHeight: ms(20),
     color: colors.status.success,
   },
   emptyText: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.light,
     textAlign: 'center',
     paddingVertical: spacing.xl,

@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontFamily, borderRadius, spacing } from '../../theme';
 import { formatCurrency } from '../../utils/formatters';
+import { ms, mvs } from '../../utils/responsive';
 import type { CartItem, Product } from '../../types/models';
 
 interface CartItemCardProps {
@@ -15,14 +16,13 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove }) =>
   const product = item.product as Product;
   const isPopulated = typeof product === 'object' && product !== null;
 
-  const productName = isPopulated ? product.name : 'Product';
+  const productName  = isPopulated ? product.name : 'Product';
   const productPrice = isPopulated ? product.price : 0;
   const productImage = isPopulated ? product.images?.[0] : undefined;
-  const lineTotal = productPrice * item.quantity;
+  const lineTotal    = productPrice * item.quantity;
 
   return (
     <View style={styles.container}>
-      {/* Product Image */}
       <View style={styles.imageWrap}>
         <Image
           source={{ uri: productImage }}
@@ -33,7 +33,6 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove }) =>
         />
       </View>
 
-      {/* Product Details */}
       <View style={styles.details}>
         <Text style={styles.name} numberOfLines={2}>
           {productName}
@@ -48,14 +47,13 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove }) =>
         </View>
       </View>
 
-      {/* Remove Button */}
       <TouchableOpacity
         onPress={onRemove}
         style={styles.removeButton}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         activeOpacity={0.7}
       >
-        <Ionicons name="trash-outline" size={20} color={colors.status.error} />
+        <Ionicons name="trash-outline" size={ms(20)} color={colors.status.error} />
       </TouchableOpacity>
     </View>
   );
@@ -73,8 +71,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border.light,
   },
   imageWrap: {
-    width: 72,
-    height: 72,
+    width: ms(72),
+    height: ms(72),
     borderRadius: borderRadius.lg,
     overflow: 'hidden',
     backgroundColor: colors.border.light,
@@ -90,15 +88,15 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: ms(14),
+    lineHeight: ms(18),
     color: colors.text.primary,
-    marginBottom: 2,
+    marginBottom: ms(2),
   },
   price: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
@@ -108,32 +106,32 @@ const styles = StyleSheet.create({
   },
   quantityLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.secondary,
   },
   quantityBadge: {
     backgroundColor: colors.border.light,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: mvs(2),
     borderRadius: borderRadius.sm,
     marginRight: spacing.sm,
   },
   quantityText: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     color: colors.text.primary,
   },
   lineTotal: {
     fontFamily: fontFamily.bold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: colors.text.primary,
   },
   removeButton: {
-    width: 36,
-    height: 36,
+    width: ms(36),
+    height: ms(36),
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 18,
+    borderRadius: ms(18),
     backgroundColor: '#fee2e2',
   },
 });

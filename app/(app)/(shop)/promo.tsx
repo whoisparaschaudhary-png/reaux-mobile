@@ -13,6 +13,7 @@ import { Input } from '../../../src/components/ui/Input';
 import { promosApi } from '../../../src/api/endpoints/promos';
 import { showAppAlert } from '../../../src/stores/useUIStore';
 import { colors, fontFamily, borderRadius, spacing } from '../../../src/theme';
+import { ms } from '../../../src/utils/responsive';
 import type { PromoCode } from '../../../src/types/models';
 
 export default function PromoScreen() {
@@ -143,9 +144,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xxxl,
   },
   iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: ms(80),
+    height: ms(80),
+    borderRadius: ms(40),
     backgroundColor: colors.primary.yellowLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -153,16 +154,16 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontFamily: fontFamily.bold,
-    fontSize: 22,
+    fontSize: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   subtext: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
+    fontSize: ms(15),
     color: colors.text.secondary,
     textAlign: 'center',
-    maxWidth: 280,
+    maxWidth: ms(280),
   },
 
   // Input
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   resultIcon: {
-    width: 40,
+    width: ms(40),
     alignItems: 'center',
   },
   resultInfo: {
@@ -191,18 +192,18 @@ const styles = StyleSheet.create({
   },
   resultTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     color: '#166534',
     marginBottom: 2,
   },
   resultDesc: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: '#166534',
   },
   resultMax: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     color: '#15803d',
     marginTop: 2,
   },
