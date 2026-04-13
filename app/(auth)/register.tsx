@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { SafeScreen } from '../../src/components/layout/SafeScreen';
 import { Button } from '../../src/components/ui/Button';
@@ -40,6 +41,7 @@ export default function RegisterScreen() {
   const register = useAuthStore((s) => s.register);
   const isLoading = useAuthStore((s) => s.isLoading);
   const showToast = useUIStore((s) => s.showToast);
+  const insets = useSafeAreaInsets();
 
   const handleRegister = async () => {
     const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
@@ -128,7 +130,7 @@ export default function RegisterScreen() {
               </View>
 
               {/* Form section at bottom */}
-              <View style={styles.formSection}>
+              <View style={[styles.formSection, { paddingBottom: mvs(40) + insets.bottom }]}>
                 <Text style={styles.heading}>Create Account</Text>
                 <Text style={styles.subtext}>
                   Join the community and start your fitness journey.
@@ -282,7 +284,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     paddingHorizontal: spacing.xl,
-    paddingBottom: mvs(40),
     alignItems: 'center',
   },
   heading: {

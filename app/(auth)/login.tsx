@@ -13,6 +13,7 @@ import { Link, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeScreen } from '../../src/components/layout/SafeScreen';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
@@ -30,6 +31,7 @@ export default function LoginScreen() {
   const login = useAuthStore((s) => s.login);
   const isLoading = useAuthStore((s) => s.isLoading);
   const showToast = useUIStore((s) => s.showToast);
+  const insets = useSafeAreaInsets();
 
   const handleContinue = async () => {
     if (!email.trim() || !password.trim()) {
@@ -104,7 +106,7 @@ export default function LoginScreen() {
           </ImageBackground>
 
           {/* Form section */}
-          <View style={styles.formSection}>
+          <View style={[styles.formSection, { paddingBottom: spacing.xl + insets.bottom }]}>
             <FadeInView delay={300}>
               <Input
                 label="Email Or Phone Number"
@@ -230,7 +232,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: ms(24),
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
-    paddingBottom: spacing.xl,
     marginTop: mvs(-30),
     justifyContent: 'center',
   },

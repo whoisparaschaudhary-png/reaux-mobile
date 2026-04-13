@@ -7,7 +7,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
-  Alert,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +18,7 @@ import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { NotificationCard } from '../../../src/components/cards/NotificationCard';
 import { useNotificationStore } from '../../../src/stores/useNotificationStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
-import { formatDate } from '../../../src/utils/formatters';
+import { formatDate, formatRelative } from '../../../src/utils/formatters';
 import {
   colors,
   fontFamily,
@@ -29,6 +30,33 @@ import { ms } from '../../../src/utils/responsive';
 import type { Notification, NotificationType } from '../../../src/types/models';
 
 type TabKey = 'all' | 'unread' | 'activity';
+
+const NOTIFICATION_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
+  order:        'cart-outline',
+  challenge:    'trophy-outline',
+  community:    'people-outline',
+  diet:         'leaf-outline',
+  system:       'settings-outline',
+  announcement: 'megaphone-outline',
+};
+
+const NOTIFICATION_ICON_COLOR: Record<string, string> = {
+  order:        colors.status.info,
+  challenge:    colors.status.warning,
+  community:    colors.status.success,
+  diet:         '#22c55e',
+  system:       colors.text.secondary,
+  announcement: colors.primary.yellowDark,
+};
+
+const NOTIFICATION_ICON_BG: Record<string, string> = {
+  order:        '#dbeafe',
+  challenge:    '#fef3c7',
+  community:    '#dcfce7',
+  diet:         '#dcfce7',
+  system:       colors.border.light,
+  announcement: colors.primary.yellowLight,
+};
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -55,6 +83,7 @@ export default function NotificationsScreen() {
   const isSuperAdmin = user?.role === 'superadmin';
 
   const [activeTab, setActiveTab] = useState<TabKey>('all');
+  const [detailNotification, setDetailNotification] = useState<Notification | null>(null);
 
   useEffect(() => {
     fetchNotifications(1);
@@ -128,18 +157,7 @@ export default function NotificationsScreen() {
           if (meta.orderId) {
             router.push(`/(app)/(admin)/orders/${meta.orderId}`);
           } else {
-            Alert.alert(
-              notification.title,
-              [
-                notification.message,
-                '',
-                `Type: ${notification.type}`,
-                `ID: ${notification._id}`,
-                meta.orderId ? `Order: ${meta.orderId}` : '',
-              ]
-                .filter(Boolean)
-                .join('\n'),
-            );
+            setDetailNotification(notification);
           }
           break;
         case 'community':
@@ -148,38 +166,14 @@ export default function NotificationsScreen() {
           } else if (meta.reelId) {
             router.push(`/(app)/(reels)/${meta.reelId}`);
           } else {
-            Alert.alert(
-              notification.title,
-              [
-                notification.message,
-                '',
-                `Type: ${notification.type}`,
-                `ID: ${notification._id}`,
-              ]
-                .filter(Boolean)
-                .join('\n'),
-            );
+            setDetailNotification(notification);
           }
           break;
         case 'challenge':
           router.push('/(app)/(admin)/challenges');
           break;
         default:
-          // Show notification details in an alert for other types
-          Alert.alert(
-            notification.title,
-            [
-              notification.message,
-              '',
-              `Type: ${notification.type}`,
-              `ID: ${notification._id}`,
-              Object.keys(meta).length > 0
-                ? `Metadata: ${JSON.stringify(meta, null, 2)}`
-                : '',
-            ]
-              .filter(Boolean)
-              .join('\n'),
-          );
+          setDetailNotification(notification);
           break;
       }
     }
@@ -335,6 +329,66 @@ export default function NotificationsScreen() {
           }
         />
       )}
+      {/* Notification Detail Modal */}
+      <Modal
+        visible={detailNotification !== null}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setDetailNotification(null)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setDetailNotification(null)}
+        >
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            {detailNotification && (() => {
+              const iconName  = NOTIFICATION_ICON[detailNotification.type]  ?? 'notifications-outline';
+              const iconColor = NOTIFICATION_ICON_COLOR[detailNotification.type] ?? colors.text.secondary;
+              const iconBg    = NOTIFICATION_ICON_BG[detailNotification.type]    ?? colors.border.light;
+              const typeLabel = detailNotification.type.charAt(0).toUpperCase() + detailNotification.type.slice(1);
+              return (
+                <>
+                  {/* Icon */}
+                  <View style={[styles.modalIconWrap, { backgroundColor: iconBg }]}>
+                    <Ionicons name={iconName} size={ms(28)} color={iconColor} />
+                  </View>
+
+                  {/* Type badge */}
+                  <View style={[styles.modalTypeBadge, { backgroundColor: iconBg }]}>
+                    <Text style={[styles.modalTypeText, { color: iconColor }]}>{typeLabel}</Text>
+                  </View>
+
+                  {/* Title */}
+                  <Text style={styles.modalTitle}>{detailNotification.title}</Text>
+
+                  {/* Message */}
+                  {detailNotification.message ? (
+                    <Text style={styles.modalMessage}>{detailNotification.message}</Text>
+                  ) : null}
+
+                  {/* Timestamp */}
+                  <Text style={styles.modalTimestamp}>
+                    {formatRelative(detailNotification.createdAt)}
+                  </Text>
+
+                  {/* Divider */}
+                  <View style={styles.modalDivider} />
+
+                  {/* Close button */}
+                  <TouchableOpacity
+                    style={styles.modalCloseBtn}
+                    onPress={() => setDetailNotification(null)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.modalCloseBtnText}>Dismiss</Text>
+                  </TouchableOpacity>
+                </>
+              );
+            })()}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeScreen>
   );
 }
@@ -419,5 +473,83 @@ const styles = StyleSheet.create({
   footer: {
     paddingVertical: spacing.xl,
     alignItems: 'center',
+  },
+
+  // Notification detail modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  modalCard: {
+    width: '100%',
+    backgroundColor: colors.background.white,
+    borderRadius: borderRadius.xl,
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.xxl,
+    paddingBottom: spacing.lg,
+    alignItems: 'center',
+  },
+  modalIconWrap: {
+    width: ms(64),
+    height: ms(64),
+    borderRadius: ms(32),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  modalTypeBadge: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: ms(3),
+    borderRadius: borderRadius.pill,
+    marginBottom: spacing.md,
+  },
+  modalTypeText: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(11),
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  modalTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(17),
+    lineHeight: ms(24),
+    color: colors.text.primary,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  modalMessage: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(14),
+    lineHeight: ms(21),
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  modalTimestamp: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(12),
+    color: colors.text.light,
+    marginBottom: spacing.lg,
+  },
+  modalDivider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: colors.border.light,
+    marginBottom: spacing.lg,
+  },
+  modalCloseBtn: {
+    width: '100%',
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.pill,
+    backgroundColor: colors.primary.yellow,
+    alignItems: 'center',
+  },
+  modalCloseBtnText: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(15),
+    color: colors.text.onPrimary,
   },
 });

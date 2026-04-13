@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/stores/useAuthStore';
 import { colors, fontFamily, layout } from '../../src/theme';
 import { ms } from '../../src/utils/responsive';
@@ -7,6 +8,7 @@ import { ms } from '../../src/utils/responsive';
 export default function AppLayout() {
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -18,8 +20,8 @@ export default function AppLayout() {
           backgroundColor: colors.background.white,
           borderTopColor: colors.border.light,
           borderTopWidth: 1,
-          height: layout.tabBarHeight,
-          paddingBottom: ms(14),
+          height: layout.tabBarHeight + insets.bottom,
+          paddingBottom: ms(14) + insets.bottom,
           paddingTop: ms(6),
         },
         tabBarLabelStyle: {
