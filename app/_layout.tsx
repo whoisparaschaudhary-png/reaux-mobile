@@ -3,7 +3,6 @@ import { View, StyleSheet, LogBox } from 'react-native';
 import { Slot, useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import * as ScreenCapture from 'expo-screen-capture';
 import * as Linking from 'expo-linking';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -47,8 +46,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     restoreSession();
-    // Ensure screenshots and screen recording are allowed
-    ScreenCapture.allowScreenCaptureAsync();
   }, []);
 
   // Handle deep links for password reset

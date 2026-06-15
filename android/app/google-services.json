@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "240222064505",
+    "project_id": "reaux-labs",
+    "storage_bucket": "reaux-labs.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:240222064505:android:9956fa1b77e267c8f029a8",
+        "android_client_info": {
+          "package_name": "com.babbaranish.reauxlabsmobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqiIz4RM_LBi6pXTXAmRcUAPeiVUmXDtM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
