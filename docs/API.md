@@ -1996,16 +1996,25 @@ POST /api/reels
 | Field           | Type   | Required | Description                       |
 |-----------------|--------|----------|-----------------------------------|
 | `video`         | file   | Yes*     | Video file (mp4, mov, avi). Max 100MB. Uploaded to Cloudinary. |
+| `thumbnail`     | file   | No       | Cover image (jpg, png, webp)      |
 | `caption`       | string | No       | Reel caption                      |
-| `linkedProduct` | string | No       | Product ID to link to the reel    |
+| `category`      | string | No       | `workout`, `nutrition`, `tips`, `motivation`, `other` |
+| `linkedProduct` | string | No       | Product ID of an in-app shop product |
+| `productLink`   | string | No       | External shop / affiliate URL     |
 
 **JSON Body (URL-based, no file upload):**
 
 | Field           | Type   | Required | Description                       |
 |-----------------|--------|----------|-----------------------------------|
 | `videoUrl`      | string | Yes*     | URL of an existing video          |
+| `thumbnailUrl`  | string | No       | URL of an existing cover image    |
 | `caption`       | string | No       | Reel caption                      |
-| `linkedProduct` | string | No       | Product ID to link to the reel    |
+| `category`      | string | No       | `workout`, `nutrition`, `tips`, `motivation`, `other` |
+| `linkedProduct` | string | No       | Product ID of an in-app shop product |
+| `productLink`   | string | No       | External shop / affiliate URL     |
+
+> `linkedProduct` must be a Product ObjectId. Passing a URL there (as older app builds did)
+> no longer errors — the server stores it as `productLink`.
 
 > *Either `video` file or `videoUrl` must be provided.
 
