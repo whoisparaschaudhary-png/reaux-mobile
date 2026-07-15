@@ -187,7 +187,6 @@ export default function PastPromosScreen() {
           <FlashList
             data={promos}
             renderItem={renderPromoItem}
-            estimatedItemSize={160}
             keyExtractor={(item) => item._id}
             contentContainerStyle={styles.listContent}
             refreshControl={

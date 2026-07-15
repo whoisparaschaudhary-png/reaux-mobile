@@ -30,6 +30,10 @@ interface UIState {
   hideAlert: () => void;
 }
 
+// Tracked so a rapid second toast doesn't leave the first one's timer to flip
+// visibility back off at the wrong time.
+let toastTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
 export const useUIStore = create<UIState>((set) => ({
   isGlobalLoading: false,
   toast: { message: '', type: 'info', visible: false },
@@ -38,13 +42,19 @@ export const useUIStore = create<UIState>((set) => ({
   setGlobalLoading: (loading) => set({ isGlobalLoading: loading }),
 
   showToast: (message, type = 'info') => {
+    if (toastTimeoutId) clearTimeout(toastTimeoutId);
     set({ toast: { message, type, visible: true } });
-    setTimeout(() => {
+    toastTimeoutId = setTimeout(() => {
       set((state) => ({ toast: { ...state.toast, visible: false } }));
+      toastTimeoutId = null;
     }, 3000);
   },
 
-  hideToast: () => set((state) => ({ toast: { ...state.toast, visible: false } })),
+  hideToast: () => {
+    if (toastTimeoutId) clearTimeout(toastTimeoutId);
+    toastTimeoutId = null;
+    set((state) => ({ toast: { ...state.toast, visible: false } }));
+  },
 
   showAlert: (config) => set({ alert: config }),
   hideAlert: () => set({ alert: null }),

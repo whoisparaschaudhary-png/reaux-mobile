@@ -73,7 +73,10 @@ export const useCartStore = create<CartState>((set, get) => ({
       });
       set({ cart: response.data, isLoading: false });
     } catch (err: any) {
-      set({ error: err.message || 'Failed to add to cart', isLoading: false });
+      const message = err.message || 'Failed to add to cart';
+      set({ error: message, isLoading: false });
+      // Rethrow so callers can avoid navigating to an empty cart / show a toast.
+      throw new Error(message);
     }
   },
 
@@ -83,7 +86,9 @@ export const useCartStore = create<CartState>((set, get) => ({
       const response = await cartApi.removeItem(productId, flavour);
       set({ cart: response.data, isLoading: false });
     } catch (err: any) {
-      set({ error: err.message || 'Failed to remove from cart', isLoading: false });
+      const message = err.message || 'Failed to remove from cart';
+      set({ error: message, isLoading: false });
+      throw new Error(message);
     }
   },
 

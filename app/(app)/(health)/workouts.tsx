@@ -195,7 +195,6 @@ export default function WorkoutsScreen() {
           <FlashList
             data={workouts}
             renderItem={renderItem}
-            estimatedItemSize={200}
             keyExtractor={(item) => item._id}
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}

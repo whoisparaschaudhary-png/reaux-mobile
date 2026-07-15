@@ -61,8 +61,13 @@ export default function ProductDetailScreen() {
       showAppAlert('Choose a flavour', 'Please select a flavour before adding to cart.');
       return;
     }
-    await addToCart(selectedProduct._id, 1, selectedFlavour);
-    router.push('/(app)/(shop)/cart');
+    try {
+      await addToCart(selectedProduct._id, 1, selectedFlavour);
+      router.push('/(app)/(shop)/cart');
+    } catch (err: any) {
+      // Don't navigate to an empty cart on failure — tell the user instead.
+      showAppAlert('Could not add to cart', err.message || 'Please try again.');
+    }
   }, [selectedProduct, needsFlavour, selectedFlavour, addToCart]);
 
   if (isLoading || !selectedProduct) {

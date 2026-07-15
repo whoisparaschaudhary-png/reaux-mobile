@@ -35,7 +35,7 @@ export default function ForgotPasswordScreen() {
       await forgotPassword(email.trim());
       setSent(true);
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Something went wrong';
+      const msg = err.response?.data?.message || err.message || 'Something went wrong';
       showToast(msg, 'error');
     } finally {
       setIsLoading(false);
@@ -106,7 +106,7 @@ export default function ForgotPasswordScreen() {
                 />
 
                 <Button
-                  title="Send Reset Link  \u2192"
+                  title="Send Reset Link  →"
                   onPress={handleSend}
                   variant="primary"
                   size="lg"

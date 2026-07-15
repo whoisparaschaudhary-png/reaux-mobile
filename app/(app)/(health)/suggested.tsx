@@ -89,24 +89,27 @@ export default function SuggestedDietsScreen() {
           onAction={() => router.push('/(app)/(health)/' as any)}
         />
       ) : (
-        <FlashList
-          data={suggestedPlans}
-          renderItem={renderItem}
-          keyExtractor={(item) => item._id}
-          estimatedItemSize={220}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
-          refreshControl={
-            <RefreshControl
-              refreshing={false}
-              onRefresh={handleRefresh}
-              tintColor={colors.primary.yellow}
-            />
-          }
-        />
+        // flash-list v2 needs a bounded-height parent or it collapses to 0 and
+        // renders blank — this list was a direct child of SafeScreen.
+        <View style={styles.listWrapper}>
+          <FlashList
+            data={suggestedPlans}
+            renderItem={renderItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={renderFooter}
+            refreshControl={
+              <RefreshControl
+                refreshing={isLoading && suggestedPlans.length > 0}
+                onRefresh={handleRefresh}
+                tintColor={colors.primary.yellow}
+              />
+            }
+          />
+        </View>
       )}
     </SafeScreen>
   );
@@ -150,6 +153,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  listWrapper: {
+    flex: 1,
   },
   listContent: {
     paddingHorizontal: spacing.lg,

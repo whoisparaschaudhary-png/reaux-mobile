@@ -4,6 +4,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  KeyboardAvoidingView,
   Platform,
   StyleSheet,
 } from 'react-native';
@@ -13,303 +14,251 @@ import { SafeScreen } from '../../../../src/components/layout/SafeScreen';
 import { Header } from '../../../../src/components/layout/Header';
 import { Input } from '../../../../src/components/ui/Input';
 import { Button } from '../../../../src/components/ui/Button';
-import { Card } from '../../../../src/components/ui/Card';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
+import { promosApi } from '../../../../src/api/endpoints/promos';
+import { useUIStore } from '../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
-import { ms, mvs } from '../../../../src/utils/responsive';
+import { ms } from '../../../../src/utils/responsive';
+import type { DiscountType } from '../../../../src/types/models';
 
 export default function CreatePromoScreen() {
   const router = useRouter();
+  const showToast = useUIStore((s) => s.showToast);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [ctaText, setCtaText] = useState('');
-  const [ctaLink, setCtaLink] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [code, setCode] = useState('');
+  const [discountType, setDiscountType] = useState<DiscountType>('percentage');
+  const [discountValue, setDiscountValue] = useState('');
+  const [minOrderAmount, setMinOrderAmount] = useState('');
+  const [maxDiscount, setMaxDiscount] = useState('');
+  const [usageLimit, setUsageLimit] = useState('');
+  const [validFrom, setValidFrom] = useState('');
+  const [validUntil, setValidUntil] = useState('');
 
-  const hasContent = title.trim().length > 0;
+  const handleCreate = async () => {
+    if (!code.trim() || !discountValue) {
+      showToast('Code and discount value are required', 'error');
+      return;
+    }
+    const numDiscountValue = parseFloat(discountValue);
+    if (isNaN(numDiscountValue) || numDiscountValue <= 0) {
+      showToast('Discount value must be a positive number', 'error');
+      return;
+    }
+    if (discountType === 'percentage' && numDiscountValue > 100) {
+      showToast('Percentage discount cannot exceed 100%', 'error');
+      return;
+    }
 
-  const handleSaveDraft = () => {
-    // Save draft logic
-  };
+    setIsSaving(true);
+    try {
+      const data: any = {
+        code: code.trim().toUpperCase(),
+        discountType,
+        discountValue: numDiscountValue,
+      };
+      if (minOrderAmount) {
+        const n = parseFloat(minOrderAmount);
+        if (!isNaN(n)) data.minOrderAmount = n;
+      }
+      if (maxDiscount && discountType === 'percentage') {
+        const n = parseFloat(maxDiscount);
+        if (!isNaN(n)) data.maxDiscount = n;
+      }
+      if (usageLimit) {
+        const n = parseInt(usageLimit, 10);
+        if (!isNaN(n)) data.usageLimit = n;
+      }
+      if (validFrom) data.validFrom = validFrom;
+      if (validUntil) data.validUntil = validUntil;
 
-  const handlePreview = () => {
-    router.push({
-      pathname: '/(app)/(admin)/promo/review',
-      params: {
-        title,
-        description,
-        ctaText,
-        ctaLink,
-        startDate,
-        endDate,
-      },
-    });
+      await promosApi.create(data);
+      showToast('Promo code created successfully', 'success');
+      router.back();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to create promo code', 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <RoleGuard allowedRoles={['superadmin']}>
       <SafeScreen>
-        <Header
-          title="Create Promo Banner"
-          showBack
-          onBack={() => router.back()}
-        />
+        <Header title="Create Promo Code" showBack onBack={() => router.back()} />
 
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          {/* Banner Title */}
-          <Input
-            label="Banner Title"
-            placeholder="Enter banner title"
-            value={title}
-            onChangeText={setTitle}
-          />
-
-          <View style={styles.spacer} />
-
-          {/* Description */}
-          <Input
-            label="Description / Message"
-            placeholder="Enter your promotional message..."
-            value={description}
-            onChangeText={setDescription}
-            multiline
-          />
-
-          <View style={styles.spacer} />
-
-          {/* Preview Card */}
-          {hasContent && (
-            <View style={styles.previewSection}>
-              <Text style={styles.previewLabel}>Preview</Text>
-              <Card style={styles.previewCard}>
-                <View style={styles.previewImagePlaceholder}>
-                  <Ionicons name="image-outline" size={40} color={colors.text.light} />
-                </View>
-                <View style={styles.previewContent}>
-                  <Text style={styles.previewTitle} numberOfLines={2}>
-                    {title || 'Banner Title'}
-                  </Text>
-                  {description.length > 0 && (
-                    <Text style={styles.previewDescription} numberOfLines={3}>
-                      {description}
-                    </Text>
-                  )}
-                  {ctaText.length > 0 && (
-                    <View style={styles.previewCta}>
-                      <Text style={styles.previewCtaText}>{ctaText}</Text>
-                    </View>
-                  )}
-                </View>
-              </Card>
-            </View>
-          )}
-
-          {/* CTA Text */}
-          <Input
-            label="Call to Action (CTA) Text"
-            placeholder="e.g., Shop Now, Learn More"
-            value={ctaText}
-            onChangeText={setCtaText}
-          />
-
-          <View style={styles.spacer} />
-
-          {/* CTA Link */}
-          <Input
-            label="Link / URL for CTA"
-            placeholder="https://..."
-            value={ctaLink}
-            onChangeText={setCtaLink}
-            keyboardType="url"
-          />
-
-          <View style={styles.spacer} />
-
-          {/* Upload Banner Image */}
-          <View style={styles.uploadSection}>
-            <Text style={styles.uploadLabel}>Upload Banner Image</Text>
-            <TouchableOpacity style={styles.uploadArea} activeOpacity={0.7}>
-              <View style={styles.uploadIconCircle}>
-                <Ionicons name="cloud-upload-outline" size={28} color={colors.primary.yellowDark} />
-              </View>
-              <Text style={styles.uploadText}>Tap to upload image</Text>
-              <Text style={styles.uploadHint}>JPG, PNG (max 5MB)</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.spacer} />
-
-          {/* Date Pickers */}
-          <View style={styles.dateRow}>
-            <View style={styles.dateField}>
-              <Input
-                label="Start Date"
-                placeholder="YYYY-MM-DD"
-                value={startDate}
-                onChangeText={setStartDate}
-              />
-            </View>
-            <View style={styles.dateField}>
-              <Input
-                label="End Date"
-                placeholder="YYYY-MM-DD"
-                value={endDate}
-                onChangeText={setEndDate}
-              />
-            </View>
-          </View>
-
-          <View style={styles.spacerLarge} />
-
-          {/* Actions */}
-          <View style={styles.actionRow}>
-            <Button
-              title="Save Draft"
-              onPress={handleSaveDraft}
-              variant="outline"
-              size="lg"
-              style={styles.actionButton}
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.contentContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Input
+              label="Promo Code *"
+              placeholder="e.g., SUMMER20"
+              value={code}
+              onChangeText={setCode}
+              autoCapitalize="characters"
             />
+
+            <View style={styles.spacer} />
+
+            <Text style={styles.label}>Discount Type *</Text>
+            <View style={styles.typeRow}>
+              {(['percentage', 'fixed'] as DiscountType[]).map((t) => {
+                const active = discountType === t;
+                return (
+                  <TouchableOpacity
+                    key={t}
+                    style={[styles.typeButton, active && styles.typeButtonActive]}
+                    onPress={() => setDiscountType(t)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={t === 'percentage' ? 'pricetag-outline' : 'cash-outline'}
+                      size={18}
+                      color={active ? colors.text.onPrimary : colors.text.secondary}
+                    />
+                    <Text style={[styles.typeText, active && styles.typeTextActive]}>
+                      {t === 'percentage' ? 'Percentage' : 'Fixed Amount'}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={styles.spacer} />
+
+            <Input
+              label={discountType === 'percentage' ? 'Discount Value (%) *' : 'Discount Amount (₹) *'}
+              placeholder={discountType === 'percentage' ? 'e.g., 20' : 'e.g., 200'}
+              value={discountValue}
+              onChangeText={setDiscountValue}
+              keyboardType="numeric"
+            />
+
+            <View style={styles.spacer} />
+
+            <Input
+              label="Minimum Order Amount (₹)"
+              placeholder="e.g., 999"
+              value={minOrderAmount}
+              onChangeText={setMinOrderAmount}
+              keyboardType="numeric"
+            />
+
+            {discountType === 'percentage' && (
+              <>
+                <View style={styles.spacer} />
+                <Input
+                  label="Max Discount Cap (₹)"
+                  placeholder="e.g., 500"
+                  value={maxDiscount}
+                  onChangeText={setMaxDiscount}
+                  keyboardType="numeric"
+                />
+              </>
+            )}
+
+            <View style={styles.spacer} />
+
+            <Input
+              label="Usage Limit"
+              placeholder="e.g., 100 (leave blank for unlimited)"
+              value={usageLimit}
+              onChangeText={setUsageLimit}
+              keyboardType="numeric"
+            />
+
+            <View style={styles.spacer} />
+
+            <View style={styles.dateRow}>
+              <View style={styles.dateField}>
+                <Input
+                  label="Valid From"
+                  placeholder="YYYY-MM-DD"
+                  value={validFrom}
+                  onChangeText={setValidFrom}
+                />
+              </View>
+              <View style={styles.dateField}>
+                <Input
+                  label="Valid Until"
+                  placeholder="YYYY-MM-DD"
+                  value={validUntil}
+                  onChangeText={setValidUntil}
+                />
+              </View>
+            </View>
+
+            <View style={styles.spacerLarge} />
+
             <Button
-              title="Preview"
-              onPress={handlePreview}
+              title="Create Promo Code"
+              onPress={handleCreate}
               variant="primary"
               size="lg"
-              disabled={!hasContent}
-              style={styles.actionButton}
+              fullWidth
+              loading={isSaving}
             />
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeScreen>
     </RoleGuard>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  flex: { flex: 1 },
+  container: { flex: 1 },
   contentContainer: {
     paddingHorizontal: spacing.xl,
     paddingBottom: 40,
   },
-  spacer: {
-    height: spacing.xl,
-  },
-  spacerLarge: {
-    height: spacing.xxxl,
-  },
-  previewSection: {
-    marginBottom: spacing.xl,
-  },
-  previewLabel: {
+  spacer: { height: spacing.lg },
+  spacerLarge: { height: spacing.xxxl },
+  label: {
     fontFamily: fontFamily.medium,
     fontSize: ms(14),
     lineHeight: ms(20),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
-  previewCard: {
-    overflow: 'hidden',
-    padding: 0,
+  typeRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
   },
-  previewImagePlaceholder: {
-    height: 140,
-    backgroundColor: colors.background.dark,
+  typeButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  previewContent: {
-    padding: spacing.lg,
-  },
-  previewTitle: {
-    fontFamily: fontFamily.bold,
-    fontSize: ms(18),
-    lineHeight: ms(24),
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
-  },
-  previewDescription: {
-    fontFamily: fontFamily.regular,
-    fontSize: ms(14),
-    lineHeight: ms(20),
-    color: colors.text.secondary,
-    marginBottom: spacing.md,
-  },
-  previewCta: {
-    backgroundColor: colors.primary.yellow,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.pill,
-    alignSelf: 'flex-start',
-  },
-  previewCtaText: {
-    fontFamily: fontFamily.medium,
-    fontSize: ms(14),
-    lineHeight: ms(20),
-    color: colors.text.onPrimary,
-  },
-  uploadSection: {
-    marginBottom: 0,
-  },
-  uploadLabel: {
-    fontFamily: fontFamily.medium,
-    fontSize: ms(14),
-    lineHeight: ms(20),
-    color: colors.text.primary,
-    marginBottom: spacing.sm,
-  },
-  uploadArea: {
-    borderWidth: 2,
-    borderColor: colors.border.gray,
-    borderStyle: 'dashed',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
     borderRadius: borderRadius.lg,
-    paddingVertical: spacing.xxl,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.border.gray,
     backgroundColor: colors.background.white,
   },
-  uploadIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary.yellowLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
+  typeButtonActive: {
+    backgroundColor: colors.primary.yellow,
+    borderColor: colors.primary.yellow,
   },
-  uploadText: {
+  typeText: {
     fontFamily: fontFamily.medium,
-    fontSize: ms(15),
-    lineHeight: ms(20),
-    color: colors.text.primary,
-    marginBottom: 4,
+    fontSize: ms(14),
+    color: colors.text.secondary,
   },
-  uploadHint: {
-    fontFamily: fontFamily.regular,
-    fontSize: ms(12),
-    lineHeight: ms(16),
-    color: colors.text.light,
+  typeTextActive: {
+    color: colors.text.onPrimary,
   },
   dateRow: {
     flexDirection: 'row',
     gap: spacing.md,
   },
-  dateField: {
-    flex: 1,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  actionButton: {
-    flex: 1,
-  },
+  dateField: { flex: 1 },
 });

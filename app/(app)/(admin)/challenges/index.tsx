@@ -147,8 +147,8 @@ export default function ChallengesListScreen() {
         <View style={styles.listContainer}>
           <FlashList
             data={challenges}
+            keyExtractor={(item) => item._id}
             renderItem={renderChallengeItem}
-            estimatedItemSize={180}
             contentContainerStyle={styles.listContent}
             refreshControl={
               <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />

@@ -48,7 +48,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
       const response = await productsApi.list(params);
 
       set({
-        products: page === 1 ? response.data : [...get().products, ...response.data],
+        products: page === 1 ? (response.data ?? []) : [...get().products, ...(response.data ?? [])],
         pagination: response.pagination,
         isLoading: false,
         searchQuery: searchQuery,

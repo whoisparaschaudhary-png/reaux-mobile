@@ -115,6 +115,7 @@ export default function UserMembershipsScreen() {
         ) : (
           <FlashList
             data={memberships}
+            keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <MembershipCard
                 membership={item}
@@ -123,7 +124,6 @@ export default function UserMembershipsScreen() {
                 }
               />
             )}
-            estimatedItemSize={200}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             refreshControl={

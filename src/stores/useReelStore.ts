@@ -47,7 +47,7 @@ export const useReelStore = create<ReelState>((set, get) => ({
     try {
       const response = await reelsApi.list({ page, limit: 10 });
       set((state) => ({
-        reels: page === 1 ? response.data : [...state.reels, ...response.data],
+        reels: page === 1 ? (response.data ?? []) : [...state.reels, ...(response.data ?? [])],
         pagination: response.pagination,
         isLoading: false,
       }));
@@ -62,7 +62,7 @@ export const useReelStore = create<ReelState>((set, get) => ({
     try {
       const response = await reelsApi.list({ page: 1, limit: 10 });
       set({
-        reels: response.data,
+        reels: response.data ?? [],
         pagination: response.pagination,
         isRefreshing: false,
       });
@@ -120,7 +120,7 @@ export const useReelStore = create<ReelState>((set, get) => ({
     try {
       const response = await reelsApi.getComments(reelId, { page, limit: 20 });
       set((state) => ({
-        comments: page === 1 ? response.data : [...state.comments, ...response.data],
+        comments: page === 1 ? (response.data ?? []) : [...state.comments, ...(response.data ?? [])],
         commentsPagination: response.pagination,
         commentsLoading: false,
       }));

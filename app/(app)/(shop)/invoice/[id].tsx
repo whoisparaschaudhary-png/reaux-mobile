@@ -202,8 +202,14 @@ export default function InvoiceScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Method</Text>
           <View style={styles.infoCard}>
-            <Ionicons name="card-outline" size={20} color={colors.text.secondary} />
-            <Text style={styles.infoText}>Razorpay</Text>
+            <Ionicons
+              name={order.paymentMethod === 'cod' ? 'cash-outline' : 'card-outline'}
+              size={20}
+              color={colors.text.secondary}
+            />
+            <Text style={styles.infoText}>
+              {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Razorpay'}
+            </Text>
           </View>
         </View>
 

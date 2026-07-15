@@ -84,8 +84,16 @@ export default function MarketplaceScreen() {
   );
 
   const handleAddToCart = useCallback(
-    (productId: string) => { addToCart(productId, 1); },
-    [],
+    (product: any) => {
+      // A flavoured product needs a flavour chosen first — send it to the detail
+      // screen instead of adding a flavourless (unfulfillable) line.
+      if (product.flavours?.length) {
+        router.push(`/(app)/(shop)/${product._id}`);
+        return;
+      }
+      addToCart(product._id, 1).catch(() => {});
+    },
+    [addToCart],
   );
 
   const count = itemCount();
@@ -96,7 +104,7 @@ export default function MarketplaceScreen() {
       <ProductCard
         product={item}
         onPress={() => router.push(`/(app)/(shop)/${item._id}`)}
-        onAddToCart={() => handleAddToCart(item._id)}
+        onAddToCart={() => handleAddToCart(item)}
         numColumns={numCols}
       />
     ),
@@ -180,7 +188,6 @@ export default function MarketplaceScreen() {
             renderItem={renderProduct}
             keyExtractor={(item) => item._id}
             numColumns={numCols}
-            estimatedItemSize={colWidth + ms(90)}
             ListHeaderComponent={ListHeader}
             ListFooterComponent={ListFooter}
             onEndReached={handleLoadMore}

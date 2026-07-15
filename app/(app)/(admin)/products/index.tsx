@@ -206,8 +206,8 @@ export default function ProductListScreen() {
         <View style={styles.listContainer}>
           <FlashList
             data={products}
+            keyExtractor={(item) => item._id}
             renderItem={renderProductItem}
-            estimatedItemSize={100}
             contentContainerStyle={styles.listContent}
             refreshControl={
               <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />

@@ -139,7 +139,6 @@ export default function AdminContactsScreen() {
             <FlashList
               data={FILTER_TABS}
               horizontal
-              estimatedItemSize={80}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.tabContent}
               renderItem={({ item: tab }) => (
@@ -166,7 +165,6 @@ export default function AdminContactsScreen() {
             <FlashList
               data={contacts}
               renderItem={renderContactItem}
-              estimatedItemSize={160}
               keyExtractor={(item) => item._id}
               contentContainerStyle={styles.listContent}
               refreshControl={

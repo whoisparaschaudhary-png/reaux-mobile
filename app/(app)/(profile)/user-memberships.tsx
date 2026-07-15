@@ -242,8 +242,8 @@ function UserMembershipsContent() {
       ) : (
         <FlashList
           data={memberships}
+          keyExtractor={(item) => item._id}
           renderItem={({ item }) => renderMembershipCard(item)}
-          estimatedItemSize={220}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={

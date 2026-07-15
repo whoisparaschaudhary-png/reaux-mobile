@@ -63,7 +63,7 @@ export default function ResetPasswordScreen() {
       setSuccess(true);
       showToast('Password reset successful!', 'success');
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Failed to reset password';
+      const msg = err.response?.data?.message || err.message || 'Failed to reset password';
       setError(msg);
       showToast(msg, 'error');
     } finally {

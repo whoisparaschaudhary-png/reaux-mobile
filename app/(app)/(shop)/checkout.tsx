@@ -92,7 +92,9 @@ export default function CheckoutScreen() {
     try {
       const order = await createOrder({
         shippingAddress: address,
-        promoCode: promoCode || undefined,
+        // Only send a promo the user actually applied — a typed-but-unapplied or
+        // failed code would otherwise be submitted and can hard-fail the order.
+        promoCode: promoApplied ? promoCode.trim() : undefined,
         paymentMethod,
       });
       await fetchCart();
@@ -135,9 +137,11 @@ export default function CheckoutScreen() {
                 const price = isPopulated ? product.price : 0;
                 const productId = isPopulated ? product._id : (item.product as string);
                 return (
-                  <View key={productId} style={styles.summaryRow}>
+                  // Key + label include flavour: the same product in two flavours
+                  // is two lines and must not collide.
+                  <View key={`${productId}::${item.flavour ?? ''}`} style={styles.summaryRow}>
                     <Text style={styles.summaryName} numberOfLines={1}>
-                      {name} x{item.quantity}
+                      {item.flavour ? `${name} (${item.flavour})` : name} x{item.quantity}
                     </Text>
                     <Text style={styles.summaryPrice}>
                       {formatCurrency(price * item.quantity)}

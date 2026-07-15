@@ -54,7 +54,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Don't fail login if token registration fails
       }
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Login failed';
+      const message = err.response?.data?.message || err.message || 'Login failed';
       set({ error: message, isLoading: false });
       throw new Error(message);
     }
@@ -82,7 +82,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Don't fail registration if token registration fails
       }
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Registration failed';
+      const message = err.response?.data?.message || err.message || 'Registration failed';
       set({ error: message, isLoading: false });
       throw new Error(message);
     }

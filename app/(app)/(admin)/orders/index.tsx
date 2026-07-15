@@ -328,7 +328,6 @@ export default function AdminOrdersScreen() {
             <FlashList
               data={FILTER_TABS}
               horizontal
-              estimatedItemSize={80}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.tabContent}
               renderItem={({ item: tab }) => (
@@ -355,7 +354,6 @@ export default function AdminOrdersScreen() {
             <FlashList
               data={filteredOrders}
               renderItem={renderOrderItem}
-              estimatedItemSize={140}
               keyExtractor={(item) => item._id}
               contentContainerStyle={styles.listContent}
               refreshControl={

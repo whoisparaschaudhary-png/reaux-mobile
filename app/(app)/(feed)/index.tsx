@@ -610,7 +610,6 @@ export default function FeedScreen() {
               <FlashList
                 data={workouts}
                 renderItem={renderWorkoutItem}
-                estimatedItemSize={200}
                 keyExtractor={(item) => item._id}
                 contentContainerStyle={[styles.listContent, styles.workoutListContent]}
                 onRefresh={handleRefresh}

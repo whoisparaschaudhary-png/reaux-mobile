@@ -37,8 +37,16 @@ client.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError<ApiError>) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid — clear credentials and redirect to login
+      // Token expired or invalid — clear BOTH the secure token and the in-memory
+      // auth store, else isAuthenticated stays true and stale authed UI persists.
+      // Lazy require avoids a circular import (store → auth api → this client).
       await removeToken();
+      try {
+        const { useAuthStore } = require('../stores/useAuthStore');
+        useAuthStore.setState({ user: null, token: null, isAuthenticated: false });
+      } catch {
+        // store not ready — token removal + redirect still applied
+      }
       router.replace('/(auth)/login');
     }
 

@@ -40,8 +40,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       set((state) => ({
         notifications:
           page === 1
-            ? response.data
-            : [...state.notifications, ...response.data],
+            ? (response.data ?? [])
+            : [...state.notifications, ...(response.data ?? [])],
         pagination: response.pagination,
         isLoading: false,
       }));
@@ -58,7 +58,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     try {
       const response = await notificationsApi.list({ page: 1, limit: 20, ...filters });
       set({
-        notifications: response.data,
+        notifications: response.data ?? [],
         pagination: response.pagination,
         isRefreshing: false,
       });
@@ -112,12 +112,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     if (state.notifications.length === 0 && !state.isLoading) {
       try {
         const response = await notificationsApi.list({ page: 1, limit: 20 });
+        const list = response.data ?? [];
         set({
-          notifications: response.data,
+          notifications: list,
           pagination: response.pagination,
         });
         // Calculate unread count from fetched notifications
-        const unreadCount = response.data.filter((n) => !n.isRead).length;
+        const unreadCount = list.filter((n) => !n.isRead).length;
         set({ unreadCount });
       } catch (err: any) {
         // On error, just set unread count to 0

@@ -151,8 +151,8 @@ export default function GymListScreen() {
         <View style={styles.listContainer}>
           <FlashList
             data={gyms}
+            keyExtractor={(item) => item._id}
             renderItem={renderGymItem}
-            estimatedItemSize={150}
             contentContainerStyle={styles.listContent}
             refreshControl={
               <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />

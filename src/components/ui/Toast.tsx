@@ -20,24 +20,41 @@ const COLOR_MAP = {
 export const Toast: React.FC = () => {
   const { toast, hideToast } = useUIStore();
   const insets = useSafeAreaInsets();
-  const translateY = useRef(new Animated.Value(-100)).current;
+  const translateY = useRef(new Animated.Value(-200)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (toast.visible) {
-      Animated.spring(translateY, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 80,
-        friction: 12,
-      }).start();
+      Animated.parallel([
+        Animated.spring(translateY, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 80,
+          friction: 12,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
     } else {
-      Animated.timing(translateY, {
-        toValue: -100,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+      // Fade out AND slide fully off-screen so nothing lingers regardless of
+      // insets/height on a given device.
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: -200,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }
-  }, [toast.visible, translateY]);
+  }, [toast.visible, translateY, opacity]);
 
   if (!toast.message) return null;
 
@@ -45,7 +62,7 @@ export const Toast: React.FC = () => {
     <Animated.View
       style={[
         styles.container,
-        { top: insets.top + spacing.sm, transform: [{ translateY }] },
+        { top: insets.top + spacing.sm, opacity, transform: [{ translateY }] },
       ]}
       pointerEvents={toast.visible ? 'auto' : 'none'}
     >

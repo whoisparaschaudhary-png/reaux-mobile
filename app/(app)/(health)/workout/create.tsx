@@ -137,20 +137,26 @@ export default function CreateWorkoutScreen() {
           .filter(Boolean),
         exercises: cleanExercises,
       });
-      // Create a feed post with category "workouts" so it appears under the Workouts tab
-      const postContent = description.trim()
-        ? `${title.trim()}\n\n${description.trim()}`
-        : title.trim();
-      await createPost(
-        {
-          content: postContent,
-          mediaType: image.trim() ? 'image' : 'text',
-          mediaUrl: image.trim() || undefined,
-          hashtags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-          category: 'workouts',
-        },
-        user ?? undefined
-      );
+      // Mirror it into the feed under "workouts" — best-effort only. The workout
+      // is already saved, so a feed-post failure must not report failure or block
+      // navigation (that previously caused duplicate workouts on retry).
+      try {
+        const postContent = description.trim()
+          ? `${title.trim()}\n\n${description.trim()}`
+          : title.trim();
+        await createPost(
+          {
+            content: postContent,
+            mediaType: image.trim() ? 'image' : 'text',
+            mediaUrl: image.trim() || undefined,
+            hashtags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+            category: 'workouts',
+          },
+          user ?? undefined
+        );
+      } catch {
+        // feed mirror failed — the workout itself was still created
+      }
       showToast('Workout created successfully', 'success');
       router.navigate('/(app)/(health)/workouts');
     } catch (error: any) {

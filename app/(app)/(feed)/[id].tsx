@@ -209,8 +209,10 @@ export default function PostDetailScreen() {
     setIsLoading(true);
     try {
       const response = await postsApi.getById(id);
-      setPost(response.data.post);
-      setComments(response.data.comments);
+      setPost(response.data.post ?? null);
+      // Backend may return comments as undefined for a post with none; guard so
+      // adding the first comment ([...prev]) doesn't crash.
+      setComments(response.data.comments ?? []);
     } catch {
       // Error handled silently
     } finally {
@@ -295,7 +297,7 @@ export default function PostDetailScreen() {
     () => post ? (
       <PostHeader
         post={post}
-        isLiked={post.isLiked}
+        isLiked={post.isLiked ?? false}
         onLike={handleLike}
         onDelete={handleDelete}
         isSuperAdmin={isSuperAdmin}

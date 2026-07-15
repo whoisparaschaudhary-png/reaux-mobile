@@ -57,7 +57,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     try {
       const response = await ordersApi.getMyOrders({ page, limit: 10 });
       set({
-        orders: page === 1 ? response.data : [...get().orders, ...response.data],
+        orders: page === 1 ? (response.data ?? []) : [...get().orders, ...(response.data ?? [])],
         pagination: response.pagination,
         isLoading: false,
       });
@@ -74,7 +74,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     try {
       const response = await ordersApi.getAll({ page, limit: 20 });
       set({
-        orders: page === 1 ? response.data : [...get().orders, ...response.data],
+        orders: page === 1 ? (response.data ?? []) : [...get().orders, ...(response.data ?? [])],
         pagination: response.pagination,
         isLoading: false,
       });

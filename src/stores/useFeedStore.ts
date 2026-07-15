@@ -55,7 +55,7 @@ export const useFeedStore = create<FeedState>((set, get) => ({
       const response = await postsApi.list(params);
       set((state) => {
         const prev = state.postsByCategory[key];
-        const posts = page === 1 ? response.data : [...(prev?.posts ?? []), ...response.data];
+        const posts = page === 1 ? (response.data ?? []) : [...(prev?.posts ?? []), ...(response.data ?? [])];
         return {
           postsByCategory: {
             ...state.postsByCategory,
@@ -81,7 +81,7 @@ export const useFeedStore = create<FeedState>((set, get) => ({
       set((state) => ({
         postsByCategory: {
           ...state.postsByCategory,
-          [key]: { posts: response.data, pagination: response.pagination },
+          [key]: { posts: response.data ?? [], pagination: response.pagination },
         },
         isRefreshing: false,
       }));
