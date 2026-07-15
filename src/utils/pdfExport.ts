@@ -766,7 +766,7 @@ export const exportSingleOrderPDF = async (order: Order) => {
   const itemRows = order.items.map((item, index) => `
     <tr>
       <td style="padding: 12px; border-bottom: 1px solid #e4e4e4; text-align: center;">${index + 1}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #e4e4e4;">${item.name}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #e4e4e4;">${item.flavour ? `${item.name} (${item.flavour})` : item.name}</td>
       <td style="padding: 12px; border-bottom: 1px solid #e4e4e4; text-align: center;">${item.quantity}</td>
       <td style="padding: 12px; border-bottom: 1px solid #e4e4e4; text-align: right;">${formatCurrency(item.price)}</td>
       <td style="padding: 12px; border-bottom: 1px solid #e4e4e4; text-align: right; font-weight: 600;">${formatCurrency(item.price * item.quantity)}</td>

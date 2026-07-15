@@ -24,6 +24,7 @@ interface ReelState {
   fetchReels: (page?: number) => Promise<void>;
   refreshReels: () => Promise<void>;
   likeReel: (id: string) => Promise<void>;
+  deleteReel: (id: string) => Promise<void>;
   fetchComments: (reelId: string, page?: number) => Promise<void>;
   addComment: (reelId: string, content: string) => Promise<ReelComment>;
   clearComments: () => void;
@@ -98,6 +99,19 @@ export const useReelStore = create<ReelState>((set, get) => ({
       }));
     } catch {
       set({ reels });
+    }
+  },
+
+  deleteReel: async (id) => {
+    const { reels } = get();
+    // Optimistic removal — the reel disappears from the feed immediately.
+    set({ reels: reels.filter((r) => r._id !== id) });
+
+    try {
+      await reelsApi.delete(id);
+    } catch (err: any) {
+      set({ reels, error: err.message || 'Failed to delete reel' });
+      throw new Error(err.message || 'Failed to delete reel');
     }
   },
 

@@ -154,7 +154,7 @@ export default function InvoiceScreen() {
                   style={[styles.tableCell, styles.colName]}
                   numberOfLines={2}
                 >
-                  {item.name}
+                  {item.flavour ? `${item.name} (${item.flavour})` : item.name}
                 </Text>
                 <Text style={[styles.tableCell, styles.colPrice]}>
                   {formatCurrency(item.price * item.quantity)}

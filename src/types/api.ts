@@ -1,4 +1,4 @@
-import type { Gender, DietCategory, DietType, DiscountType, ChallengeType, ProductVisibility } from './models';
+import type { Gender, DietCategory, DietType, DiscountType, ChallengeType, ProductVisibility, PaymentMethod } from './models';
 
 export interface LoginRequest {
   email: string;
@@ -45,6 +45,9 @@ export interface CreateDietRequest {
   meals?: any[];
   image?: string;
   totalCalories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
   tags?: string[];
   isPublished?: boolean;
 }
@@ -56,6 +59,7 @@ export interface CreateProductRequest {
   compareAtPrice?: number;
   images?: string[];
   category?: string;
+  flavours?: string[];
   stock?: number;
   visibility?: ProductVisibility;
   isActive?: boolean;
@@ -72,6 +76,7 @@ export interface CreateProductRequest {
 export interface AddToCartRequest {
   productId: string;
   quantity?: number;
+  flavour?: string;
 }
 
 export interface CreateOrderRequest {
@@ -83,6 +88,7 @@ export interface CreateOrderRequest {
     phone: string;
   };
   promoCode?: string;
+  paymentMethod?: PaymentMethod;
 }
 
 export interface CreatePromoRequest {
@@ -94,6 +100,7 @@ export interface CreatePromoRequest {
   usageLimit?: number;
   validFrom?: string;
   validUntil?: string;
+  isActive?: boolean;
 }
 
 export interface CreateChallengeRequest {

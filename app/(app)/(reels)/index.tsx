@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Alert,
   FlatList,
   ViewToken,
   Dimensions,
@@ -31,6 +32,7 @@ export default function ReelsScreen() {
   const [reelHeight, setReelHeight] = useState(SCREEN_HEIGHT);
   const user = useAuthStore((s) => s.user);
   const isSuperAdmin = user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin' || isSuperAdmin;
 
   const {
     reels,
@@ -41,6 +43,7 @@ export default function ReelsScreen() {
     fetchReels,
     refreshReels,
     likeReel,
+    deleteReel,
   } = useReelStore();
 
   // Refresh reels on every focus, pause videos on unfocus
@@ -88,6 +91,33 @@ export default function ReelsScreen() {
     }).catch(() => {});
   }, []);
 
+  const canDelete = useCallback(
+    (reel: Reel) => {
+      if (isAdmin) return true;
+      const authorId = typeof reel.author === 'object' ? reel.author?._id : reel.author;
+      return !!user?._id && authorId === user._id;
+    },
+    [isAdmin, user?._id],
+  );
+
+  const handleDeleteReel = useCallback(
+    (reel: Reel) => {
+      Alert.alert('Delete reel?', 'This reel and its comments will be permanently removed.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            deleteReel(reel._id).catch((err: any) =>
+              Alert.alert('Error', err.message || 'Failed to delete reel.'),
+            );
+          },
+        },
+      ]);
+    },
+    [deleteReel],
+  );
+
   const renderReel = useCallback(
     ({ item }: { item: Reel }) => (
       <ReelCard
@@ -96,10 +126,11 @@ export default function ReelsScreen() {
         onLike={() => likeReel(item._id)}
         onComment={() => router.push(`/(app)/(reels)/${item._id}`)}
         onShare={() => handleShareReel()}
+        onDelete={canDelete(item) ? () => handleDeleteReel(item) : undefined}
         height={reelHeight}
       />
     ),
-    [visibleId, likeReel, reelHeight, handleShareReel, router],
+    [visibleId, likeReel, reelHeight, handleShareReel, router, canDelete, handleDeleteReel],
   );
 
   const renderFooter = useCallback(() => {

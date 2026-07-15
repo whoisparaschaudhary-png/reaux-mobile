@@ -83,6 +83,10 @@ export default function UploadDietScreen() {
     if (dinner.trim()) meals.push({ name: 'Dinner', items: parseMealText(dinner) });
 
     try {
+      const proteinNum = protein.trim() ? Number(protein) : NaN;
+      const carbsNum = carbs.trim() ? Number(carbs) : NaN;
+      const fatsNum = fats.trim() ? Number(fats) : NaN;
+
       if (image && image.uri) {
         const form = new FormData();
         form.append('title', title.trim());
@@ -90,6 +94,9 @@ export default function UploadDietScreen() {
         form.append('dietType', dietType);
         if (description.trim()) form.append('description', description.trim());
         if (caloriesNum > 0) form.append('totalCalories', String(caloriesNum));
+        if (Number.isFinite(proteinNum)) form.append('protein', String(proteinNum));
+        if (Number.isFinite(carbsNum)) form.append('carbs', String(carbsNum));
+        if (Number.isFinite(fatsNum)) form.append('fat', String(fatsNum));
         if (meals.length > 0) form.append('meals', JSON.stringify(meals));
         form.append('isPublished', 'true');
 
@@ -110,6 +117,9 @@ export default function UploadDietScreen() {
             dietType,
             description: description.trim() || undefined,
             totalCalories: caloriesNum > 0 ? caloriesNum : undefined,
+            protein: Number.isFinite(proteinNum) ? proteinNum : undefined,
+            carbs: Number.isFinite(carbsNum) ? carbsNum : undefined,
+            fat: Number.isFinite(fatsNum) ? fatsNum : undefined,
             meals,
             isPublished: true,
           },
@@ -131,7 +141,7 @@ export default function UploadDietScreen() {
       }
       showAppAlert('Error', errorMessage);
     }
-  }, [title, category, dietType, description, calories, breakfast, lunch, snacks, dinner, image, createPlan]);
+  }, [title, category, dietType, description, calories, protein, carbs, fats, breakfast, lunch, snacks, dinner, image, createPlan]);
 
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>

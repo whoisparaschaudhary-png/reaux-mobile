@@ -22,7 +22,7 @@ import { showAppAlert } from '../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
 import { ms, mvs } from '../../../src/utils/responsive';
-import type { Product, SavedAddress } from '../../../src/types/models';
+import type { PaymentMethod, Product, SavedAddress } from '../../../src/types/models';
 import type { ShippingAddressState } from '../../../src/stores/useCartStore';
 
 const INDIAN_STATES = [
@@ -54,6 +54,7 @@ export default function CheckoutScreen() {
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [address, setAddress] = useState<ShippingAddressState>(emptyAddress);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
   const [showStatePicker, setShowStatePicker] = useState(false);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
@@ -88,8 +89,19 @@ export default function CheckoutScreen() {
       const order = await createOrder({
         shippingAddress: address,
         promoCode: promoCode || undefined,
+        paymentMethod,
       });
       await fetchCart();
+
+      if (paymentMethod === 'online') {
+        // The order exists but is unpaid — hand off to Razorpay checkout.
+        router.replace({
+          pathname: '/(app)/(shop)/payment',
+          params: { orderId: order._id },
+        });
+        return;
+      }
+
       showAppAlert('Order Placed!', `Your order #${order._id?.slice(-8).toUpperCase() ?? ''} has been placed successfully.`, [
         { text: 'View Orders', onPress: () => router.replace('/(app)/(shop)/orders') },
         { text: 'OK', onPress: () => router.replace('/(app)/(shop)/') },
@@ -97,7 +109,7 @@ export default function CheckoutScreen() {
     } catch (err: any) {
       showAppAlert('Order Failed', err.message || 'Something went wrong. Please try again.');
     }
-  }, [address, promoCode]);
+  }, [address, promoCode, paymentMethod, createOrder, fetchCart]);
 
   return (
     <SafeScreen>
@@ -310,7 +322,11 @@ export default function CheckoutScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Payment Method</Text>
             <View style={styles.paymentCard}>
-              <View style={styles.paymentOption}>
+              <TouchableOpacity
+                style={styles.paymentOption}
+                onPress={() => setPaymentMethod('cod')}
+                activeOpacity={0.7}
+              >
                 <View style={styles.paymentIconCircle}>
                   <Ionicons name="cash-outline" size={24} color={colors.primary.yellowDark} />
                 </View>
@@ -320,8 +336,35 @@ export default function CheckoutScreen() {
                     Pay when you receive your order
                   </Text>
                 </View>
-                <Ionicons name="checkmark-circle" size={24} color={colors.status.success} />
-              </View>
+                <Ionicons
+                  name={paymentMethod === 'cod' ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={24}
+                  color={paymentMethod === 'cod' ? colors.status.success : colors.text.light}
+                />
+              </TouchableOpacity>
+
+              <View style={styles.paymentDivider} />
+
+              <TouchableOpacity
+                style={styles.paymentOption}
+                onPress={() => setPaymentMethod('online')}
+                activeOpacity={0.7}
+              >
+                <View style={styles.paymentIconCircle}>
+                  <Ionicons name="card-outline" size={24} color={colors.primary.yellowDark} />
+                </View>
+                <View style={styles.paymentDetails}>
+                  <Text style={styles.paymentMethodName}>Pay Online</Text>
+                  <Text style={styles.paymentMethodDesc}>
+                    UPI, card, netbanking or wallet via Razorpay
+                  </Text>
+                </View>
+                <Ionicons
+                  name={paymentMethod === 'online' ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={24}
+                  color={paymentMethod === 'online' ? colors.status.success : colors.text.light}
+                />
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -334,7 +377,7 @@ export default function CheckoutScreen() {
           </View>
           <View style={styles.placeOrderWrap}>
             <Button
-              title="Place Order"
+              title={paymentMethod === 'online' ? 'Pay Now' : 'Place Order'}
               onPress={handlePlaceOrder}
               loading={orderLoading}
               fullWidth
@@ -594,6 +637,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.primary.yellow,
     overflow: 'hidden',
+  },
+  paymentDivider: {
+    height: 1,
+    backgroundColor: colors.border.light,
   },
   paymentOption: {
     flexDirection: 'row',

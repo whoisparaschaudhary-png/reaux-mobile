@@ -11,6 +11,25 @@ export const STORE_URLS = {
 
 export const INSTAGRAM_URL = 'https://www.instagram.com/reauxlabs/';
 
+/**
+ * Single source of truth for product categories. The Shop filter tabs and the
+ * admin upload/edit screens both read this list — if they drift apart, a filter
+ * tab can never match a saved product and the tab comes up empty.
+ */
+export const PRODUCT_CATEGORIES = [
+  'Whey',
+  'Creatine',
+  'BCAA',
+  'Pre-Workout',
+  'Vitamins',
+  'Supplements',
+  'Nutrition',
+  'Equipment',
+  'Apparel',
+  'Accessories',
+  'Other',
+] as const;
+
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth_token',
   USER_DATA: 'user_data',

@@ -20,6 +20,7 @@ interface ReelCardProps {
   onLike: () => void;
   onComment?: () => void;
   onShare?: () => void;
+  onDelete?: () => void;
   height: number;
 }
 
@@ -29,6 +30,7 @@ export const ReelCard: React.FC<ReelCardProps> = ({
   onLike,
   onComment,
   onShare,
+  onDelete,
   height,
 }) => {
   const { width: screenW } = useWindowDimensions();
@@ -102,6 +104,12 @@ export const ReelCard: React.FC<ReelCardProps> = ({
           <TouchableOpacity onPress={onShare} style={styles.actionItem}>
             <Ionicons name="share-outline" size={ms(26)} color={colors.text.white} />
             <Text style={styles.actionText}>Share</Text>
+          </TouchableOpacity>
+        )}
+        {onDelete != null && (
+          <TouchableOpacity onPress={onDelete} style={styles.actionItem}>
+            <Ionicons name="trash-outline" size={ms(26)} color={colors.status.error} />
+            <Text style={styles.actionText}>Delete</Text>
           </TouchableOpacity>
         )}
       </View>

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { Badge } from '../../../src/components/ui/Badge';
 import { useProductStore } from '../../../src/stores/useProductStore';
 import { useCartStore } from '../../../src/stores/useCartStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../src/utils/formatters';
 import { colors, fontFamily, borderRadius, spacing, shadows, layout } from '../../../src/theme';
 import { ms, mvs } from '../../../src/utils/responsive';
@@ -30,11 +31,20 @@ export default function ProductDetailScreen() {
   const { addToCart, isLoading: cartLoading } = useCartStore();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const [selectedFlavour, setSelectedFlavour] = useState<string | null>(null);
+
+  const flavours = selectedProduct?.flavours ?? [];
+  const needsFlavour = flavours.length > 0;
 
   useEffect(() => {
     if (id) getProductById(id);
     return () => clearSelectedProduct();
   }, [id]);
+
+  // Preselect the only flavour so a one-flavour product still adds in one tap.
+  useEffect(() => {
+    setSelectedFlavour(flavours.length === 1 ? flavours[0] : null);
+  }, [selectedProduct?._id, flavours.length]);
 
   const handleShare = useCallback(async () => {
     if (!selectedProduct) return;
@@ -47,9 +57,13 @@ export default function ProductDetailScreen() {
 
   const handleAddToCart = useCallback(async () => {
     if (!selectedProduct) return;
-    await addToCart(selectedProduct._id, 1);
+    if (needsFlavour && !selectedFlavour) {
+      showAppAlert('Choose a flavour', 'Please select a flavour before adding to cart.');
+      return;
+    }
+    await addToCart(selectedProduct._id, 1, selectedFlavour);
     router.push('/(app)/(shop)/cart');
-  }, [selectedProduct]);
+  }, [selectedProduct, needsFlavour, selectedFlavour, addToCart]);
 
   if (isLoading || !selectedProduct) {
     return (
@@ -137,6 +151,38 @@ export default function ProductDetailScreen() {
 
             {product.category && (
               <Text style={styles.category}>{product.category}</Text>
+            )}
+
+            {/* Flavour */}
+            {needsFlavour && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Flavour</Text>
+                <View style={styles.tagsRow}>
+                  {flavours.map((flavour) => {
+                    const isSelected = flavour === selectedFlavour;
+                    return (
+                      <TouchableOpacity
+                        key={flavour}
+                        onPress={() => setSelectedFlavour(flavour)}
+                        activeOpacity={0.7}
+                        style={[
+                          styles.flavourChip,
+                          isSelected && styles.flavourChipActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.flavourChipText,
+                            isSelected && styles.flavourChipTextActive,
+                          ]}
+                        >
+                          {flavour}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
             )}
 
             {/* Description */}
@@ -371,6 +417,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+  },
+
+  // Flavour chips
+  flavourChip: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.pill,
+    borderWidth: 1,
+    borderColor: colors.border.gray,
+    backgroundColor: colors.background.white,
+  },
+  flavourChipActive: {
+    backgroundColor: colors.primary.yellow,
+    borderColor: colors.primary.yellow,
+  },
+  flavourChipText: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(14),
+    lineHeight: ms(20),
+    color: colors.text.secondary,
+  },
+  flavourChipTextActive: {
+    color: colors.text.onPrimary,
   },
 
   // Nutrition Table

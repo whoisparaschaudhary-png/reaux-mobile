@@ -17,19 +17,13 @@ import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { productsApi } from '../../../../src/api/endpoints/products';
 import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { useImagePicker } from '../../../../src/hooks/useImagePicker';
+import { PRODUCT_CATEGORIES } from '../../../../src/utils/constants';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../src/theme';
 import { ms } from '../../../../src/utils/responsive';
 import client from '../../../../src/api/client';
 import type { ProductVisibility } from '../../../../src/types/models';
 
-const CATEGORIES = [
-  'Supplements',
-  'Equipment',
-  'Apparel',
-  'Accessories',
-  'Nutrition',
-  'Other',
-] as const;
+const CATEGORIES = PRODUCT_CATEGORIES;
 
 const VISIBILITY_OPTIONS: { value: ProductVisibility; label: string }[] = [
   { value: 'all', label: 'Everyone' },
@@ -50,6 +44,8 @@ export default function CreateProductScreen() {
   const [category, setCategory] = useState<string>('Supplements');
   const [visibility, setVisibility] = useState<ProductVisibility>('all');
   const [imageUris, setImageUris] = useState<string[]>([]);
+  const [flavours, setFlavours] = useState<string[]>([]);
+  const [flavourInput, setFlavourInput] = useState('');
 
   // Nutrition
   const [servingSize, setServingSize] = useState('');
@@ -79,6 +75,18 @@ export default function CreateProductScreen() {
 
   const removeImage = (index: number) => {
     setImageUris((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addFlavour = () => {
+    const flavour = flavourInput.trim();
+    if (flavour && !flavours.includes(flavour)) {
+      setFlavours((prev) => [...prev, flavour]);
+    }
+    setFlavourInput('');
+  };
+
+  const removeFlavour = (flavour: string) => {
+    setFlavours((prev) => prev.filter((f) => f !== flavour));
   };
 
   const handleSubmit = async () => {
@@ -117,6 +125,7 @@ export default function CreateProductScreen() {
         if (stock) form.append('stock', stock);
         form.append('category', category);
         form.append('visibility', visibility);
+        if (flavours.length > 0) form.append('flavours', JSON.stringify(flavours));
         const nutrition = buildNutrition();
         if (nutrition) form.append('nutrition', JSON.stringify(nutrition));
 
@@ -138,6 +147,7 @@ export default function CreateProductScreen() {
         stock: stock ? Number(stock) : undefined,
         category,
         visibility,
+        flavours: flavours.length > 0 ? flavours : undefined,
         nutrition: buildNutrition(),
       });
 
@@ -360,6 +370,48 @@ export default function CreateProductScreen() {
             })}
           </View>
 
+          {/* Flavours */}
+          <Text style={styles.sectionTitle}>Flavours</Text>
+          <Text style={styles.sectionHint}>
+            Add each flavour this product comes in, e.g. French Cake, Choco Blast. Customers
+            pick one before adding to cart.
+          </Text>
+          <View style={styles.flavourInputRow}>
+            <View style={styles.flavourInputWrapper}>
+              <Input
+                placeholder="Add a flavour"
+                value={flavourInput}
+                onChangeText={setFlavourInput}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={addFlavour}
+              disabled={!flavourInput.trim()}
+              style={styles.addFlavourButton}
+            >
+              <Ionicons
+                name="add-circle"
+                size={36}
+                color={flavourInput.trim() ? colors.primary.yellow : colors.text.light}
+              />
+            </TouchableOpacity>
+          </View>
+          {flavours.length > 0 && (
+            <View style={styles.categoryGrid}>
+              {flavours.map((flavour) => (
+                <TouchableOpacity
+                  key={flavour}
+                  style={styles.flavourChip}
+                  onPress={() => removeFlavour(flavour)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.categoryChipText}>{flavour}</Text>
+                  <Ionicons name="close" size={14} color={colors.text.secondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
           {/* Submit */}
           <View style={styles.submitContainer}>
             <Button
@@ -450,6 +502,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+  },
+  sectionHint: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(12),
+    lineHeight: ms(18),
+    color: colors.text.light,
+    marginBottom: spacing.sm,
+  },
+  flavourInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  flavourInputWrapper: {
+    flex: 1,
+  },
+  addFlavourButton: {
+    marginTop: spacing.xs,
+  },
+  flavourChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.pill,
+    backgroundColor: colors.primary.yellowLight,
   },
   categoryChip: {
     paddingHorizontal: spacing.lg,

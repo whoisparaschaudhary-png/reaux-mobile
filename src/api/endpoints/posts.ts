@@ -12,8 +12,13 @@ export const postsApi = {
       .get<ApiResponse<{ post: Post; comments: Comment[] }>>(`/posts/${id}`)
       .then(r => r.data),
 
-  create: (data: CreatePostRequest) =>
-    client.post<ApiResponse<Post>>('/posts', data).then(r => r.data),
+  create: (data: CreatePostRequest | FormData) =>
+    client
+      .post<ApiResponse<Post>>('/posts', data, data instanceof FormData ? {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120_000,
+      } : undefined)
+      .then(r => r.data),
 
   like: (id: string) =>
     client.post<ApiResponse<Post>>(`/posts/${id}/like`).then(r => r.data),

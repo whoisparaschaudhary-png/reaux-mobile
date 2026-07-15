@@ -72,7 +72,11 @@ export default function CreateWorkoutScreen() {
       if (field === 'name' || field === 'notes') {
         (updated[index] as any)[field] = value;
       } else {
-        (updated[index] as any)[field] = value ? Number(value) : undefined;
+        // Numeric field: keep a real number or clear it — never store NaN, which
+        // would render as "NaN" in the box and then break submission.
+        const num = Number(value);
+        (updated[index] as any)[field] =
+          value.trim() !== '' && Number.isFinite(num) ? num : undefined;
       }
       return updated;
     });
@@ -90,7 +94,7 @@ export default function CreateWorkoutScreen() {
       showToast('Please enter a title', 'error');
       return;
     }
-    if (!duration.trim() || isNaN(Number(duration))) {
+    if (!duration.trim() || !Number.isFinite(Number(duration)) || Number(duration) <= 0) {
       showToast('Please enter a valid duration', 'error');
       return;
     }
@@ -100,6 +104,23 @@ export default function CreateWorkoutScreen() {
       return;
     }
 
+    // Keep only real, meaningful numbers; drop 0/NaN/undefined so nothing
+    // trips validation (weight 0 is kept — it means bodyweight).
+    const positive = (n?: number) =>
+      typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : undefined;
+    const nonNegative = (n?: number) =>
+      typeof n === 'number' && Number.isFinite(n) && n >= 0 ? n : undefined;
+    const cleanExercises = validExercises.map((e) => ({
+      name: e.name.trim(),
+      sets: positive(e.sets),
+      reps: positive(e.reps),
+      weight: nonNegative(e.weight),
+      duration: positive(e.duration),
+      restTime: nonNegative(e.restTime),
+      notes: e.notes?.trim() || undefined,
+    }));
+    const calories = Number(caloriesBurn);
+
     setIsLoading(true);
     try {
       await workoutsApi.create({
@@ -108,13 +129,13 @@ export default function CreateWorkoutScreen() {
         category,
         difficulty,
         duration: Number(duration),
-        caloriesBurn: caloriesBurn ? Number(caloriesBurn) : undefined,
+        caloriesBurn: caloriesBurn.trim() && Number.isFinite(calories) && calories > 0 ? calories : undefined,
         image: image.trim() || undefined,
         tags: tags
           .split(',')
           .map((t) => t.trim())
           .filter(Boolean),
-        exercises: validExercises,
+        exercises: cleanExercises,
       });
       // Create a feed post with category "workouts" so it appears under the Workouts tab
       const postContent = description.trim()

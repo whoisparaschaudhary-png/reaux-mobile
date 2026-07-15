@@ -129,6 +129,9 @@ export interface DietPlan {
   meals: Meal[];
   image?: string;
   totalCalories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
   createdBy: string | User;
   isPublished: boolean;
   followers: string[];
@@ -208,6 +211,8 @@ export interface Product {
   compareAtPrice?: number;
   images: string[];
   category?: string;
+  /** Flavour names offered for this product, e.g. ['French Cake', 'Choco Blast'] */
+  flavours?: string[];
   stock: number;
   visibility?: ProductVisibility;
   nutrition?: NutritionInfo;
@@ -221,6 +226,7 @@ export interface Product {
 export interface CartItem {
   product: string | Product;
   quantity: number;
+  flavour?: string | null;
 }
 
 export interface Cart {
@@ -245,7 +251,11 @@ export interface OrderItem {
   name: string;
   price: number;
   quantity: number;
+  flavour?: string;
 }
+
+export type PaymentMethod = 'cod' | 'online';
+export type PaymentStatus = 'pending' | 'paid' | 'failed';
 
 export interface Order {
   _id: string;
@@ -256,6 +266,10 @@ export interface Order {
   finalAmount: number;
   promoCode?: string;
   status: OrderStatus;
+  paymentMethod?: PaymentMethod;
+  paymentStatus?: PaymentStatus;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
   shippingAddress: Address;
   createdAt: string;
   updatedAt: string;

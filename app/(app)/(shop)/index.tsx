@@ -23,10 +23,11 @@ import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDebounce } from '../../../src/hooks/useDebounce';
 import { useRefreshOnFocus } from '../../../src/hooks/useRefreshOnFocus';
 import { formatCurrency } from '../../../src/utils/formatters';
+import { PRODUCT_CATEGORIES } from '../../../src/utils/constants';
 import { colors, fontFamily, borderRadius, spacing, shadows, layout } from '../../../src/theme';
 import { ms, mvs, getColumns } from '../../../src/utils/responsive';
 
-const CATEGORIES = ['All', 'Whey', 'Creatine', 'BCAA', 'Pre-Workout', 'Vitamins'];
+const CATEGORIES = ['All', ...PRODUCT_CATEGORIES];
 
 export default function MarketplaceScreen() {
   const {

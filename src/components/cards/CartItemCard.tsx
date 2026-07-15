@@ -37,6 +37,11 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove }) =>
         <Text style={styles.name} numberOfLines={2}>
           {productName}
         </Text>
+        {item.flavour ? (
+          <Text style={styles.flavour} numberOfLines={1}>
+            {item.flavour}
+          </Text>
+        ) : null}
         <Text style={styles.price}>{formatCurrency(productPrice)}</Text>
         <View style={styles.quantityRow}>
           <Text style={styles.quantityLabel}>Qty: </Text>
@@ -92,6 +97,13 @@ const styles = StyleSheet.create({
     lineHeight: ms(18),
     color: colors.text.primary,
     marginBottom: ms(2),
+  },
+  flavour: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(12),
+    lineHeight: ms(16),
+    color: colors.text.light,
+    marginBottom: spacing.xs,
   },
   price: {
     fontFamily: fontFamily.regular,

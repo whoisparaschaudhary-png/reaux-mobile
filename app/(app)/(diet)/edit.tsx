@@ -75,6 +75,9 @@ export default function EditDietScreen() {
         setCategory(plan.category || 'weight-loss');
         setDietType(plan.dietType || 'both');
         setDescription(plan.description || '');
+        setProtein(plan.protein != null ? String(plan.protein) : '');
+        setCarbs(plan.carbs != null ? String(plan.carbs) : '');
+        setFats(plan.fat != null ? String(plan.fat) : '');
         setExistingImage(plan.image);
 
         // Extract meal text from structured meals
@@ -132,6 +135,10 @@ export default function EditDietScreen() {
     if (snacks.trim()) meals.push({ name: 'Snacks', items: parseMealText(snacks) });
     if (dinner.trim()) meals.push({ name: 'Dinner', items: parseMealText(dinner) });
 
+    const proteinNum = protein.trim() ? Number(protein) : NaN;
+    const carbsNum = carbs.trim() ? Number(carbs) : NaN;
+    const fatsNum = fats.trim() ? Number(fats) : NaN;
+
     try {
       if (image && image.uri) {
         // New image selected -- use FormData
@@ -141,6 +148,9 @@ export default function EditDietScreen() {
         form.append('dietType', dietType);
         if (description.trim()) form.append('description', description.trim());
         if (calories) form.append('totalCalories', calories);
+        if (Number.isFinite(proteinNum)) form.append('protein', String(proteinNum));
+        if (Number.isFinite(carbsNum)) form.append('carbs', String(carbsNum));
+        if (Number.isFinite(fatsNum)) form.append('fat', String(fatsNum));
         if (meals.length > 0) form.append('meals', JSON.stringify(meals));
 
         // React Native FormData requires proper typing
@@ -160,6 +170,9 @@ export default function EditDietScreen() {
           dietType,
           description: description.trim() || undefined,
           totalCalories: calories ? Number(calories) : undefined,
+          protein: Number.isFinite(proteinNum) ? proteinNum : undefined,
+          carbs: Number.isFinite(carbsNum) ? carbsNum : undefined,
+          fat: Number.isFinite(fatsNum) ? fatsNum : undefined,
           meals,
           image: existingImage,
         });
@@ -172,7 +185,7 @@ export default function EditDietScreen() {
       const errorMessage = error?.message || error?.toString() || 'Failed to update diet plan';
       showAppAlert('Error', errorMessage);
     }
-  }, [id, title, category, dietType, description, calories, breakfast, lunch, snacks, dinner, image, existingImage, updatePlan]);
+  }, [id, title, category, dietType, description, calories, protein, carbs, fats, breakfast, lunch, snacks, dinner, image, existingImage, updatePlan]);
 
   if (isLoadingPlan) {
     return (

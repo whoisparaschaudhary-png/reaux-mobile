@@ -23,8 +23,8 @@ interface CartState {
 
   // Actions
   fetchCart: () => Promise<void>;
-  addToCart: (productId: string, quantity?: number) => Promise<void>;
-  removeFromCart: (productId: string) => Promise<void>;
+  addToCart: (productId: string, quantity?: number, flavour?: string | null) => Promise<void>;
+  removeFromCart: (productId: string, flavour?: string | null) => Promise<void>;
   setSelectedAddress: (address: ShippingAddressState | null) => void;
   clearError: () => void;
 }
@@ -63,20 +63,24 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
-  addToCart: async (productId: string, quantity: number = 1) => {
+  addToCart: async (productId: string, quantity: number = 1, flavour?: string | null) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await cartApi.addItem({ productId, quantity });
+      const response = await cartApi.addItem({
+        productId,
+        quantity,
+        ...(flavour ? { flavour } : {}),
+      });
       set({ cart: response.data, isLoading: false });
     } catch (err: any) {
       set({ error: err.message || 'Failed to add to cart', isLoading: false });
     }
   },
 
-  removeFromCart: async (productId: string) => {
+  removeFromCart: async (productId: string, flavour?: string | null) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await cartApi.removeItem(productId);
+      const response = await cartApi.removeItem(productId, flavour);
       set({ cart: response.data, isLoading: false });
     } catch (err: any) {
       set({ error: err.message || 'Failed to remove from cart', isLoading: false });

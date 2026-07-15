@@ -7,6 +7,7 @@ export { reelsApi } from './reels';
 export { productsApi } from './products';
 export { cartApi } from './cart';
 export { ordersApi } from './orders';
+export { paymentsApi } from './payments';
 export { promosApi } from './promos';
 export { challengesApi } from './challenges';
 export { notificationsApi } from './notifications';

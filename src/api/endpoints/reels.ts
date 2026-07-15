@@ -20,6 +20,9 @@ export const reelsApi = {
   like: (id: string) =>
     client.post<ApiResponse<Reel>>(`/reels/${id}/like`).then(r => r.data),
 
+  delete: (id: string) =>
+    client.delete<ApiResponse<null>>(`/reels/${id}`).then(r => r.data),
+
   getComments: (id: string, params?: PaginationParams) =>
     client.get<PaginatedResponse<ReelComment>>(`/reels/${id}/comments`, { params }).then(r => r.data),
 

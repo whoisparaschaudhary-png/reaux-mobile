@@ -62,16 +62,37 @@ export default function UploadPostScreen() {
     }
 
     try {
-      await createPost(
-        {
-          content: content.trim() || undefined,
-          mediaType: image ? 'image' : 'text',
-          mediaUrl: image?.uri,
-          hashtags: hashtags.length > 0 ? hashtags : undefined,
-          category: selectedCategory.toLowerCase(),
-        },
-        user ?? undefined
-      );
+      const category = selectedCategory.toLowerCase();
+
+      if (image) {
+        // The image must be uploaded as a file — sending image.uri as mediaUrl
+        // stores a path that only resolves on this device.
+        const form = new FormData();
+        form.append('media', {
+          uri: image.uri,
+          type: image.type,
+          name: image.fileName,
+        } as any);
+        if (content.trim()) {
+          form.append('content', content.trim());
+        }
+        if (hashtags.length > 0) {
+          form.append('hashtags', JSON.stringify(hashtags));
+        }
+        form.append('category', category);
+
+        await createPost(form, user ?? undefined);
+      } else {
+        await createPost(
+          {
+            content: content.trim(),
+            mediaType: 'text',
+            hashtags: hashtags.length > 0 ? hashtags : undefined,
+            category,
+          },
+          user ?? undefined
+        );
+      }
       router.back();
     } catch (err: any) {
       showAppAlert('Error', err.message || 'Failed to create post.');

@@ -10,6 +10,10 @@ export const cartApi = {
   addItem: (data: AddToCartRequest) =>
     client.post<ApiResponse<Cart>>('/cart/add', data).then(r => r.data),
 
-  removeItem: (productId: string) =>
-    client.delete<ApiResponse<Cart>>(`/cart/item/${productId}`).then(r => r.data),
+  removeItem: (productId: string, flavour?: string | null) =>
+    client
+      .delete<ApiResponse<Cart>>(`/cart/item/${productId}`, {
+        params: flavour ? { flavour } : undefined,
+      })
+      .then(r => r.data),
 };

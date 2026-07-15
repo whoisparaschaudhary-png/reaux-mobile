@@ -34,7 +34,7 @@ interface FeedState {
   fetchPosts: (page?: number, category?: string) => Promise<void>;
   refreshPosts: (category?: string) => Promise<void>;
   likePost: (id: string) => Promise<void>;
-  createPost: (data: CreatePostRequest, currentUser?: User | null) => Promise<void>;
+  createPost: (data: CreatePostRequest | FormData, currentUser?: User | null) => Promise<void>;
   deletePost: (id: string) => Promise<void>;
   clearError: () => void;
 }
@@ -135,7 +135,7 @@ export const useFeedStore = create<FeedState>((set, get) => ({
     }
   },
 
-  createPost: async (data: CreatePostRequest, currentUser?: User | null) => {
+  createPost: async (data: CreatePostRequest | FormData, currentUser?: User | null) => {
     set({ isLoading: true, error: null });
     try {
       const response = await postsApi.create(data);

@@ -41,10 +41,10 @@ export default function CartScreen() {
   }, []);
 
   const handleRemove = useCallback(
-    async (productId: string) => {
-      await removeFromCart(productId);
+    async (productId: string, flavour?: string | null) => {
+      await removeFromCart(productId, flavour);
     },
-    [],
+    [removeFromCart],
   );
 
   const total = cartTotal();
@@ -104,11 +104,12 @@ export default function CartScreen() {
                   typeof item.product === 'string'
                     ? item.product
                     : product._id;
+                // One product can appear once per flavour, so the key needs both.
                 return (
                   <CartItemCard
-                    key={productId}
+                    key={`${productId}::${item.flavour ?? ''}`}
                     item={item}
-                    onRemove={() => handleRemove(productId)}
+                    onRemove={() => handleRemove(productId, item.flavour)}
                   />
                 );
               })}

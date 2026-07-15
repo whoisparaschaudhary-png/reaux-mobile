@@ -125,8 +125,9 @@ export default function DietPlanDetailScreen() {
   const isFollowing = selectedPlan.isFollowed ?? false;
   const isLiked = selectedPlan.isLiked ?? false;
 
-  // Compute macro totals from meals
-  const macros = (selectedPlan.meals ?? []).reduce(
+  // Prefer the plan-level macro targets the admin entered; fall back to summing
+  // the per-meal-item macros when the plan doesn't set them directly.
+  const mealMacros = (selectedPlan.meals ?? []).reduce(
     (acc, meal) => {
       (meal.items ?? []).forEach((item) => {
         acc.protein += item.protein || 0;
@@ -137,6 +138,11 @@ export default function DietPlanDetailScreen() {
     },
     { protein: 0, carbs: 0, fat: 0 },
   );
+  const macros = {
+    protein: selectedPlan.protein ?? mealMacros.protein,
+    carbs: selectedPlan.carbs ?? mealMacros.carbs,
+    fat: selectedPlan.fat ?? mealMacros.fat,
+  };
 
   return (
     <SafeScreen>
@@ -240,7 +246,7 @@ export default function DietPlanDetailScreen() {
           </View>
 
           {/* Macros */}
-          {(selectedPlan.totalCalories || macros.protein > 0) && (
+          {(selectedPlan.totalCalories || macros.protein > 0 || macros.carbs > 0 || macros.fat > 0) && (
             <View style={styles.macroSection}>
               <Text style={styles.sectionTitle}>Macro Nutrients</Text>
               <View style={styles.macroRow}>

@@ -36,6 +36,14 @@ const STATUS_BADGE_MAP: Record<OrderStatus, { variant: BadgeVariant; label: stri
   cancelled: { variant: 'error', label: 'Cancelled' },
 };
 
+/** Tells the gym at a glance whether the money actually arrived. */
+const getPaymentBadge = (order: Order): { text: string; variant: BadgeVariant } => {
+  if (order.paymentMethod !== 'online') return { text: 'COD', variant: 'default' };
+  if (order.paymentStatus === 'paid') return { text: 'Paid', variant: 'success' };
+  if (order.paymentStatus === 'failed') return { text: 'Payment failed', variant: 'error' };
+  return { text: 'Unpaid', variant: 'warning' };
+};
+
 const STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending: ['confirmed', 'cancelled'],
   confirmed: ['shipped', 'cancelled'],
@@ -180,7 +188,11 @@ export default function AdminOrdersScreen() {
             <Ionicons name="receipt-outline" size={16} color={colors.text.secondary} />
             <Text style={styles.orderId}>#{item._id.slice(-6).toUpperCase()}</Text>
           </View>
-          <Badge text={statusInfo.label} variant={statusInfo.variant} />
+          <View style={styles.orderIdRow}>
+            {/* Never ship an online order that has not actually been paid. */}
+            <Badge {...getPaymentBadge(item)} size="sm" />
+            <Badge text={statusInfo.label} variant={statusInfo.variant} />
+          </View>
         </View>
 
         {/* Order Details */}
@@ -223,7 +235,9 @@ export default function AdminOrdersScreen() {
               {item.items.map((orderItem, idx) => (
                 <View key={idx} style={styles.itemRow}>
                   <Text style={styles.itemName} numberOfLines={1}>
-                    {orderItem.name}
+                    {orderItem.flavour
+                      ? `${orderItem.name} (${orderItem.flavour})`
+                      : orderItem.name}
                   </Text>
                   <Text style={styles.itemQty}>x{orderItem.quantity}</Text>
                   <Text style={styles.itemPrice}>

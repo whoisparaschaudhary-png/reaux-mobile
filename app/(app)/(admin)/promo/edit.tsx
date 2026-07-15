@@ -110,6 +110,7 @@ export default function EditPromoScreen() {
 
       if (validFrom) data.validFrom = validFrom;
       if (validUntil) data.validUntil = validUntil;
+      data.isActive = isActive;
 
       await promosApi.update(id!, data);
       showToast('Promo code updated successfully', 'success');

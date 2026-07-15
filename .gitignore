@@ -45,3 +45,6 @@ package-lock.json
 yarn.lock
 .claude
 CLAUDE.md
+# Secrets - never commit
+.env
+.env.local
