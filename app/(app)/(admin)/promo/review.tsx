@@ -41,7 +41,7 @@ export default function PromoReviewScreen() {
   };
 
   return (
-    <RoleGuard allowedRoles={['admin', 'superadmin']}>
+    <RoleGuard allowedRoles={['superadmin']}>
       <SafeScreen>
         <Header
           title="Banner Preview"

@@ -49,7 +49,7 @@ export default function CreatePromoScreen() {
   };
 
   return (
-    <RoleGuard allowedRoles={['admin', 'superadmin']}>
+    <RoleGuard allowedRoles={['superadmin']}>
       <SafeScreen>
         <Header
           title="Create Promo Banner"

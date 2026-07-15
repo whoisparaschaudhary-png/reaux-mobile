@@ -209,13 +209,13 @@ export default function AdminDashboardScreen() {
                 label="Manage Challenges"
                 onPress={() => router.push('/(app)/(admin)/challenges')}
               />
-              <View style={styles.divider} />
-              <MenuItem
-                label="Promo Banners"
-                onPress={() => router.push('/(app)/(admin)/promo/past')}
-              />
               {isSuperadmin && (
                 <>
+                  <View style={styles.divider} />
+                  <MenuItem
+                    label="Promo Banners"
+                    onPress={() => router.push('/(app)/(admin)/promo/past')}
+                  />
                   <View style={styles.divider} />
                   <MenuItem
                     label="Contact Messages"

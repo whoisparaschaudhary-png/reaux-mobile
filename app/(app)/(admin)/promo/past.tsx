@@ -175,7 +175,7 @@ export default function PastPromosScreen() {
   );
 
   return (
-    <RoleGuard allowedRoles={['admin', 'superadmin']}>
+    <RoleGuard allowedRoles={['superadmin']}>
       <SafeScreen>
         <Header
           title="Promo Codes"

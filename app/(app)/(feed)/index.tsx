@@ -77,7 +77,7 @@ const DIFFICULTY_CONFIG: Record<WorkoutDifficulty, { variant: 'success' | 'warni
 
 export default function FeedScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ tab?: string }>();
+  const params = useLocalSearchParams<{ tab?: string; ts?: string }>();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const [activeCategory, setActiveCategory] = useState<Category>(isAdmin ? 'Members' : 'For You');
@@ -173,12 +173,13 @@ export default function FeedScreen() {
     showAppAlert('Add content', 'What would you like to create?', buttons);
   }, [router, isAdmin, user?.role]);
 
-  // Open Workouts tab when navigating from BMI "Explore Workouts" (e.g. ?tab=workouts)
+  // Open Workouts tab when navigating from BMI "Explore Workouts" (e.g. ?tab=workouts).
+  // ts changes on every tap so this re-runs even if the tab was already Workouts.
   useEffect(() => {
     if (params.tab === 'workouts') {
       setActiveCategory('Workouts');
     }
-  }, [params.tab]);
+  }, [params.tab, params.ts]);
 
   // "My Admins" and "Nutrition" are hidden for all — switch to "For You" if either was selected
   useEffect(() => {

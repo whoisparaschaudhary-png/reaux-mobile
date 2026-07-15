@@ -23,6 +23,7 @@ import type { Product } from '../../../src/types/models';
 
 const PAYMENT_METHODS = [
   { id: 'cod', label: 'Cash on Delivery', icon: 'cash-outline' as const },
+  { id: 'online', label: 'Pay Online (UPI, card, netbanking)', icon: 'card-outline' as const },
 ];
 
 export default function CartScreen() {
@@ -197,7 +198,12 @@ export default function CartScreen() {
             <View style={styles.continueWrap}>
               <Button
                 title="Continue"
-                onPress={() => router.push('/(app)/(shop)/checkout')}
+                onPress={() =>
+                  router.push({
+                    pathname: '/(app)/(shop)/checkout',
+                    params: { payment: selectedPayment },
+                  })
+                }
                 fullWidth
                 size="lg"
               />

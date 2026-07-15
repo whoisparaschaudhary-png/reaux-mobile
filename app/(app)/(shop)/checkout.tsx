@@ -8,7 +8,7 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
@@ -54,7 +54,11 @@ export default function CheckoutScreen() {
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [address, setAddress] = useState<ShippingAddressState>(emptyAddress);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
+  // Preselect whatever the customer chose on the cart screen.
+  const { payment } = useLocalSearchParams<{ payment?: string }>();
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    payment === 'online' ? 'online' : 'cod',
+  );
   const [showStatePicker, setShowStatePicker] = useState(false);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);

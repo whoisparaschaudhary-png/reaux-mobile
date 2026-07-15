@@ -547,7 +547,14 @@ export default function HealthScreen() {
         {/* Workouts Section - opens Feed with Workouts tab */}
         <TouchableOpacity
           style={[styles.workoutCard, shadows.card]}
-          onPress={() => router.navigate('/(app)/(feed)' as any)}
+          onPress={() =>
+            router.navigate({
+              pathname: '/(app)/(feed)',
+              // ts forces the feed effect to re-run even if it was already on
+              // the Workouts tab from a previous visit.
+              params: { tab: 'workouts', ts: String(Date.now()) },
+            } as any)
+          }
           activeOpacity={0.7}
         >
           <View style={styles.workoutCardContent}>

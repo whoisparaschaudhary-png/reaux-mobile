@@ -134,7 +134,7 @@ export default function EditPromoScreen() {
   }
 
   return (
-    <RoleGuard allowedRoles={['admin', 'superadmin']}>
+    <RoleGuard allowedRoles={['superadmin']}>
       <SafeScreen>
         <Header title="Edit Promo Code" showBack onBack={() => router.back()} />
 
