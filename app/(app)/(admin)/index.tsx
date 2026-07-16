@@ -173,11 +173,17 @@ export default function AdminDashboardScreen() {
                 label="Manage Orders"
                 onPress={() => router.push('/(app)/(admin)/orders')}
               />
-              <View style={styles.divider} />
-              <MenuItem
-                label="Sales Report"
-                onPress={() => router.push('/(app)/(admin)/sales-report')}
-              />
+              {/* Sales Report is platform-wide and superadmin-only on the backend
+                  (admins get a 403), so only surface it to superadmins. */}
+              {isSuperadmin && (
+                <>
+                  <View style={styles.divider} />
+                  <MenuItem
+                    label="Sales Report"
+                    onPress={() => router.push('/(app)/(admin)/sales-report')}
+                  />
+                </>
+              )}
             </View>
           </View>
 

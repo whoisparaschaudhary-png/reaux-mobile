@@ -51,7 +51,7 @@ export default function SalesReportScreen() {
   };
 
   return (
-    <RoleGuard allowedRoles={['admin', 'superadmin']}>
+    <RoleGuard allowedRoles={['superadmin']}>
       <SafeScreen>
         <Header
           title="Sales Report"
