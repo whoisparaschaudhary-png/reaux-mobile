@@ -194,3 +194,21 @@ dependencies {
 }
 
 apply plugin: 'com.google.gms.google-services'
+
+// ── Robust `clean` (permanent fix for the New-Architecture native-clean trap) ──
+// `./gradlew clean` runs the per-variant externalNativeBuildClean tasks, which
+// re-invoke CMake against the stale .cxx cache. That cache's build.ninja references
+// each library's generated codegen dir (node_modules/.../android/build/generated/
+// source/codegen/jni), but the same clean run deletes those library build/ dirs
+// first — so CMake's add_subdirectory points at a missing directory and fails with
+// "GLOB mismatch / not an existing directory". Disable those CMake-based native
+// cleans and wipe the .cxx cache directly instead, so `clean` always succeeds and
+// the next build reconfigures CMake from scratch.
+tasks.configureEach { task ->
+    if (task.name.startsWith("externalNativeBuildClean")) {
+        task.enabled = false
+    }
+}
+tasks.named("clean").configure {
+    delete file("${projectDir}/.cxx")
+}
