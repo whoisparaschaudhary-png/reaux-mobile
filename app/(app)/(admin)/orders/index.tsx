@@ -74,14 +74,14 @@ export default function AdminOrdersScreen() {
   const [exportingOrderId, setExportingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchAllOrders();
+    fetchAllOrders(1, activeFilter);
   }, [fetchAllOrders]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await fetchAllOrders();
+    await fetchAllOrders(1, activeFilter);
     setIsRefreshing(false);
-  }, [fetchAllOrders]);
+  }, [fetchAllOrders, activeFilter]);
 
   const handleToggleExpand = useCallback((orderId: string) => {
     setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
@@ -101,6 +101,9 @@ export default function AdminOrdersScreen() {
               try {
                 await updateOrderStatus(order._id, newStatus);
                 setExpandedOrderId(null);
+                // Refetch so an order whose new status no longer matches the
+                // active tab drops out of the list instead of lingering.
+                fetchAllOrders(1, activeFilter);
               } catch {
                 showAppAlert('Error', 'Failed to update order status. Please try again.');
               }
@@ -120,14 +123,14 @@ export default function AdminOrdersScreen() {
   };
 
   const handleExportAllPDF = async () => {
-    if (!filteredOrders || filteredOrders.length === 0) {
+    if (!orders || orders.length === 0) {
       showToast('No orders to export', 'error');
       return;
     }
 
     setIsExporting(true);
     try {
-      await exportOrdersListPDF(filteredOrders);
+      await exportOrdersListPDF(orders);
       showToast('PDF exported successfully', 'success');
     } catch (error: any) {
       showToast(error.message || 'Failed to export PDF', 'error');
@@ -147,10 +150,6 @@ export default function AdminOrdersScreen() {
       setExportingOrderId(null);
     }
   };
-
-  const filteredOrders = activeFilter === 'all'
-    ? orders
-    : orders.filter((o) => o.status === activeFilter);
 
   const renderStatusChip = (order: Order, status: OrderStatus) => {
     const { variant, label } = STATUS_BADGE_MAP[status];
@@ -333,7 +332,10 @@ export default function AdminOrdersScreen() {
               renderItem={({ item: tab }) => (
                 <TouchableOpacity
                   style={[styles.tab, activeFilter === tab.key && styles.tabActive]}
-                  onPress={() => setActiveFilter(tab.key)}
+                  onPress={() => {
+                    setActiveFilter(tab.key);
+                    fetchAllOrders(1, tab.key);
+                  }}
                   activeOpacity={0.7}
                 >
                   <Text
@@ -352,7 +354,7 @@ export default function AdminOrdersScreen() {
           {/* Order List */}
           <View style={styles.listContainer}>
             <FlashList
-              data={filteredOrders}
+              data={orders}
               renderItem={renderOrderItem}
               keyExtractor={(item) => item._id}
               contentContainerStyle={styles.listContent}
@@ -377,7 +379,7 @@ export default function AdminOrdersScreen() {
                 )
               }
               ListFooterComponent={
-                filteredOrders.length > 0 ? (
+                orders.length > 0 ? (
                   <View style={styles.exportButtonContainer}>
                     <Button
                       title="Export as PDF"

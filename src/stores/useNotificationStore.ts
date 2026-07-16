@@ -71,20 +71,27 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   markAsRead: async (id: string) => {
     const { notifications } = get();
+    const wasUnread = notifications.some((n) => n._id === id && !n.isRead);
+    const prevUnreadCount = get().unreadCount;
     // Optimistic update
     set({
       notifications: notifications.map((n) =>
         n._id === id ? { ...n, isRead: true } : n,
       ),
     });
-    get().getUnreadCount();
+    if (wasUnread) {
+      set({ unreadCount: Math.max(0, get().unreadCount - 1) });
+    }
 
     try {
       await notificationsApi.markAsRead(id);
-    } catch {
-      // Revert on failure
-      set({ notifications });
+      // Reconcile with the authoritative server total only AFTER the write has
+      // committed — reconciling before it would read back the stale (still-unread)
+      // count and clobber the optimistic decrement.
       get().getUnreadCount();
+    } catch {
+      // Revert both the list and the count on failure.
+      set({ notifications, unreadCount: prevUnreadCount });
     }
   },
 
@@ -106,28 +113,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   },
 
   getUnreadCount: async () => {
-    const state = get();
-
-    // If notifications haven't been fetched yet, fetch them first
-    if (state.notifications.length === 0 && !state.isLoading) {
-      try {
-        const response = await notificationsApi.list({ page: 1, limit: 20 });
-        const list = response.data ?? [];
-        set({
-          notifications: list,
-          pagination: response.pagination,
-        });
-        // Calculate unread count from fetched notifications
-        const unreadCount = list.filter((n) => !n.isRead).length;
-        set({ unreadCount });
-      } catch (err: any) {
-        // On error, just set unread count to 0
-        set({ unreadCount: 0 });
-      }
-    } else {
-      // Calculate unread count from existing notifications
-      const unreadCount = state.notifications.filter((n) => !n.isRead).length;
-      set({ unreadCount });
+    try {
+      const total = await notificationsApi.getUnreadCount();
+      set({ unreadCount: total });
+    } catch {
+      // On error, just set unread count to 0
+      set({ unreadCount: 0 });
     }
   },
 

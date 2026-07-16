@@ -16,6 +16,7 @@ import { Input } from '../../../../../src/components/ui/Input';
 import { Button } from '../../../../../src/components/ui/Button';
 import { RoleGuard } from '../../../../../src/components/guards/RoleGuard';
 import { useMembershipStore } from '../../../../../src/stores/useMembershipStore';
+import { useAuthStore } from '../../../../../src/stores/useAuthStore';
 import { gymsApi } from '../../../../../src/api/endpoints/gyms';
 import { showAppAlert } from '../../../../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius, layout } from '../../../../../src/theme';
@@ -32,6 +33,21 @@ const DURATIONS = [
 export default function CreateMembershipPlanScreen() {
   const router = useRouter();
   const { createPlan, plansLoading } = useMembershipStore();
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'admin';
+  // Mirror the backend's isAdminGym fallback: use gymIds when it has entries,
+  // otherwise fall back to the singular gymId. An empty gymIds array is not
+  // nullish, so `??` would never reach the gymId fallback and would wrongly
+  // block an admin whose gym is only set on the singular gymId field.
+  const mappedGymIds: string[] = (user?.gymIds ?? []).map((g) =>
+    typeof g === 'string' ? g : (g as Gym)._id,
+  );
+  const adminGymIds: string[] =
+    mappedGymIds.length > 0
+      ? mappedGymIds
+      : user?.gymId
+        ? [typeof user.gymId === 'string' ? user.gymId : (user.gymId as Gym)._id]
+        : [];
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -49,9 +65,13 @@ export default function CreateMembershipPlanScreen() {
   const loadGyms = async () => {
     try {
       const response = await gymsApi.list({ limit: 100 });
-      setGyms(response.data || []);
-      if (response.data?.length > 0) {
-        setSelectedGymId(response.data[0]._id);
+      const allGyms = response.data ?? [];
+      const list = isAdmin
+        ? allGyms.filter((gym) => adminGymIds.includes(gym._id))
+        : allGyms;
+      setGyms(list);
+      if (list.length > 0) {
+        setSelectedGymId(list[0]._id);
       }
     } catch (err: any) {
       showAppAlert('Error', err.message || 'Failed to load gyms');
@@ -149,6 +169,10 @@ export default function CreateMembershipPlanScreen() {
               <Text style={styles.loadingText}>Loading gyms...</Text>
             ) : gyms.length === 0 ? (
               <Text style={styles.emptyText}>No gyms available</Text>
+            ) : isAdmin && gyms.length === 1 ? (
+              <View style={styles.gymReadonly}>
+                <Text style={styles.gymReadonlyText}>{gyms[0].name}</Text>
+              </View>
             ) : (
               <View style={styles.gymGrid}>
                 {gyms.map((gym) => {
@@ -292,6 +316,18 @@ const styles = StyleSheet.create({
     color: colors.text.light,
     textAlign: 'center',
     paddingVertical: spacing.lg,
+  },
+  gymReadonly: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.card,
+    backgroundColor: colors.background.card,
+  },
+  gymReadonlyText: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(15),
+    lineHeight: ms(20),
+    color: colors.text.primary,
   },
   gymGrid: {
     flexDirection: 'row',

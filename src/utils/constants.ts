@@ -12,6 +12,15 @@ export const STORE_URLS = {
 export const INSTAGRAM_URL = 'https://www.instagram.com/reauxlabs/';
 
 /**
+ * Online (Razorpay) payments are not live yet — the Razorpay account/keys aren't
+ * active. While false, the "Pay Online" option is shown as "Coming Soon" (disabled)
+ * across cart + checkout and every order is forced to Cash on Delivery.
+ * Flip to `true` (one line) once the live keys are set on the backend and the
+ * account is approved to re-enable the full Razorpay checkout flow.
+ */
+export const ONLINE_PAYMENT_ENABLED = false;
+
+/**
  * Single source of truth for product categories. The Shop filter tabs and the
  * admin upload/edit screens both read this list — if they drift apart, a filter
  * tab can never match a saved product and the tab comes up empty.

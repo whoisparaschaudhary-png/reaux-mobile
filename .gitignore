@@ -48,3 +48,6 @@ CLAUDE.md
 # Secrets - never commit
 .env
 .env.local
+
+# Figma MCP key - never commit
+.figma-mcp

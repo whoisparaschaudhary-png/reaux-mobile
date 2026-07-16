@@ -314,6 +314,16 @@ export default function DietPlanDetailScreen() {
             </View>
           )}
 
+          {/* Preparation Instructions */}
+          {selectedPlan.instructions ? (
+            <View style={styles.instructionsSection}>
+              <Text style={styles.sectionTitle}>Preparation Instructions</Text>
+              <View style={[styles.instructionsCard, shadows.card]}>
+                <Text style={styles.instructionsText}>{selectedPlan.instructions}</Text>
+              </View>
+            </View>
+          ) : null}
+
           {/* Tags */}
           {(selectedPlan.tags?.length ?? 0) > 0 && (
             <View style={styles.tagsSection}>
@@ -591,6 +601,20 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.medium,
     fontSize: ms(12),
     lineHeight: ms(16),
+    color: colors.text.secondary,
+  },
+  instructionsSection: {
+    marginBottom: spacing.xxl,
+  },
+  instructionsCard: {
+    backgroundColor: colors.background.card,
+    borderRadius: borderRadius.card,
+    padding: spacing.lg,
+  },
+  instructionsText: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(15),
+    lineHeight: ms(22),
     color: colors.text.secondary,
   },
   tagsSection: {

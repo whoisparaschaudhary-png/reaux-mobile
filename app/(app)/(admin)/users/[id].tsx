@@ -150,9 +150,15 @@ export default function UserDetailScreen() {
     fetchGyms();
   }, [isSuperAdmin]);
 
-  const originalGymIds: string[] = user?.gymIds?.map((g) =>
-    typeof g === 'string' ? g : (g as Gym)._id
-  ) ?? (user?.gymId ? [typeof user.gymId === 'string' ? user.gymId : (user.gymId as Gym)._id] : []);
+  const mappedGymIds: string[] = (user?.gymIds ?? []).map((g) =>
+    typeof g === 'string' ? g : (g as Gym)._id,
+  );
+  const originalGymIds: string[] =
+    mappedGymIds.length > 0
+      ? mappedGymIds
+      : user?.gymId
+        ? [typeof user.gymId === 'string' ? user.gymId : (user.gymId as Gym)._id]
+        : [];
 
   const hasChanges =
     user &&

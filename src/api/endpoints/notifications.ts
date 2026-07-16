@@ -8,6 +8,13 @@ export const notificationsApi = {
       .get<PaginatedResponse<Notification>>('/notifications', { params })
       .then(r => r.data),
 
+  getUnreadCount: () =>
+    client
+      .get<PaginatedResponse<Notification>>('/notifications', {
+        params: { page: 1, limit: 1, isRead: false },
+      })
+      .then(r => r.data.pagination.total),
+
   markAsRead: (id: string) =>
     client
       .put<ApiResponse<Notification>>(`/notifications/read/${id}`)

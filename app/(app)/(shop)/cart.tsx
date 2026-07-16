@@ -16,7 +16,9 @@ import { Button } from '../../../src/components/ui/Button';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { CartItemCard } from '../../../src/components/cards/CartItemCard';
 import { useCartStore } from '../../../src/stores/useCartStore';
+import { useUIStore } from '../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../src/utils/formatters';
+import { ONLINE_PAYMENT_ENABLED } from '../../../src/utils/constants';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
 import { ms, mvs } from '../../../src/utils/responsive';
 import type { Product } from '../../../src/types/models';
@@ -27,7 +29,9 @@ const PAYMENT_METHODS = [
 ];
 
 export default function CartScreen() {
-  const { cart, isLoading, fetchCart, removeFromCart, cartTotal, selectedAddress } = useCartStore();
+  const { cart, isLoading, fetchCart, removeFromCart, updateQuantity, cartTotal, selectedAddress } =
+    useCartStore();
+  const showToast = useUIStore((s) => s.showToast);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState('cod');
 
@@ -46,6 +50,17 @@ export default function CartScreen() {
       await removeFromCart(productId, flavour);
     },
     [removeFromCart],
+  );
+
+  // updateQuantity is optimistic and rethrows on failure — catch here so a failed
+  // stepper tap surfaces a toast instead of an unhandled rejection + silent revert.
+  const handleQty = useCallback(
+    (productId: string, quantity: number, flavour?: string | null) => {
+      updateQuantity(productId, quantity, flavour).catch((e: any) =>
+        showToast(e?.message || 'Failed to update cart', 'error'),
+      );
+    },
+    [updateQuantity, showToast],
   );
 
   const total = cartTotal();
@@ -94,9 +109,6 @@ export default function CartScreen() {
                 <Text style={styles.sectionTitle}>
                   Items ({items.length})
                 </Text>
-                <TouchableOpacity activeOpacity={0.7}>
-                  <Text style={styles.editLink}>Edit</Text>
-                </TouchableOpacity>
               </View>
 
               {items.map((item) => {
@@ -111,6 +123,8 @@ export default function CartScreen() {
                     key={`${productId}::${item.flavour ?? ''}`}
                     item={item}
                     onRemove={() => handleRemove(productId, item.flavour)}
+                    onIncrement={() => handleQty(productId, item.quantity + 1, item.flavour)}
+                    onDecrement={() => handleQty(productId, item.quantity - 1, item.flavour)}
                   />
                 );
               })}
@@ -150,42 +164,45 @@ export default function CartScreen() {
             {/* Payment Method */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Payment Method</Text>
-              {PAYMENT_METHODS.map((method) => (
-                <TouchableOpacity
-                  key={method.id}
-                  style={[
-                    styles.paymentOption,
-                    selectedPayment === method.id &&
-                      styles.paymentOptionActive,
-                  ]}
-                  activeOpacity={0.7}
-                  onPress={() => setSelectedPayment(method.id)}
-                >
-                  <Ionicons
-                    name={method.icon}
-                    size={22}
-                    color={
-                      selectedPayment === method.id
-                        ? colors.text.primary
-                        : colors.text.secondary
-                    }
-                  />
-                  <Text
+              {PAYMENT_METHODS.map((method) => {
+                const disabled = method.id === 'online' && !ONLINE_PAYMENT_ENABLED;
+                const active = selectedPayment === method.id;
+                return (
+                  <TouchableOpacity
+                    key={method.id}
                     style={[
-                      styles.paymentLabel,
-                      selectedPayment === method.id &&
-                        styles.paymentLabelActive,
+                      styles.paymentOption,
+                      active && styles.paymentOptionActive,
+                      disabled && styles.paymentOptionDisabled,
                     ]}
+                    activeOpacity={disabled ? 1 : 0.7}
+                    disabled={disabled}
+                    onPress={() => {
+                      if (!disabled) setSelectedPayment(method.id);
+                    }}
                   >
-                    {method.label}
-                  </Text>
-                  <View style={styles.radioOuter}>
-                    {selectedPayment === method.id && (
-                      <View style={styles.radioInner} />
+                    <Ionicons
+                      name={method.icon}
+                      size={22}
+                      color={active ? colors.text.primary : colors.text.secondary}
+                    />
+                    <Text
+                      style={[styles.paymentLabel, active && styles.paymentLabelActive]}
+                    >
+                      {method.label}
+                    </Text>
+                    {disabled ? (
+                      <View style={styles.comingSoonPill}>
+                        <Text style={styles.comingSoonText}>Coming Soon</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.radioOuter}>
+                        {active && <View style={styles.radioInner} />}
+                      </View>
                     )}
-                  </View>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </ScrollView>
 
@@ -247,13 +264,6 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
-  editLink: {
-    fontFamily: fontFamily.medium,
-    fontSize: ms(14),
-    color: colors.primary.yellowDark,
-    marginBottom: spacing.md,
-  },
-
   // Address
   addressCard: {
     flexDirection: 'row',
@@ -328,6 +338,23 @@ const styles = StyleSheet.create({
     height: ms(12),
     borderRadius: ms(6),
     backgroundColor: colors.primary.yellow,
+  },
+  paymentOptionDisabled: {
+    opacity: 0.55,
+  },
+  comingSoonPill: {
+    backgroundColor: colors.border.light,
+    borderRadius: borderRadius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  comingSoonText: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(10),
+    lineHeight: ms(14),
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
 
   // Bottom

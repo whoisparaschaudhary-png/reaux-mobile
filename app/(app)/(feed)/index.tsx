@@ -365,7 +365,7 @@ export default function FeedScreen() {
       <PostCard
         post={item}
         onPress={() => router.push(`/(app)/(feed)/${item._id}`)}
-        onLike={() => likePost(item._id)}
+        onLike={() => { likePost(item._id).catch(() => {}); }}
         onComment={() => router.push(`/(app)/(feed)/${item._id}`)}
         onShare={() => {
           Share.share({

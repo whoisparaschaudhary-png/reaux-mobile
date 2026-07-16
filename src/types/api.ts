@@ -42,6 +42,7 @@ export interface CreateDietRequest {
   category: DietCategory;
   dietType?: DietType;
   description?: string;
+  instructions?: string;
   meals?: any[];
   image?: string;
   totalCalories?: number;

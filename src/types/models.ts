@@ -124,6 +124,7 @@ export interface DietPlan {
   _id: string;
   title: string;
   description?: string;
+  instructions?: string;
   slug: string;
   category: DietCategory;
   meals: Meal[];

@@ -20,7 +20,7 @@ import { colors, fontFamily, borderRadius, spacing, layout } from '../../../src/
 import { ms } from '../../../src/utils/responsive';
 import type { OrderStatus } from '../../../src/types/models';
 
-const STATUS_TABS: Array<{ label: string; value: string }> = [
+const STATUS_TABS: Array<{ label: string; value: OrderStatus | 'all' }> = [
   { label: 'All', value: 'all' },
   { label: 'Pending', value: 'pending' },
   { label: 'Confirmed', value: 'confirmed' },
@@ -34,33 +34,28 @@ export default function OrdersScreen() {
   const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { orders, isLoading, pagination, fetchMyOrders } = useOrderStore();
   const [refreshing, setRefreshing] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
 
   useEffect(() => {
-    fetchMyOrders(1);
+    fetchMyOrders(1, statusFilter);
   }, []);
 
   useRefreshOnFocus(
     useCallback(() => {
-      fetchMyOrders(1);
-    }, []),
+      fetchMyOrders(1, statusFilter);
+    }, [statusFilter]),
   );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchMyOrders(1);
+    await fetchMyOrders(1, statusFilter);
     setRefreshing(false);
-  }, []);
+  }, [statusFilter]);
 
   const handleLoadMore = useCallback(() => {
     if (isLoading || pagination.page >= pagination.pages) return;
-    fetchMyOrders(pagination.page + 1);
-  }, [isLoading, pagination]);
-
-  const filteredOrders =
-    statusFilter === 'all'
-      ? orders
-      : orders.filter((o) => o.status === statusFilter);
+    fetchMyOrders(pagination.page + 1, statusFilter);
+  }, [isLoading, pagination, statusFilter]);
 
   const renderOrder = useCallback(
     ({ item }: { item: any }) => (
@@ -90,7 +85,10 @@ export default function OrdersScreen() {
           return (
             <TouchableOpacity
               key={tab.value}
-              onPress={() => setStatusFilter(tab.value)}
+              onPress={() => {
+                setStatusFilter(tab.value);
+                fetchMyOrders(1, tab.value);
+              }}
               style={[styles.tab, isActive && styles.tabActive]}
               activeOpacity={0.7}
             >
@@ -103,7 +101,7 @@ export default function OrdersScreen() {
       </ScrollView>
 
       <View style={styles.container}>
-        {filteredOrders.length === 0 && !isLoading ? (
+        {orders.length === 0 && !isLoading ? (
           <EmptyState
             icon="receipt-outline"
             title="No Orders Yet"
@@ -113,7 +111,7 @@ export default function OrdersScreen() {
           />
         ) : (
           <FlashList
-            data={filteredOrders}
+            data={orders}
             renderItem={renderOrder}
             keyExtractor={(item) => item._id}
 

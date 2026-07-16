@@ -24,6 +24,7 @@ interface CartState {
   // Actions
   fetchCart: () => Promise<void>;
   addToCart: (productId: string, quantity?: number, flavour?: string | null) => Promise<void>;
+  updateQuantity: (productId: string, quantity: number, flavour?: string | null) => Promise<void>;
   removeFromCart: (productId: string, flavour?: string | null) => Promise<void>;
   setSelectedAddress: (address: ShippingAddressState | null) => void;
   clearError: () => void;
@@ -76,6 +77,35 @@ export const useCartStore = create<CartState>((set, get) => ({
       const message = err.message || 'Failed to add to cart';
       set({ error: message, isLoading: false });
       // Rethrow so callers can avoid navigating to an empty cart / show a toast.
+      throw new Error(message);
+    }
+  },
+
+  updateQuantity: async (productId: string, quantity: number, flavour?: string | null) => {
+    const prevCart = get().cart;
+
+    // Optimistically apply the new quantity, keying lines by product + flavour so
+    // per-flavour lines stay distinct. Lines that drop to <= 0 are removed.
+    if (prevCart) {
+      const nextItems = prevCart.items
+        .map((item) => {
+          const product = item.product as Product;
+          const pid = typeof item.product === 'string' ? item.product : product._id;
+          if (pid === productId && (item.flavour ?? null) === (flavour ?? null)) {
+            return { ...item, quantity };
+          }
+          return item;
+        })
+        .filter((item) => item.quantity > 0);
+      set({ cart: { ...prevCart, items: nextItems } });
+    }
+
+    try {
+      const response = await cartApi.updateItem(productId, quantity, flavour);
+      set({ cart: response.data });
+    } catch (err: any) {
+      set({ cart: prevCart });
+      const message = err.message || 'Failed to update cart';
       throw new Error(message);
     }
   },

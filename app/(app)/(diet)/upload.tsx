@@ -93,6 +93,7 @@ export default function UploadDietScreen() {
         form.append('category', category);
         form.append('dietType', dietType);
         if (description.trim()) form.append('description', description.trim());
+        if (instructions.trim()) form.append('instructions', instructions.trim());
         if (caloriesNum > 0) form.append('totalCalories', String(caloriesNum));
         if (Number.isFinite(proteinNum)) form.append('protein', String(proteinNum));
         if (Number.isFinite(carbsNum)) form.append('carbs', String(carbsNum));
@@ -116,6 +117,7 @@ export default function UploadDietScreen() {
             category,
             dietType,
             description: description.trim() || undefined,
+            instructions: instructions.trim() || undefined,
             totalCalories: caloriesNum > 0 ? caloriesNum : undefined,
             protein: Number.isFinite(proteinNum) ? proteinNum : undefined,
             carbs: Number.isFinite(carbsNum) ? carbsNum : undefined,
@@ -141,7 +143,7 @@ export default function UploadDietScreen() {
       }
       showAppAlert('Error', errorMessage);
     }
-  }, [title, category, dietType, description, calories, protein, carbs, fats, breakfast, lunch, snacks, dinner, image, createPlan]);
+  }, [title, category, dietType, description, instructions, calories, protein, carbs, fats, breakfast, lunch, snacks, dinner, image, createPlan]);
 
   return (
     <RoleGuard allowedRoles={['admin', 'superadmin']}>

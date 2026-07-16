@@ -225,16 +225,23 @@ export default function PostDetailScreen() {
   }, [loadPost]);
 
   const handleLike = useCallback(async () => {
-    if (!id) return;
-    await likePost(id);
-    // Re-fetch to get updated post
+    if (!id || !post) return;
+    const prev = post;
+    setPost((p) =>
+      p
+        ? {
+            ...p,
+            isLiked: !p.isLiked,
+            likesCount: p.isLiked ? p.likesCount - 1 : p.likesCount + 1,
+          }
+        : p,
+    );
     try {
-      const response = await postsApi.getById(id);
-      setPost(response.data.post);
+      await likePost(id);
     } catch {
-      // Ignore
+      setPost(prev);
     }
-  }, [id, likePost]);
+  }, [id, post, likePost]);
 
   const handleSendComment = useCallback(async (text: string) => {
     if (!id) return;

@@ -8,7 +8,7 @@ import { paymentsApi, type RazorpayOrderResponse } from '../../../src/api/endpoi
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useCartStore } from '../../../src/stores/useCartStore';
 import { showAppAlert } from '../../../src/stores/useUIStore';
-import { API_URL } from '../../../src/utils/constants';
+import { API_URL, ONLINE_PAYMENT_ENABLED } from '../../../src/utils/constants';
 import { colors, fontFamily, spacing } from '../../../src/theme';
 import { ms } from '../../../src/utils/responsive';
 
@@ -89,11 +89,20 @@ export default function PaymentScreen() {
   // Guards against the WebView firing more than one terminal event.
   const settled = useRef(false);
 
+  // Online payments are gated off (Razorpay not live yet). This screen should be
+  // unreachable through the UI, but guard it so a stale deep-link can't strand
+  // the user on a dead checkout — bounce back to their orders.
+  useEffect(() => {
+    if (!ONLINE_PAYMENT_ENABLED) {
+      router.replace('/(app)/(shop)/orders');
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      if (!orderId) return;
+      if (!ONLINE_PAYMENT_ENABLED || !orderId) return;
       try {
         const response = await paymentsApi.createRazorpayOrder(orderId);
         if (!cancelled) setRzp(response.data);

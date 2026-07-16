@@ -158,7 +158,7 @@ export default function BmiHistoryScreen() {
                         ]}
                       >
                         {trend.isUp ? '+' : ''}
-                        {trend.value?.toFixed(1)}%
+                        {trend.value?.toFixed(1)} pts
                       </Text>
                     </View>
                   )}

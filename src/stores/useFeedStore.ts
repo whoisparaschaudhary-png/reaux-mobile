@@ -130,8 +130,9 @@ export const useFeedStore = create<FeedState>((set, get) => ({
         }
         return { postsByCategory: merged };
       });
-    } catch {
+    } catch (err) {
       set({ postsByCategory: prevByCategory });
+      throw err;
     }
   },
 

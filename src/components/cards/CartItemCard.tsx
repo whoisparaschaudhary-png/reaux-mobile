@@ -4,22 +4,33 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontFamily, borderRadius, spacing } from '../../theme';
 import { formatCurrency } from '../../utils/formatters';
-import { ms, mvs } from '../../utils/responsive';
+import { ms } from '../../utils/responsive';
 import type { CartItem, Product } from '../../types/models';
 
 interface CartItemCardProps {
   item: CartItem;
   onRemove: () => void;
+  onIncrement?: () => void;
+  onDecrement?: () => void;
 }
 
-export const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove }) => {
+export const CartItemCard: React.FC<CartItemCardProps> = ({
+  item,
+  onRemove,
+  onIncrement,
+  onDecrement,
+}) => {
   const product = item.product as Product;
   const isPopulated = typeof product === 'object' && product !== null;
 
   const productName  = isPopulated ? product.name : 'Product';
   const productPrice = isPopulated ? product.price : 0;
   const productImage = isPopulated ? product.images?.[0] : undefined;
+  const productStock = isPopulated ? product.stock : 0;
   const lineTotal    = productPrice * item.quantity;
+
+  const decrementDisabled = !onDecrement || item.quantity <= 1;
+  const incrementDisabled = !onIncrement || item.quantity >= productStock;
 
   return (
     <View style={styles.container}>
@@ -44,10 +55,33 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove }) =>
         ) : null}
         <Text style={styles.price}>{formatCurrency(productPrice)}</Text>
         <View style={styles.quantityRow}>
-          <Text style={styles.quantityLabel}>Qty: </Text>
-          <View style={styles.quantityBadge}>
-            <Text style={styles.quantityText}>{item.quantity}</Text>
-          </View>
+          <TouchableOpacity
+            onPress={onDecrement}
+            disabled={decrementDisabled}
+            style={[styles.stepperButton, decrementDisabled && styles.stepperButtonDisabled]}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="remove"
+              size={ms(16)}
+              color={decrementDisabled ? colors.text.light : colors.text.primary}
+            />
+          </TouchableOpacity>
+          <Text style={styles.quantityText}>{item.quantity}</Text>
+          <TouchableOpacity
+            onPress={onIncrement}
+            disabled={incrementDisabled}
+            style={[styles.stepperButton, incrementDisabled && styles.stepperButtonDisabled]}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="add"
+              size={ms(16)}
+              color={incrementDisabled ? colors.text.light : colors.text.primary}
+            />
+          </TouchableOpacity>
           <Text style={styles.lineTotal}>{formatCurrency(lineTotal)}</Text>
         </View>
       </View>
@@ -116,27 +150,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  quantityLabel: {
-    fontFamily: fontFamily.regular,
-    fontSize: ms(13),
-    color: colors.text.secondary,
-  },
-  quantityBadge: {
+  stepperButton: {
+    width: ms(28),
+    height: ms(28),
+    borderRadius: ms(14),
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.border.light,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: mvs(2),
-    borderRadius: borderRadius.sm,
-    marginRight: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border.gray,
+  },
+  stepperButtonDisabled: {
+    opacity: 0.5,
   },
   quantityText: {
     fontFamily: fontFamily.medium,
-    fontSize: ms(13),
+    fontSize: ms(14),
     color: colors.text.primary,
+    minWidth: ms(28),
+    textAlign: 'center',
+    marginHorizontal: spacing.xs,
   },
   lineTotal: {
     fontFamily: fontFamily.bold,
     fontSize: ms(14),
     color: colors.text.primary,
+    marginLeft: spacing.md,
   },
   removeButton: {
     width: ms(36),

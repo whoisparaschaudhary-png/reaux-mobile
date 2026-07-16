@@ -20,6 +20,7 @@ import { addressesApi } from '../../../src/api/endpoints/users';
 import { promosApi } from '../../../src/api/endpoints/promos';
 import { showAppAlert } from '../../../src/stores/useUIStore';
 import { formatCurrency } from '../../../src/utils/formatters';
+import { ONLINE_PAYMENT_ENABLED } from '../../../src/utils/constants';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../../src/theme';
 import { ms, mvs } from '../../../src/utils/responsive';
 import type { PaymentMethod, Product, SavedAddress } from '../../../src/types/models';
@@ -57,7 +58,7 @@ export default function CheckoutScreen() {
   // Preselect whatever the customer chose on the cart screen.
   const { payment } = useLocalSearchParams<{ payment?: string }>();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-    payment === 'online' ? 'online' : 'cod',
+    ONLINE_PAYMENT_ENABLED && payment === 'online' ? 'online' : 'cod',
   );
   const [showStatePicker, setShowStatePicker] = useState(false);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
@@ -99,7 +100,7 @@ export default function CheckoutScreen() {
       });
       await fetchCart();
 
-      if (paymentMethod === 'online') {
+      if (ONLINE_PAYMENT_ENABLED && paymentMethod === 'online') {
         // The order exists but is unpaid — hand off to Razorpay checkout.
         router.replace({
           pathname: '/(app)/(shop)/payment',
@@ -115,7 +116,7 @@ export default function CheckoutScreen() {
     } catch (err: any) {
       showAppAlert('Order Failed', err.message || 'Something went wrong. Please try again.');
     }
-  }, [address, promoCode, paymentMethod, createOrder, fetchCart]);
+  }, [address, promoCode, promoApplied, paymentMethod, createOrder, fetchCart]);
 
   return (
     <SafeScreen>
@@ -354,24 +355,36 @@ export default function CheckoutScreen() {
               <View style={styles.paymentDivider} />
 
               <TouchableOpacity
-                style={styles.paymentOption}
-                onPress={() => setPaymentMethod('online')}
-                activeOpacity={0.7}
+                style={[styles.paymentOption, !ONLINE_PAYMENT_ENABLED && styles.paymentOptionDisabled]}
+                onPress={() => {
+                  if (ONLINE_PAYMENT_ENABLED) setPaymentMethod('online');
+                }}
+                activeOpacity={ONLINE_PAYMENT_ENABLED ? 0.7 : 1}
+                disabled={!ONLINE_PAYMENT_ENABLED}
               >
                 <View style={styles.paymentIconCircle}>
                   <Ionicons name="card-outline" size={24} color={colors.primary.yellowDark} />
                 </View>
                 <View style={styles.paymentDetails}>
-                  <Text style={styles.paymentMethodName}>Pay Online</Text>
+                  <View style={styles.paymentNameRow}>
+                    <Text style={styles.paymentMethodName}>Pay Online</Text>
+                    {!ONLINE_PAYMENT_ENABLED && (
+                      <View style={styles.comingSoonPill}>
+                        <Text style={styles.comingSoonText}>Coming Soon</Text>
+                      </View>
+                    )}
+                  </View>
                   <Text style={styles.paymentMethodDesc}>
                     UPI, card, netbanking or wallet via Razorpay
                   </Text>
                 </View>
-                <Ionicons
-                  name={paymentMethod === 'online' ? 'checkmark-circle' : 'ellipse-outline'}
-                  size={24}
-                  color={paymentMethod === 'online' ? colors.status.success : colors.text.light}
-                />
+                {ONLINE_PAYMENT_ENABLED && (
+                  <Ionicons
+                    name={paymentMethod === 'online' ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={24}
+                    color={paymentMethod === 'online' ? colors.status.success : colors.text.light}
+                  />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -679,6 +692,28 @@ const styles = StyleSheet.create({
     fontSize: ms(13),
     lineHeight: ms(18),
     color: colors.text.secondary,
+  },
+  paymentOptionDisabled: {
+    opacity: 0.55,
+  },
+  paymentNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  comingSoonPill: {
+    backgroundColor: colors.border.light,
+    borderRadius: borderRadius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  comingSoonText: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(10),
+    lineHeight: ms(14),
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
 
   // Bottom

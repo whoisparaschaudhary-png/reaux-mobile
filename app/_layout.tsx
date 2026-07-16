@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet, LogBox } from 'react-native';
 import { Slot, useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
@@ -10,6 +10,7 @@ import { useAuthStore } from '../src/stores/useAuthStore';
 import { Toast } from '../src/components/ui/Toast';
 import { AppAlert } from '../src/components/ui/AppAlert';
 import { useNotifications } from '../src/hooks/useNotifications';
+import { AnimatedSplash } from '../src/components/layout/AnimatedSplash';
 
 // Keep splash visible while we load fonts and restore auth
 SplashScreen.preventAutoHideAsync();
@@ -18,6 +19,8 @@ export default function RootLayout() {
   const restoreSession = useAuthStore((s) => s.restoreSession);
   const isRestoring = useAuthStore((s) => s.isRestoring);
   const router = useRouter();
+
+  const [splashAnimationComplete, setSplashAnimationComplete] = useState(false);
 
   // Initialize push notifications
   useNotifications();
@@ -80,11 +83,16 @@ export default function RootLayout() {
     };
   }, [router]);
 
-  useEffect(() => {
-    if ((fontsLoaded || fontError) && !isRestoring) {
-      SplashScreen.hideAsync();
+  // Hand off from the native (OS) splash to our animated splash the moment fonts
+  // are ready — the two look identical, so the transition is invisible. The
+  // animated splash then covers the session-restore window and fades itself out.
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded || fontError) {
+      await SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError, isRestoring]);
+  }, [fontsLoaded, fontError]);
+
+  const appReady = Boolean((fontsLoaded || fontError) && !isRestoring);
 
   // Wait for fonts before rendering
   if (!fontsLoaded && !fontError) {
@@ -93,11 +101,17 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <View style={styles.root}>
+      <View style={styles.root} onLayout={onLayoutRootView}>
         <StatusBar style="auto" />
         <Slot />
         <Toast />
         <AppAlert />
+        {!splashAnimationComplete && (
+          <AnimatedSplash
+            appReady={appReady}
+            onFinish={() => setSplashAnimationComplete(true)}
+          />
+        )}
       </View>
     </SafeAreaProvider>
   );

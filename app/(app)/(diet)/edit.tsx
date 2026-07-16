@@ -75,6 +75,7 @@ export default function EditDietScreen() {
         setCategory(plan.category || 'weight-loss');
         setDietType(plan.dietType || 'both');
         setDescription(plan.description || '');
+        setInstructions(plan.instructions || '');
         setProtein(plan.protein != null ? String(plan.protein) : '');
         setCarbs(plan.carbs != null ? String(plan.carbs) : '');
         setFats(plan.fat != null ? String(plan.fat) : '');
@@ -147,6 +148,7 @@ export default function EditDietScreen() {
         form.append('category', category);
         form.append('dietType', dietType);
         if (description.trim()) form.append('description', description.trim());
+        if (instructions.trim()) form.append('instructions', instructions.trim());
         if (calories) form.append('totalCalories', calories);
         if (Number.isFinite(proteinNum)) form.append('protein', String(proteinNum));
         if (Number.isFinite(carbsNum)) form.append('carbs', String(carbsNum));
@@ -169,6 +171,7 @@ export default function EditDietScreen() {
           category,
           dietType,
           description: description.trim() || undefined,
+          instructions: instructions.trim() || undefined,
           totalCalories: calories ? Number(calories) : undefined,
           protein: Number.isFinite(proteinNum) ? proteinNum : undefined,
           carbs: Number.isFinite(carbsNum) ? carbsNum : undefined,
@@ -185,7 +188,7 @@ export default function EditDietScreen() {
       const errorMessage = error?.message || error?.toString() || 'Failed to update diet plan';
       showAppAlert('Error', errorMessage);
     }
-  }, [id, title, category, dietType, description, calories, protein, carbs, fats, breakfast, lunch, snacks, dinner, image, existingImage, updatePlan]);
+  }, [id, title, category, dietType, description, instructions, calories, protein, carbs, fats, breakfast, lunch, snacks, dinner, image, existingImage, updatePlan]);
 
   if (isLoadingPlan) {
     return (

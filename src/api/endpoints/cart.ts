@@ -10,6 +10,14 @@ export const cartApi = {
   addItem: (data: AddToCartRequest) =>
     client.post<ApiResponse<Cart>>('/cart/add', data).then(r => r.data),
 
+  updateItem: (productId: string, quantity: number, flavour?: string | null) =>
+    client
+      .patch<ApiResponse<Cart>>(`/cart/item/${productId}`, {
+        quantity,
+        ...(flavour ? { flavour } : {}),
+      })
+      .then(r => r.data),
+
   removeItem: (productId: string, flavour?: string | null) =>
     client
       .delete<ApiResponse<Cart>>(`/cart/item/${productId}`, {
