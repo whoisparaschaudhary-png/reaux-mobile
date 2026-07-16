@@ -41,13 +41,21 @@ client.interceptors.response.use(
       // auth store, else isAuthenticated stays true and stale authed UI persists.
       // Lazy require avoids a circular import (store → auth api → this client).
       await removeToken();
+      let wasAuthenticated = true;
       try {
         const { useAuthStore } = require('../stores/useAuthStore');
+        wasAuthenticated = useAuthStore.getState().isAuthenticated;
         useAuthStore.setState({ user: null, token: null, isAuthenticated: false });
       } catch {
         // store not ready — token removal + redirect still applied
       }
-      router.replace('/(auth)/login');
+      // Only redirect on the transition from authed → logged-out. Concurrent
+      // boot requests can each 401; without this guard every one fires its own
+      // router.replace, causing the "verified multiple times" navigation churn.
+      // While restoring (not yet authenticated), index.tsx handles the redirect.
+      if (wasAuthenticated) {
+        router.replace('/(auth)/login');
+      }
     }
 
     // Normalize error into a consistent shape

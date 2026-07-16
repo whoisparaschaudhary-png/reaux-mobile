@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/stores/useAuthStore';
@@ -7,8 +7,16 @@ import { ms } from '../../src/utils/responsive';
 
 export default function AppLayout() {
   const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isRestoring = useAuthStore((s) => s.isRestoring);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const insets = useSafeAreaInsets();
+
+  // Never render the authenticated tabs for a logged-out user (e.g. after a 401
+  // clears the session) — redirect to login instead of flashing the dashboard.
+  if (!isRestoring && !isAuthenticated) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   return (
     <Tabs
