@@ -18,6 +18,7 @@ import { EmptyState } from '../../../../src/components/ui/EmptyState';
 import { RoleGuard } from '../../../../src/components/guards/RoleGuard';
 import { useChallengeStore } from '../../../../src/stores/useChallengeStore';
 import { useAuthStore } from '../../../../src/stores/useAuthStore';
+import { showAppAlert } from '../../../../src/stores/useUIStore';
 import { formatDate } from '../../../../src/utils/formatters';
 import { colors, fontFamily, spacing, borderRadius } from '../../../../src/theme';
 import { ms, mvs } from '../../../../src/utils/responsive';
@@ -32,8 +33,15 @@ const TYPE_VARIANT: Record<ChallengeType, 'primary' | 'success' | 'info' | 'warn
 
 export default function ChallengesListScreen() {
   const router = useRouter();
-  const { challenges, isLoading, isRefreshing, fetchChallenges, refreshChallenges, joinChallenge } =
-    useChallengeStore();
+  const {
+    challenges,
+    isLoading,
+    isRefreshing,
+    fetchChallenges,
+    refreshChallenges,
+    joinChallenge,
+    deleteChallenge,
+  } = useChallengeStore();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
@@ -52,6 +60,30 @@ export default function ChallengesListScreen() {
       }
     },
     [joinChallenge, user?._id],
+  );
+
+  const handleDelete = useCallback(
+    (challenge: Challenge) => {
+      showAppAlert(
+        'Delete Challenge',
+        `Delete "${challenge.title}"? This cannot be undone.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await deleteChallenge(challenge._id);
+              } catch (err: any) {
+                showAppAlert('Error', err.message || 'Failed to delete challenge');
+              }
+            },
+          },
+        ],
+      );
+    },
+    [deleteChallenge],
   );
 
   const hasJoined = (challenge: Challenge) => {
@@ -77,6 +109,27 @@ export default function ChallengesListScreen() {
               variant={TYPE_VARIANT[item.type] || 'default'}
               size="sm"
             />
+            {isAdmin && (
+              <View style={styles.adminActions}>
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: '/(app)/(admin)/challenges/edit',
+                      params: { id: item._id },
+                    })
+                  }
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="create-outline" size={18} color={colors.text.secondary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleDelete(item)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="trash-outline" size={18} color={colors.status.error} />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
           {item.description ? (
             <Text style={styles.challengeDescription} numberOfLines={2}>
@@ -202,6 +255,11 @@ const styles = StyleSheet.create({
     lineHeight: ms(20),
     color: colors.text.secondary,
     marginTop: spacing.xs,
+  },
+  adminActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
   },
   cardMeta: {
     flexDirection: 'row',

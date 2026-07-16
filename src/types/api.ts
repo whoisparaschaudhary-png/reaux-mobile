@@ -112,3 +112,8 @@ export interface CreateChallengeRequest {
   endDate: string;
   description?: string;
 }
+
+export interface UpdateChallengeRequest extends Partial<CreateChallengeRequest> {
+  /** Setting this false retires the challenge — the list only returns active ones. */
+  isActive?: boolean;
+}

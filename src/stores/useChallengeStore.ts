@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { challengesApi } from '../api/endpoints/challenges';
 import type { Challenge } from '../types/models';
-import type { CreateChallengeRequest } from '../types/api';
+import type { CreateChallengeRequest, UpdateChallengeRequest } from '../types/api';
 
 interface ChallengePagination {
   page: number;
@@ -21,6 +21,8 @@ interface ChallengeState {
   refreshChallenges: () => Promise<void>;
   joinChallenge: (id: string, userId: string) => Promise<void>;
   createChallenge: (data: CreateChallengeRequest) => Promise<void>;
+  updateChallenge: (id: string, data: UpdateChallengeRequest) => Promise<void>;
+  deleteChallenge: (id: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -108,6 +110,35 @@ export const useChallengeStore = create<ChallengeState>((set, get) => ({
         isLoading: false,
       });
       throw err;
+    }
+  },
+
+  updateChallenge: async (id: string, data: UpdateChallengeRequest) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await challengesApi.update(id, data);
+      const updated = response.data;
+      set((state) => ({
+        challenges: state.challenges.map((c) => (c._id === id ? { ...c, ...updated } : c)),
+        isLoading: false,
+      }));
+    } catch (err: any) {
+      const message = err.message || 'Failed to update challenge';
+      set({ error: message, isLoading: false });
+      throw new Error(message);
+    }
+  },
+
+  deleteChallenge: async (id: string) => {
+    const { challenges } = get();
+    // Optimistic removal — restore the previous list if the server rejects it.
+    set({ challenges: challenges.filter((c) => c._id !== id) });
+    try {
+      await challengesApi.remove(id);
+    } catch (err: any) {
+      const message = err.message || 'Failed to delete challenge';
+      set({ challenges, error: message });
+      throw new Error(message);
     }
   },
 
