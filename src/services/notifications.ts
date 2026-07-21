@@ -43,6 +43,14 @@ export async function getPushNotificationToken(): Promise<string | null> {
     console.log('📲 Device.isDevice:', Device.isDevice);
     console.log('📲 Platform:', Platform.OS);
 
+    // Push tokens can only be issued on a physical device. On simulators/emulators
+    // there is no APNs/FCM environment, so getDevicePushTokenAsync() throws a native
+    // "no valid aps-environment entitlement" error. Skip cleanly instead of erroring.
+    if (!Device.isDevice) {
+      console.log('ℹ️ Skipping push token — only available on a physical device.');
+      return null;
+    }
+
     // Request permissions first
     console.log('📲 Requesting notification permissions...');
     const hasPermission = await requestNotificationPermissions();

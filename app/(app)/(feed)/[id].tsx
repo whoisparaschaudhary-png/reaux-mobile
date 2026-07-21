@@ -40,10 +40,11 @@ interface PostHeaderProps {
   isLiked: boolean;
   onLike: () => void;
   onDelete: () => void;
+  onAnalytics?: () => void;
   isSuperAdmin: boolean;
 }
 
-const PostHeader = React.memo(({ post, isLiked, onLike, onDelete, isSuperAdmin }: PostHeaderProps) => {
+const PostHeader = React.memo(({ post, isLiked, onLike, onDelete, onAnalytics, isSuperAdmin }: PostHeaderProps) => {
   const author = typeof post.author === 'object' ? (post.author as User) : null;
   const authorName = author?.name ?? 'Unknown';
   const authorAvatar = author?.avatar;
@@ -125,6 +126,16 @@ const PostHeader = React.memo(({ post, isLiked, onLike, onDelete, isSuperAdmin }
           <Ionicons name="share-outline" size={22} color={colors.text.secondary} />
         </TouchableOpacity>
 
+        {onAnalytics && (
+          <TouchableOpacity
+            onPress={onAnalytics}
+            style={styles.actionButton}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="bar-chart-outline" size={22} color={colors.text.secondary} />
+          </TouchableOpacity>
+        )}
+
         {isSuperAdmin && (
           <TouchableOpacity
             onPress={onDelete}
@@ -199,6 +210,7 @@ export default function PostDetailScreen() {
   const likePost = useFeedStore((s) => s.likePost);
   const deletePost = useFeedStore((s) => s.deletePost);
   const isSuperAdmin = user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -300,18 +312,22 @@ export default function PostDetailScreen() {
     [id],
   );
 
-  const headerElement = useMemo(
-    () => post ? (
+  const headerElement = useMemo(() => {
+    if (!post) return null;
+    const author = typeof post.author === 'object' ? (post.author as User) : null;
+    const isAuthor = !!author && !!user && author._id === user._id;
+    const canViewAnalytics = isAdmin || isAuthor;
+    return (
       <PostHeader
         post={post}
         isLiked={post.isLiked ?? false}
         onLike={handleLike}
         onDelete={handleDelete}
+        onAnalytics={canViewAnalytics ? () => router.push(`/(app)/(feed)/analytics/${post._id}` as any) : undefined}
         isSuperAdmin={isSuperAdmin}
       />
-    ) : null,
-    [post, handleLike, handleDelete, isSuperAdmin],
-  );
+    );
+  }, [post, handleLike, handleDelete, isSuperAdmin, isAdmin, user, router]);
 
   if (isLoading) {
     return (

@@ -53,7 +53,8 @@ export const DietPlanCard: React.FC<DietPlanCardProps> = ({ plan, onPress }) => 
               source={{ uri: plan.image }}
               style={styles.image}
               contentFit="cover"
-              transition={200}
+              transition={250}
+              placeholder={{ blurhash: 'LGF5]+Yk^6#M@-5c,1J5@[or[Q6.' }}
             />
           ) : (
             <View style={styles.imagePlaceholder}>

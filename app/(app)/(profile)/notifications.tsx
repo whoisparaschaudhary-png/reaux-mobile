@@ -44,7 +44,7 @@ const NOTIFICATION_ICON_COLOR: Record<string, string> = {
   order:        colors.status.info,
   challenge:    colors.status.warning,
   community:    colors.status.success,
-  diet:         '#22c55e',
+  diet:         colors.status.success,
   system:       colors.text.secondary,
   announcement: colors.primary.yellowDark,
 };
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
   // Notification detail modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: colors.overlay.medium,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,

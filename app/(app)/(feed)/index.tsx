@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,14 @@ import {
   Share,
   Pressable,
 } from 'react-native';
-import Animated, { useSharedValue, withSpring, withSequence, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { useSharedValue, withSpring, withSequence, useAnimatedStyle, FadeInDown } from 'react-native-reanimated';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { RefreshControl, FlatList } from 'react-native';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
+import { AppTopBar } from '../../../src/components/layout/AppTopBar';
 import { PostCard } from '../../../src/components/cards/PostCard';
 import { UserCard } from '../../../src/components/cards/UserCard';
 import { Avatar } from '../../../src/components/ui/Avatar';
@@ -43,6 +44,7 @@ import {
   shadows,
 } from '../../../src/theme';
 import { ms, mvs } from '../../../src/utils/responsive';
+import { haptics } from '../../../src/utils/haptics';
 import type { Post, Workout, WorkoutCategory, WorkoutDifficulty, User, Membership, MembershipPlan, BirthdayUser, UpcomingBirthdayUser, PromoCode } from '../../../src/types/models';
 
 const CATEGORIES = ['For You', 'My Admins', 'Workouts', 'Nutrition'] as const;
@@ -188,6 +190,19 @@ export default function FeedScreen() {
     }
   }, [activeCategory, isAdmin]);
 
+  // Admins should land on Members. isAdmin can be false at first mount (session still
+  // restoring), which makes the initial default fall back to "For You". Correct it once
+  // the user resolves — but only before any manual tab change, so we never override a
+  // deliberate choice.
+  const didInitTabRef = useRef(false);
+  useEffect(() => {
+    if (didInitTabRef.current || !user) return;
+    didInitTabRef.current = true;
+    if (isAdmin && activeCategory === 'For You') {
+      setActiveCategory('Members');
+    }
+  }, [user, isAdmin, activeCategory]);
+
   // Fetch members and memberships when Members tab is active
   useEffect(() => {
     if (activeCategory !== 'Members') return;
@@ -297,6 +312,7 @@ export default function FeedScreen() {
   ]);
 
   const handleCategoryChange = useCallback((cat: Category) => {
+    didInitTabRef.current = true; // a manual choice — stop the land-on-Members auto-correct
     setActiveCategory(cat);
   }, []);
 
@@ -390,125 +406,130 @@ export default function FeedScreen() {
 
   return (
     <SafeScreen>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>
-          {isAdmin && (activeCategory === 'Members' || activeCategory === 'Birthdays' || activeCategory === 'Promotions')
-            ? activeCategory
-            : 'Feed'}
-        </Text>
-        {isAdmin && (
-          <View style={styles.headerActions}>
-            {activeCategory === 'Members' && (
-              <TouchableOpacity
-                onPress={async () => {
-                  try {
-                    useUIStore.getState().showToast('Generating PDF...', 'info');
-                    await exportUsersPDF(adminUsers);
-                  } catch {
-                    showAppAlert('Error', 'Failed to export PDF');
-                  }
-                }}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons name="download-outline" size={26} color={colors.text.primary} />
-              </TouchableOpacity>
-            )}
+      {/* Header — shared redesigned top bar (hamburger / title / actions) */}
+      <AppTopBar
+        title={isAdmin && (activeCategory === 'Members' || activeCategory === 'Birthdays' || activeCategory === 'Promotions')
+          ? activeCategory
+          : 'Feed'}
+      />
+      {/* Category filters + contextual admin actions — one balanced toolbar row.
+          Chips scroll on the left; the Members-tab actions (Export / Add member)
+          pin to the right with clear primary/secondary hierarchy, split off by a
+          hairline. Content tabs use the bottom FAB to create, so there are no
+          floating top-right glyphs and nothing is duplicated. */}
+      <View style={styles.tabsRow}>
+        <View style={styles.tabsScrollArea}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabsContent}
+          >
+            {visibleCategories.map((cat) => {
+              const isActive = cat === activeCategory;
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  onPress={() => handleCategoryChange(cat)}
+                  style={[styles.tab, isActive && styles.tabActive]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        {isAdmin && activeCategory === 'Members' && (
+          <View style={styles.tabActions}>
             <TouchableOpacity
-              onPress={activeCategory === 'Members'
-                ? () => router.push({ pathname: '/(app)/(admin)/users/create', params: { backRoute: 'feed' } })
-                : handleAdminAdd
-              }
+              style={[styles.actionBtn, styles.actionBtnSecondary]}
+              activeOpacity={0.8}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityLabel="Export members"
+              onPress={async () => {
+                try {
+                  haptics.selection();
+                  useUIStore.getState().showToast('Generating PDF...', 'info');
+                  await exportUsersPDF(adminUsers);
+                } catch {
+                  showAppAlert('Error', 'Failed to export PDF');
+                }
+              }}
             >
-              <Ionicons
-                name={activeCategory === 'Members' ? 'person-add-outline' : 'add-circle-outline'}
-                size={28}
-                color={colors.text.primary}
-              />
+              <Ionicons name="download-outline" size={ms(20)} color={colors.text.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.actionBtnPrimary]}
+              activeOpacity={0.85}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityLabel="Add member"
+              onPress={() => {
+                haptics.selection();
+                router.push({ pathname: '/(app)/(admin)/users/create', params: { backRoute: 'feed' } });
+              }}
+            >
+              <Ionicons name="person-add" size={ms(19)} color={colors.text.onPrimary} />
             </TouchableOpacity>
           </View>
         )}
-      </View>
-
-      {/* Category tabs */}
-      <View style={styles.tabsWrapper}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabsContent}
-        >
-          {visibleCategories.map((cat) => {
-            const isActive = cat === activeCategory;
-            return (
-              <TouchableOpacity
-                key={cat}
-                onPress={() => handleCategoryChange(cat)}
-                style={[styles.tab, isActive && styles.tabActive]}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
       </View>
 
       {/* Feed list, Members list, or Workout list */}
       <View style={styles.listContainer}>
         {activeCategory === 'Members' ? (
           <View style={styles.membersContainer}>
-            {/* Fee Summary Cards — tappable, navigate to fees screen with filter */}
+            {/* Fee Summary Cards — tappable stat cards with tinted icon badges,
+                colored accents and a staggered entrance. Navigate to fees w/ filter. */}
             <View style={styles.feeSummaryRow}>
-              <TouchableOpacity
-                style={[styles.feeSummaryCard, styles.feeSummaryCardPending]}
-                activeOpacity={0.7}
-                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'pending', backRoute: 'feed' } })}
-              >
-                <Ionicons name="alert-circle-outline" size={22} color={colors.status.error} />
-                <Text style={styles.feeSummaryLabel}>Pending</Text>
-                <Text style={[styles.feeSummaryValue, { color: colors.status.error }]}>
-                  {formatCurrency(feeSummary.totalPending)}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.feeSummaryCard, styles.feeSummaryCardPaid]}
-                activeOpacity={0.7}
-                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'paid', backRoute: 'feed' } })}
-              >
-                <Ionicons name="checkmark-circle-outline" size={22} color={colors.status.success} />
-                <Text style={styles.feeSummaryLabel}>Collected</Text>
-                <Text style={[styles.feeSummaryValue, { color: colors.status.success }]}>
-                  {formatCurrency(feeSummary.totalPaid)}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.feeSummaryCard, styles.feeSummaryCardUpcoming]}
-                activeOpacity={0.7}
-                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'upcoming', backRoute: 'feed' } })}
-              >
-                <Ionicons name="time-outline" size={22} color={colors.status.warning} />
-                <Text style={styles.feeSummaryLabel}>Upcoming</Text>
-                <Text style={[styles.feeSummaryValue, { color: colors.status.warning }]}>
-                  {feeSummary.upcomingCount}
-                </Text>
-              </TouchableOpacity>
+              {[
+                { key: 'pending', icon: 'alert-circle' as const, label: 'Pending', value: formatCurrency(feeSummary.totalPending), color: colors.status.error, tint: 'rgba(239,68,68,0.10)', tab: 'pending' },
+                { key: 'paid', icon: 'checkmark-circle' as const, label: 'Collected', value: formatCurrency(feeSummary.totalPaid), color: colors.status.success, tint: 'rgba(34,197,94,0.10)', tab: 'paid' },
+                { key: 'upcoming', icon: 'time' as const, label: 'Upcoming', value: String(feeSummary.upcomingCount), color: colors.status.warning, tint: 'rgba(245,158,11,0.12)', tab: 'upcoming' },
+              ].map((card, i) => (
+                <Animated.View key={card.key} style={styles.feeCardWrap} entering={FadeInDown.duration(320).delay(i * 70)}>
+                  <TouchableOpacity
+                    style={[styles.feeSummaryCard, { borderBottomColor: card.color }]}
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      haptics.selection();
+                      router.push({ pathname: '/(app)/(admin)/fees', params: { tab: card.tab, backRoute: 'feed' } });
+                    }}
+                  >
+                    <View style={[styles.feeIconBadge, { backgroundColor: card.tint }]}>
+                      <Ionicons name={card.icon} size={ms(18)} color={card.color} />
+                    </View>
+                    <Text style={styles.feeSummaryLabel}>{card.label}</Text>
+                    <Text style={[styles.feeSummaryValue, { color: card.color }]}>
+                      {card.value}
+                    </Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              ))}
             </View>
 
             {feeSummary.totalCredit > 0 && (
-              <TouchableOpacity
-                style={styles.creditSummaryBanner}
-                activeOpacity={0.7}
-                onPress={() => router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'credit', backRoute: 'feed' } })}
-              >
-                <Ionicons name="wallet-outline" size={20} color={colors.status.info} />
-                <Text style={styles.creditSummaryLabel}>Member Credit</Text>
-                <Text style={[styles.feeSummaryValue, { color: colors.status.info }]}>
-                  {formatCurrency(feeSummary.totalCredit)}
-                </Text>
-              </TouchableOpacity>
+              <Animated.View entering={FadeInDown.duration(320).delay(230)}>
+                <TouchableOpacity
+                  style={styles.creditSummaryBanner}
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    haptics.selection();
+                    router.push({ pathname: '/(app)/(admin)/fees', params: { tab: 'credit', backRoute: 'feed' } });
+                  }}
+                >
+                  <View style={styles.creditIconBadge}>
+                    <Ionicons name="wallet" size={ms(16)} color={colors.status.info} />
+                  </View>
+                  <Text style={styles.creditSummaryLabel}>Member Credit</Text>
+                  <Text style={[styles.feeSummaryValue, { color: colors.status.info }]}>
+                    {formatCurrency(feeSummary.totalCredit)}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={ms(16)} color={colors.status.info} />
+                </TouchableOpacity>
+              </Animated.View>
             )}
 
             <View style={styles.membersSearchContainer}>
@@ -530,9 +551,10 @@ export default function FeedScreen() {
                   u.email?.toLowerCase().includes(memberSearch.toLowerCase())
                 )}
                 keyExtractor={(item: User) => item._id}
-                renderItem={({ item }: { item: User }) => (
+                renderItem={({ item, index }: { item: User; index: number }) => (
                   <UserCard
                     user={item}
+                    index={index}
                     onPress={(u: User) => router.push({ pathname: '/(app)/(admin)/users/[id]', params: { id: u._id, backRoute: 'feed' } })}
                   />
                 )}
@@ -842,14 +864,42 @@ const styles = StyleSheet.create({
     ...typography.h1,
     color: colors.text.primary,
   },
-
-  // Category tabs
-  tabsWrapper: {
+  // Category tabs + contextual admin actions — one balanced toolbar row
+  tabsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: spacing.xs,
+    paddingRight: spacing.xl,
     paddingBottom: spacing.sm,
+  },
+  tabsScrollArea: {
+    flex: 1,
   },
   tabsContent: {
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
+  },
+  tabActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingLeft: spacing.md,
+  },
+  actionBtn: {
+    width: ms(38),
+    height: ms(38),
+    borderRadius: ms(19),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionBtnSecondary: {
+    backgroundColor: colors.background.white,
+    borderWidth: 1,
+    borderColor: colors.border.gray,
+  },
+  actionBtnPrimary: {
+    backgroundColor: colors.primary.yellow,
+    ...shadows.button,
   },
   tab: {
     paddingHorizontal: spacing.lg,
@@ -911,27 +961,27 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     marginBottom: spacing.md,
   },
-  feeSummaryCard: {
+  feeCardWrap: {
     flex: 1,
+  },
+  feeSummaryCard: {
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
     paddingHorizontal: spacing.xs,
     borderRadius: borderRadius.card,
     backgroundColor: colors.background.white,
+    borderBottomWidth: 3,
     ...shadows.card,
-    gap: 2,
+    gap: mvs(2),
   },
-  feeSummaryCardPending: {
-    borderBottomWidth: 3,
-    borderBottomColor: colors.status.error,
-  },
-  feeSummaryCardPaid: {
-    borderBottomWidth: 3,
-    borderBottomColor: colors.status.success,
-  },
-  feeSummaryCardUpcoming: {
-    borderBottomWidth: 3,
-    borderBottomColor: colors.status.warning,
+  feeIconBadge: {
+    width: ms(36),
+    height: ms(36),
+    borderRadius: ms(18),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: mvs(5),
   },
   feeSummaryLabel: {
     fontFamily: fontFamily.medium,
@@ -941,15 +991,15 @@ const styles = StyleSheet.create({
   },
   feeSummaryValue: {
     fontFamily: fontFamily.bold,
-    fontSize: ms(16),
-    lineHeight: ms(22),
+    fontSize: ms(17),
+    lineHeight: ms(23),
   },
   creditSummaryBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: spacing.xl,
     marginBottom: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.card,
     backgroundColor: colors.background.white,
@@ -957,6 +1007,14 @@ const styles = StyleSheet.create({
     borderLeftColor: colors.status.info,
     ...shadows.card,
     gap: spacing.sm,
+  },
+  creditIconBadge: {
+    width: ms(30),
+    height: ms(30),
+    borderRadius: ms(15),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(59,130,246,0.12)',
   },
   creditSummaryLabel: {
     flex: 1,

@@ -103,7 +103,8 @@ export default function ProductDetailScreen() {
               source={{ uri: product.images?.[0] }}
               style={styles.image}
               contentFit="cover"
-              transition={200}
+              transition={250}
+              placeholder={{ blurhash: 'LGF5]+Yk^6#M@-5c,1J5@[or[Q6.' }}
             />
 
             {/* Back Button */}

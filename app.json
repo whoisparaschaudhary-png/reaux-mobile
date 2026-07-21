@@ -28,6 +28,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "pan",
       "package": "com.babbaranish.reauxlabsmobile",
       "versionCode": 2,
       "permissions": [

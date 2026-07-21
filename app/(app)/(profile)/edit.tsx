@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border.gray,
     borderRadius: borderRadius.lg,
     backgroundColor: colors.background.white,
-    minHeight: 48,
+    minHeight: mvs(48),
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },

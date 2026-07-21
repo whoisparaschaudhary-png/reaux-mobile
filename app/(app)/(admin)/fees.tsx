@@ -401,7 +401,7 @@ export default function FeesScreen() {
                     {withCredit.length} {withCredit.length === 1 ? 'member has' : 'members have'} extra amount paid
                   </Text>
                 </View>
-                <Text style={[styles.summaryValue, { color: colors.status.info, fontSize: 18 }]}>
+                <Text style={[styles.summaryValue, { color: colors.status.info, fontSize: ms(18) }]}>
                   {formatCurrency(totalCredit)}
                 </Text>
               </TouchableOpacity>
@@ -914,7 +914,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.overlay.medium,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,

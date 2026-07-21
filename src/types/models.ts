@@ -18,6 +18,11 @@ export type MediaType = 'text' | 'image' | 'video';
 export type BmiCategory = 'underweight' | 'normal' | 'overweight' | 'obese';
 export type DietCategory = 'weight-loss' | 'muscle-gain' | 'bulking' | 'cutting' | 'other';
 export type DietType = 'veg' | 'non-veg' | 'both';
+// Cycle (steroid protocol) taxonomy
+export type CycleCategory = 'bulking' | 'cutting' | 'recomp' | 'pct' | 'other';
+export type CycleLevel = 'beginner' | 'intermediate' | 'advanced';
+export type CycleType = 'oral' | 'injectable' | 'inj-oral';
+export type CycleRiskSeverity = 'low' | 'medium' | 'high';
 export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
 export type ChallengeType = 'steps' | 'workout' | 'diet' | 'custom';
 export type WorkoutCategory = 'strength' | 'cardio' | 'flexibility' | 'hiit' | 'yoga' | 'crossfit' | 'other';
@@ -146,6 +151,82 @@ export interface DietPlan {
   // Runtime properties from API responses
   isLiked?: boolean;  // From like/unlike API
   isFollowed?: boolean;  // From follow/unfollow API (backend returns this)
+}
+
+// ---------------------------------------------------------------------------
+// Cycles (steroid protocol plans) — an admin-authored content library that
+// mirrors the DietPlan shape: a plan has ordered phases, each phase lists the
+// compounds/dosages, plus a Post-Cycle-Therapy block and a risks block.
+// ---------------------------------------------------------------------------
+export interface CycleCompound {
+  name: string;         // e.g. "Testosterone Enanthate"
+  dosage?: string;      // e.g. "500mg / week"
+  frequency?: string;   // e.g. "Pin Mon/Thu" — scheduling note
+}
+
+export interface CyclePhase {
+  name: string;              // e.g. "Weeks 1-6"
+  label?: string;            // e.g. "Kickstart Phase"
+  compounds: CycleCompound[];
+  note?: string;             // e.g. "Drop Dianabol. Monitor E2 levels."
+}
+
+export interface CyclePctItem {
+  name: string;         // e.g. "Nolvadex"
+  dosage?: string;      // e.g. "40/40/20/20 mg"
+  duration?: string;    // e.g. "Daily for 4 weeks"
+}
+
+export interface CyclePct {
+  startNote?: string;   // e.g. "Start 14-18 days after your last Testosterone injection."
+  items: CyclePctItem[];
+}
+
+export interface CycleRisk {
+  title: string;                  // e.g. "Water Retention"
+  description?: string;           // e.g. "High due to Deca and Dbol. Watch sodium intake."
+  severity?: CycleRiskSeverity;
+}
+
+export interface CyclePlan {
+  _id: string;
+  title: string;
+  description?: string;
+  slug: string;
+  category: CycleCategory;
+  level?: CycleLevel;
+  type?: CycleType;
+  durationWeeks?: number;
+  estimatedGain?: string;    // free text, e.g. "15-20 lbs"
+  image?: string;
+  phases: CyclePhase[];
+  pct?: CyclePct;
+  risks: CycleRisk[];
+  tags: string[];
+  createdBy: string | User;
+  isPublished: boolean;
+  followers: string[];
+  likes: string[];
+  likesCount: number;
+  followersCount: number;
+  createdAt: string;
+  updatedAt: string;
+  // Runtime properties from API responses
+  isLiked?: boolean;    // From like/unlike API
+  isFollowed?: boolean; // From follow/unfollow API (backend returns this)
+}
+
+// Per-post analytics (admin / author view)
+export interface PostAnalytics {
+  postId: string;
+  totalViews: number;
+  totalLikes: number;
+  totalComments: number;
+  engagementRate: number;   // percentage, e.g. 5.2
+  engagementDelta?: number; // change over the period, e.g. +1.2
+  periodLabel?: string;     // e.g. "Last 7 Days"
+  series?: number[];        // engagement values for the trend chart
+  seriesLabels?: string[];  // x-axis labels, e.g. ["Mon", ...]
 }
 
 // Post

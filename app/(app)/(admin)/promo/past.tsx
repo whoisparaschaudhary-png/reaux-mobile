@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: 100,
+    paddingBottom: mvs(100),
   },
   promoCard: {
     marginTop: spacing.md,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: spacing.xs,
   },
   detailText: {
     fontFamily: fontFamily.regular,
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   datesRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: ms(6),
   },
   dateText: {
     fontFamily: fontFamily.regular,
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
+    bottom: spacing.xxl,
     right: spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',

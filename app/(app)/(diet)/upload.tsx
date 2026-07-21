@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     backgroundColor: colors.background.white,
     paddingHorizontal: spacing.lg,
-    minHeight: 48,
+    minHeight: ms(48),
   },
   dropdownText: {
     fontFamily: fontFamily.regular,
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
   },
   imagePreview: {
     width: '100%',
-    height: 180,
+    height: mvs(180),
     borderRadius: borderRadius.lg,
   },
   removeImageButton: {
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   uploadButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 140,
+    height: mvs(140),
     borderWidth: 2,
     borderStyle: 'dashed',
     borderColor: colors.border.gray,

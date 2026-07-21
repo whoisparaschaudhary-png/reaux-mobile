@@ -315,6 +315,124 @@ Must return memberships where `gymId` matches the given value.
 
 ---
 
+## 12. CYCLES — New `cycle` Module (Steroid Protocol Plans)
+
+**Context:** The mobile app now has a "Steroids" tab (inside the Diet screen) backed by a full `cycle` feature — an admin-authored content library that mirrors the existing `diet` module. **No backend support exists yet.** Please add a new `cycle` module following the standard 5-file module pattern (`cycle.routes/controller/service/model/validator.js`), reusing `socialToggle.js` for like/follow exactly like `diet`.
+
+**Endpoints (mirror `/diets`):**
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `GET` | `/api/cycles` | `optionalAuth` | Paginated list. Filters: `?category=&level=&type=&tag=&includeUnpublished=`. Non-admins must only receive `isPublished: true`. Include `isLiked`/`isFollowed` when authed. |
+| `GET` | `/api/cycles/:id` | `optionalAuth` | Single cycle (populated `createdBy`). |
+| `POST` | `/api/cycles` | `admin, superadmin` | Create. Accepts JSON or `multipart/form-data` with `image` (jpeg/png/webp, 5MB → `reaux-labs/cycles`). Nested `phases`, `pct`, `risks`, `tags` arrive JSON-stringified when multipart. |
+| `PUT` | `/api/cycles/:id` | `admin, superadmin` | Update (partial). Same body/image rules. |
+| `DELETE` | `/api/cycles/:id` | `admin, superadmin` | Delete. Returns `{ message }`. |
+| `POST` | `/api/cycles/:id/follow` | authenticated | Toggle follow (use `socialToggle`). Return updated cycle with `isFollowed` + `followersCount`. |
+| `POST` | `/api/cycles/:id/like` | authenticated | Toggle like (use `socialToggle`). Return updated cycle with `isLiked` + `likesCount`. |
+
+**Enums (validator):**
+- `category`: `bulking | cutting | recomp | pct | other`
+- `level`: `beginner | intermediate | advanced`
+- `type`: `oral | injectable | inj-oral`
+- `risks[].severity`: `low | medium | high`
+
+**Mongoose schema (`cycle.model.js`) — mirror `diet.model.js`:**
+```js
+const compoundSchema = new Schema({ name: String, dosage: String, frequency: String }, { _id: false });
+const phaseSchema    = new Schema({ name: String, label: String, note: String, compounds: [compoundSchema] }, { _id: false });
+const pctItemSchema  = new Schema({ name: String, dosage: String, duration: String }, { _id: false });
+const riskSchema     = new Schema({ title: String, description: String, severity: { type: String, enum: ['low','medium','high'] } }, { _id: false });
+
+const cycleSchema = new Schema({
+  title:        { type: String, required: true },
+  slug:         { type: String, unique: true },      // slugify(title), like diet
+  description:  String,
+  category:     { type: String, enum: ['bulking','cutting','recomp','pct','other'], required: true },
+  level:        { type: String, enum: ['beginner','intermediate','advanced'] },
+  type:         { type: String, enum: ['oral','injectable','inj-oral'] },
+  durationWeeks: Number,
+  estimatedGain: String,        // free text e.g. "15-20 lbs"
+  image:        String,
+  phases:       [phaseSchema],
+  pct:          { startNote: String, items: [pctItemSchema] },
+  risks:        [riskSchema],
+  tags:         [String],
+  createdBy:    { type: Schema.Types.ObjectId, ref: 'User' },
+  isPublished:  { type: Boolean, default: true },
+  followers:    [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  likes:        [{ type: Schema.Types.ObjectId, ref: 'User' }],
+}, { timestamps: true });
+```
+Add virtuals/derived `likesCount` + `followersCount` and runtime `isLiked` / `isFollowed` (computed from `req.user`) — same as diet responses. Register the router at `/api/cycles` in `src/app.js`.
+
+**Full cycle object shape the frontend expects:**
+```json
+{
+  "_id": "...", "title": "Test E + Deca Mass Builder", "slug": "...",
+  "description": "...", "category": "bulking", "level": "advanced", "type": "inj-oral",
+  "durationWeeks": 16, "estimatedGain": "15-20 lbs", "image": "...",
+  "phases": [ { "name": "Weeks 1-6", "label": "Kickstart Phase",
+    "compounds": [ { "name": "Testosterone Enanthate", "dosage": "500mg / week", "frequency": "Pin Mon/Thu" } ],
+    "note": "Drop Dianabol. Monitor E2 levels." } ],
+  "pct": { "startNote": "Start 14-18 days after last injection.",
+    "items": [ { "name": "Nolvadex", "dosage": "40/40/20/20 mg", "duration": "Daily for 4 weeks" } ] },
+  "risks": [ { "title": "Water Retention", "description": "...", "severity": "high" } ],
+  "tags": ["wet-bulk"], "createdBy": { "_id": "...", "name": "...", "avatar": "...", "role": "admin" },
+  "isPublished": true, "followers": [], "likes": [],
+  "likesCount": 0, "followersCount": 0, "isLiked": false, "isFollowed": false,
+  "createdAt": "...", "updatedAt": "..."
+}
+```
+> Frontend degrades gracefully until this ships: the Steroids tab shows an empty state rather than crashing (the API layer already exists at `src/api/endpoints/cycles.ts`).
+
+---
+
+## 13. POSTS — Per-Post Analytics Endpoint
+
+**Context:** Admins and post authors now see a **Post Analytics** screen (bar-chart icon on the post detail). It calls `GET /api/posts/:id/analytics`, which does not exist yet.
+
+**Endpoint:**
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `GET` | `/api/posts/:id/analytics` | authenticated (author OR `admin`/`superadmin`) | Returns view/like/comment totals + engagement trend. |
+
+**Expected response `data` shape (`PostAnalytics`):**
+```json
+{
+  "postId": "...",
+  "totalViews": 10520,
+  "totalLikes": 2400,
+  "totalComments": 142,
+  "engagementRate": 5.2,
+  "engagementDelta": 1.2,
+  "periodLabel": "Last 7 Days",
+  "series": [3.1, 4.0, 3.4, 4.8, 2.9, 5.6, 5.2],
+  "seriesLabels": ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+}
+```
+- `totalViews` requires a post-view counter (add a `viewsCount` field on the post, incremented on `GET /posts/:id`, or a lightweight `PostView` collection). `totalLikes`/`totalComments` already exist as `likesCount`/`commentsCount`.
+- `engagementRate` = engagements / views × 100; `engagementDelta` = change vs the previous period.
+- `series` drives a 7-point trend chart (any length ≥ 2 works; `seriesLabels` optional — frontend falls back to Mon–Sun).
+> Frontend degrades gracefully: if this 404s, the analytics screen still shows likes/comments (read from the post) and hides views/engagement with a "tracking not enabled" note.
+
+---
+
+## 14. GYM — Candidates (streamlined member add/remove)
+
+**Context:** The ADMIN design has a **"My Candidates"** screen and an **"Add New Candidate"** form that lets a gym admin add a member in ONE step from just **name + phone + monthly fee + start date + avatar** (no email/password/plan). The existing flow (`POST /users` needs email+password+gender+DOB, then `POST /memberships/assign` needs a `planId`) can't satisfy this in one call, so two thin endpoints are needed. Listing/removing already work via the memberships API; the frontend uses `membershipsApi.list({ gymId })` for the list and `membershipsApi.cancel(id)` as the interim remove.
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `POST` | `/api/gyms/candidates` | `admin, superadmin` | Create a gym member + membership in one step. Accepts JSON or `multipart/form-data` with `avatar` (jpeg/png/webp, 5MB). Body: `{ name, phone, monthlyFees?, startDate? }`. Should create/att­ach a User scoped to the admin's gym (generate a placeholder email/login as needed, or make email optional for gym-created members), create a `UserMembership` with `feesAmount = monthlyFees` and the given `startDate`, and return the created `Membership` (populated `userId`). |
+| `DELETE` | `/api/gyms/candidates/:id` | `admin, superadmin` | Hard-remove a candidate (the design's "remove the user from your gym data — all associated data removed"). `:id` is the membership id. Until this ships, the app falls back to `PATCH /memberships/:id/cancel`. |
+
+**Expected create response `data`:** a `Membership` object (same shape the memberships list returns) with populated `userId` (name, phone, avatar), `feesAmount`, `feesDue`, `startDate`, `endDate`, `status`.
+> Frontend degrades gracefully: My Candidates (list/search/fees-tab/remove/export) is fully functional today on existing endpoints; only **Add Candidate** waits on `POST /gyms/candidates` (shows a clear "service not available yet" message until it exists). The API client already exists at `src/api/endpoints/candidates.ts`.
+
+---
+
 ## Summary Table
 
 | # | Endpoint | Status Needed | Priority |
@@ -331,3 +449,6 @@ Must return memberships where `gymId` matches the given value.
 | 10 | `User.gymIds[]` multi-gym support | Schema + API update | MEDIUM |
 | 11 | `GET /notifications` — allow all roles | Remove role guard | HIGH |
 | 12 | Membership `paymentHistory[].date` always present | Fix field | HIGH |
+| 13 | New `cycle` module — `GET/POST/PUT/DELETE /cycles` + `/like` + `/follow` (mirror `diet`) | Implement module | HIGH |
+| 14 | `GET /posts/:id/analytics` + post `viewsCount` tracking | Implement endpoint | MEDIUM |
+| 15 | `POST /gyms/candidates` (+ `DELETE /gyms/candidates/:id`) — one-step gym member add/remove | Implement endpoints | MEDIUM |

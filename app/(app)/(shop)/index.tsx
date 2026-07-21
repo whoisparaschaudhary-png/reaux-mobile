@@ -13,6 +13,7 @@ import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
+import { AppTopBar } from '../../../src/components/layout/AppTopBar';
 import { SearchBar } from '../../../src/components/ui/SearchBar';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { SkeletonLoader } from '../../../src/components/ui/SkeletonLoader';
@@ -134,8 +135,8 @@ export default function MarketplaceScreen() {
   return (
     <SafeScreen>
       <View style={styles.container}>
-        {/* Header */}
-        <Text style={styles.header}>Marketplace</Text>
+        {/* Header — shared redesigned top bar */}
+        <AppTopBar title="Marketplace" />
 
         {/* Search */}
         <View style={styles.searchWrap}>

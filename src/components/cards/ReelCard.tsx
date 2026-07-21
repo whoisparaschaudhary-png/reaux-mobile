@@ -55,9 +55,10 @@ export const ReelCard: React.FC<ReelCardProps> = ({
     } catch {
       // Player may not be ready yet
     }
-    return () => {
-      try { player.pause(); } catch { /* noop */ }
-    };
+    // No cleanup pause on purpose: a card is always marked not-visible (and paused
+    // above) before it scrolls far enough to unmount, and expo-video releases the
+    // player automatically on unmount. Calling pause() during that release throws a
+    // benign native NativeSharedObjectNotFoundException, so we simply don't.
   }, [isVisible, player]);
 
   useEffect(() => {

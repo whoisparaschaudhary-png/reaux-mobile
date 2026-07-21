@@ -10,6 +10,7 @@ import {
 import Animated from 'react-native-reanimated';
 import { colors, typography, fontFamily, borderRadius, spacing, shadows } from '../theme';
 import { useScalePress } from '../../hooks/useAnimations';
+import { haptics } from '../../utils/haptics';
 import { ms, mvs } from '../../utils/responsive';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
@@ -68,7 +69,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <Pressable
       onPress={onPress}
-      onPressIn={isDisabled ? undefined : handlePressIn}
+      onPressIn={isDisabled ? undefined : () => { haptics.light(); handlePressIn(); }}
       onPressOut={isDisabled ? undefined : handlePressOut}
       disabled={isDisabled}
     >
@@ -102,6 +103,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontFamily: fontFamily.medium,
+    letterSpacing: 0.2,
   },
   disabledText: {
     opacity: 0.7,

@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   contentContainer: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: 40,
+    paddingBottom: ms(40),
   },
   spacer: { height: spacing.lg },
   spacerLarge: { height: spacing.xxxl },

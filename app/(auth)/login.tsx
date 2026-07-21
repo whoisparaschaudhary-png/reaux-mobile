@@ -4,8 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   TouchableOpacity,
   ImageBackground,
 } from 'react-native';
@@ -52,16 +50,18 @@ export default function LoginScreen() {
       edges={[]}
       statusBarStyle="light-content"
     >
-      <KeyboardAvoidingView
+      <ScrollView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        // Let the content SCROLL up when the keyboard opens instead of compressing
+        // (KeyboardAvoidingView squeezed the hero behind the form and clipped the
+        // subtitle). iOS handles this via keyboard insets; Android uses "pan" mode
+        // (app.json android.softwareKeyboardLayoutMode) so the window shifts instead
+        // of resizing.
+        automaticallyAdjustKeyboardInsets
       >
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           {/* Login header */}
           {/* <View style={styles.loginHeader}>
             <Text style={styles.loginTitle}>Login</Text>
@@ -105,20 +105,23 @@ export default function LoginScreen() {
             </LinearGradient>
           </ImageBackground>
 
-          {/* Form section */}
+          {/* Form section.
+              NOTE: the input fields are intentionally NOT wrapped in the animated
+              FadeInView/SlideInUpView wrappers. Those apply a reanimated `scale`
+              transform, and a TextInput living under a CALayer transform on iOS can
+              lose its keyboard input session (keys press but no text lands). Keeping
+              the fields in plain Views guarantees typing always works. */}
           <View style={[styles.formSection, { paddingBottom: spacing.xl + insets.bottom }]}>
-            <FadeInView delay={300}>
-              <Input
-                label="Email Or Phone Number"
-                placeholder="Enter your email or phone"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </FadeInView>
+            <Input
+              label="Email Or Phone Number"
+              placeholder="Enter your email or phone"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
-            <FadeInView delay={325}>
+            <View>
               <Input
                 label="Password"
                 placeholder="Enter your password"
@@ -140,19 +143,17 @@ export default function LoginScreen() {
                   <Text style={styles.forgotText}>Forgot Password?</Text>
                 </TouchableOpacity>
               </Link>
-            </FadeInView>
+            </View>
 
-            <SlideInUpView delay={400}>
-              <Button
-                title="Continue"
-                onPress={handleContinue}
-                variant="primary"
-                size="lg"
-                fullWidth
-                loading={isLoading}
-                disabled={isLoading}
-              />
-            </SlideInUpView>
+            <Button
+              title="Continue"
+              onPress={handleContinue}
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={isLoading}
+              disabled={isLoading}
+            />
 
             {/* Sign up link */}
             <View style={styles.signupRow}>
@@ -164,8 +165,7 @@ export default function LoginScreen() {
               </Link>
             </View>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </ScrollView>
     </SafeScreen>
   );
 }
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     lineHeight: ms(22),
     color: colors.text.secondary,
     textAlign: 'center',
-    paddingHorizontal: ms(12),
+    paddingHorizontal: spacing.md,
   },
   formSection: {
     flex: 1,

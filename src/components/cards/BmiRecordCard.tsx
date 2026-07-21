@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../theme';
+import { ms } from '../../utils/responsive';
 import { Badge } from '../ui/Badge';
 import { formatDate } from '../../utils/formatters';
 import type { BmiRecord, BmiCategory } from '../../types/models';
@@ -72,8 +73,8 @@ const styles = StyleSheet.create({
   },
   date: {
     fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: ms(13),
+    lineHeight: ms(18),
     color: colors.text.secondary,
   },
   mainRow: {
@@ -86,13 +87,13 @@ const styles = StyleSheet.create({
   },
   bmiValue: {
     fontFamily: fontFamily.bold,
-    fontSize: 36,
-    lineHeight: 42,
+    fontSize: ms(36),
+    lineHeight: ms(42),
   },
   bmiLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: ms(12),
+    lineHeight: ms(16),
     color: colors.text.light,
     marginTop: 2,
   },
@@ -107,14 +108,14 @@ const styles = StyleSheet.create({
   },
   metricLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.secondary,
   },
   metricValue: {
     fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     color: colors.text.primary,
   },
 });

@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   infoIcon: {
-    width: 48,
-    height: 48,
+    width: ms(48),
+    height: ms(48),
     borderRadius: borderRadius.lg,
     backgroundColor: colors.background.white,
     alignItems: 'center',

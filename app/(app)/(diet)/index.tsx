@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,17 @@ import {
   RefreshControl,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { DietPlanCard } from '../../../src/components/cards/DietPlanCard';
+import { CyclesList } from '../../../src/components/cycles/CyclesList';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { SkeletonCard } from '../../../src/components/ui/SkeletonLoader';
 import { Button } from '../../../src/components/ui/Button';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { useDietStore } from '../../../src/stores/useDietStore';
+import { useUIStore } from '../../../src/stores/useUIStore';
 import { useRefreshOnFocus } from '../../../src/hooks/useRefreshOnFocus';
 import { colors, fontFamily, typography, spacing, borderRadius } from '../../../src/theme';
 import { ms, mvs } from '../../../src/utils/responsive';
@@ -38,12 +40,30 @@ const DIET_TYPES: { label: string; value: DietType | undefined }[] = [
   { label: 'Both', value: 'both' },
 ];
 
-export default function DietScreen() {
-  const [selectedCategory, setSelectedCategory] = useState<DietCategory | undefined>(undefined);
-  const [selectedDietType, setSelectedDietType] = useState<DietType | undefined>(undefined);
+type FuelMode = 'diets' | 'steroids';
 
+export default function DietScreen() {
+  const params = useLocalSearchParams<{ mode?: string }>();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const openDrawer = useUIStore((s) => s.openDrawer);
+
+  // Steroids/Cycles is admin/coach-only content — regular users see only Diets
+  // (the user design omits the toggle entirely).
+  const [mode, setMode] = useState<FuelMode>(params.mode === 'steroids' && isAdmin ? 'steroids' : 'diets');
+
+  // Honor deep-links / cross-tab navigation that request a specific mode
+  // (e.g. the admin dashboard "Cycle Protocols" shortcut) — admins only.
+  useEffect(() => {
+    if (params.mode === 'steroids' && isAdmin) setMode('steroids');
+    else if (params.mode === 'diets') setMode('diets');
+  }, [params.mode, isAdmin]);
+
+  // Non-admins can never be in steroids mode even if state drifts.
+  const fuelMode: FuelMode = isAdmin ? mode : 'diets';
+
+  const [selectedCategory, setSelectedCategory] = useState<DietCategory | undefined>(undefined);
+  const [selectedDietType, setSelectedDietType] = useState<DietType | undefined>(undefined);
 
   const { plans, isLoading, pagination, fetchPlans } = useDietStore();
 
@@ -102,12 +122,43 @@ export default function DietScreen() {
   return (
     <SafeScreen>
       <View style={styles.container}>
+        {/* Top bar with menu (opens policy drawer) */}
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={openDrawer} hitSlop={8} activeOpacity={0.7}>
+            <Ionicons name="menu" size={ms(26)} color={colors.text.primary} />
+          </TouchableOpacity>
+        </View>
+
         {/* Heading */}
         <View style={styles.headingSection}>
           <Text style={styles.heading}>Find your fuel</Text>
           <Text style={styles.subtitle}>Curated plans by top trainers</Text>
         </View>
 
+        {/* Diets / Steroids toggle — admin/coach only */}
+        {isAdmin && (
+          <View style={styles.toggleRow}>
+            <TouchableOpacity
+              style={[styles.toggleButton, fuelMode === 'diets' && styles.toggleButtonActive]}
+              onPress={() => setMode('diets')}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.toggleText, fuelMode === 'diets' && styles.toggleTextActive]}>Diets</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toggleButton, fuelMode === 'steroids' && styles.toggleButtonActive]}
+              onPress={() => setMode('steroids')}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.toggleText, fuelMode === 'steroids' && styles.toggleTextActive]}>Steroids</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {fuelMode === 'steroids' ? (
+          <CyclesList isAdmin={isAdmin} />
+        ) : (
+          <>
         {/* Admin button */}
         {isAdmin && (
           <TouchableOpacity
@@ -223,6 +274,8 @@ export default function DietScreen() {
                 }
               />
             </View>
+          </>
+        )}
       </View>
     </SafeScreen>
   );
@@ -232,9 +285,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+  },
   headingSection: {
     paddingHorizontal: spacing.xl,
-    marginTop: spacing.lg,
+    marginTop: spacing.sm,
     marginBottom: spacing.lg,
   },
   heading: {
@@ -247,6 +306,34 @@ const styles = StyleSheet.create({
     fontSize: ms(15),
     lineHeight: ms(22),
     color: colors.text.secondary,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.lg,
+    padding: spacing.xs,
+    backgroundColor: colors.border.light,
+    borderRadius: borderRadius.pill,
+  },
+  toggleButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.pill,
+  },
+  toggleButtonActive: {
+    backgroundColor: colors.primary.yellow,
+  },
+  toggleText: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(14),
+    lineHeight: ms(20),
+    color: colors.text.secondary,
+  },
+  toggleTextActive: {
+    color: colors.text.onPrimary,
   },
   analyticsButton: {
     flexDirection: 'row',

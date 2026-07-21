@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, fontFamily, spacing } from '../theme';
+import { colors, typography, fontFamily, spacing, shadows } from '../theme';
 import { Button } from './Button';
 import { ScaleEntranceView, SlideInUpView } from '../animated/AnimatedComponents';
 import { ms, mvs } from '../../utils/responsive';
@@ -24,13 +25,18 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   return (
     <View style={styles.container}>
       <ScaleEntranceView delay={0}>
-        <View style={styles.iconContainer}>
+        <LinearGradient
+          colors={[colors.primary.yellowLight, colors.background.white]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.iconContainer, shadows.soft]}
+        >
           <Ionicons
             name={icon}
-            size={ms(48)}
-            color={colors.text.light}
+            size={ms(44)}
+            color={colors.primary.yellowDark}
           />
-        </View>
+        </LinearGradient>
       </ScaleEntranceView>
 
       <SlideInUpView delay={100}>
@@ -66,13 +72,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxxl,
   },
   iconContainer: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    width: ms(80),
-    height: ms(80),
-    borderRadius: ms(40),
-    backgroundColor: colors.border.light,
+    width: ms(96),
+    height: ms(96),
+    borderRadius: ms(48),
   },
   title: {
     ...typography.h4,

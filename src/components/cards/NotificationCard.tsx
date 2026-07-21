@@ -25,7 +25,7 @@ const iconColorMap: Record<NotificationType, string> = {
   order:        colors.status.info,
   challenge:    colors.status.warning,
   community:    colors.status.success,
-  diet:         '#22c55e',
+  diet:         colors.status.success,
   system:       colors.text.secondary,
   announcement: colors.primary.yellowDark,
 };

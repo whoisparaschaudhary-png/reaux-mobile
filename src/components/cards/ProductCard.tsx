@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontFamily, borderRadius, spacing, shadows } from '../../theme';
 import { formatCurrency } from '../../utils/formatters';
+import { haptics } from '../../utils/haptics';
 import { ms, getColumns } from '../../utils/responsive';
 import type { Product } from '../../types/models';
 
@@ -53,6 +54,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleAddToCart = (e: any) => {
     e.stopPropagation?.();
+    haptics.medium();
     addToCartScale.value = withSequence(
       withSpring(1.2, { damping: 10, stiffness: 300 }),
       withSpring(0.9, { damping: 10, stiffness: 300 }),

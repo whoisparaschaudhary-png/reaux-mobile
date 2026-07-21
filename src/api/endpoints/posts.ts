@@ -1,6 +1,6 @@
 import client from '../client';
 import type { ApiResponse, PaginatedResponse, PaginationParams } from '../types';
-import type { Post, Comment } from '../../types/models';
+import type { Post, Comment, PostAnalytics } from '../../types/models';
 import type { CreatePostRequest } from '../../types/api';
 
 export const postsApi = {
@@ -22,6 +22,9 @@ export const postsApi = {
 
   like: (id: string) =>
     client.post<ApiResponse<Post>>(`/posts/${id}/like`).then(r => r.data),
+
+  getAnalytics: (id: string) =>
+    client.get<ApiResponse<PostAnalytics>>(`/posts/${id}/analytics`).then(r => r.data),
 
   comment: (id: string, content: string) =>
     client

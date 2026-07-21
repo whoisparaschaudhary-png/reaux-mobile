@@ -2,6 +2,8 @@ export { login, register, getMe, updateProfile, forgotPassword, resetPassword } 
 export { usersApi } from './users';
 export { bmiApi } from './bmi';
 export { dietsApi } from './diets';
+export { cyclesApi } from './cycles';
+export { candidatesApi } from './candidates';
 export { postsApi } from './posts';
 export { reelsApi } from './reels';
 export { productsApi } from './products';

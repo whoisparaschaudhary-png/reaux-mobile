@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.overlay.medium,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
@@ -301,9 +301,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: ms(64),
+    height: ms(64),
+    borderRadius: borderRadius.pill,
     backgroundColor: '#fee2e2',
     alignItems: 'center',
     justifyContent: 'center',

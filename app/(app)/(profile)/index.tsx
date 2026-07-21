@@ -16,10 +16,11 @@ import { Input } from '../../../src/components/ui/Input';
 import { Button } from '../../../src/components/ui/Button';
 import { Card } from '../../../src/components/ui/Card';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
-import { showAppAlert } from '../../../src/stores/useUIStore';
+import { showAppAlert, useUIStore } from '../../../src/stores/useUIStore';
 import { useNotificationStore } from '../../../src/stores/useNotificationStore';
 import { usersApi } from '../../../src/api/endpoints/users';
 import { useImagePicker } from '../../../src/hooks/useImagePicker';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   colors,
   typography,
@@ -27,6 +28,7 @@ import {
   spacing,
   borderRadius,
   layout,
+  shadows,
 } from '../../../src/theme';
 import { ms, mvs } from '../../../src/utils/responsive';
 import type { Gym, BirthdayUser, UpcomingBirthdayUser } from '../../../src/types/models';
@@ -37,6 +39,7 @@ export default function ProfileScreen() {
   const uploadAvatarAction = useAuthStore((s) => s.uploadAvatar);
   const isLoading = useAuthStore((s) => s.isLoading);
   const logout = useAuthStore((s) => s.logout);
+  const openDrawer = useUIStore((s) => s.openDrawer);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const getUnreadCount = useNotificationStore((s) => s.getUnreadCount);
   const { pickImage } = useImagePicker();
@@ -158,19 +161,33 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Avatar Section */}
+        {/* Avatar Section — premium hero */}
         <View style={styles.avatarSection}>
-          <Avatar
-            uri={user?.avatar}
-            name={user?.name}
-            size={100}
+          <LinearGradient
+            colors={[colors.primary.yellowLight, colors.background.light]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.heroGradient}
           />
-          <TouchableOpacity onPress={handleUploadAvatar}>
-            <Text style={styles.uploadLink}>Upload</Text>
-          </TouchableOpacity>
-          <Text style={styles.uploadHint}>
-            Tap to upload / change your account profile picture
+          <View style={styles.avatarWrap}>
+            <Avatar
+              uri={user?.avatar}
+              name={user?.name}
+              size={ms(104)}
+              borderColor={colors.background.white}
+            />
+            <TouchableOpacity onPress={handleUploadAvatar} style={styles.editBadge} activeOpacity={0.85}>
+              <Ionicons name="camera" size={ms(16)} color={colors.text.onPrimary} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.heroName} numberOfLines={1}>
+            {user?.name || 'Your Profile'}
           </Text>
+          {user?.role ? (
+            <View style={styles.heroRoleChip}>
+              <Text style={styles.heroRoleText}>{user.role}</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* Personal Section */}
@@ -596,6 +613,22 @@ export default function ProfileScreen() {
           </View>
         </Card>
 
+        {/* Legal & Policies */}
+        <Card style={styles.linkCard} onPress={openDrawer}>
+          <View style={styles.linkCardContent}>
+            <View style={styles.linkCardLeft}>
+              <Ionicons name="document-text-outline" size={22} color={colors.text.primary} />
+              <View style={styles.linkCardText}>
+                <Text style={styles.linkCardTitle}>Legal & Policies</Text>
+                <Text style={styles.linkCardSubtitle}>
+                  Privacy, terms, refund & data policy
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.text.light} />
+          </View>
+        </Card>
+
         {/* Save Changes Button */}
         {hasChanges && (
           <View style={styles.saveButtonContainer}>
@@ -635,7 +668,50 @@ const styles = StyleSheet.create({
   },
   avatarSection: {
     alignItems: 'center',
-    paddingVertical: spacing.xxl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xl,
+    marginBottom: spacing.sm,
+  },
+  heroGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: mvs(96),
+  },
+  avatarWrap: {
+    position: 'relative',
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: ms(34),
+    height: ms(34),
+    borderRadius: ms(17),
+    backgroundColor: colors.primary.yellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: colors.background.light,
+    ...shadows.button,
+  },
+  heroName: {
+    ...typography.h2,
+    color: colors.text.primary,
+    marginTop: spacing.md,
+  },
+  heroRoleChip: {
+    marginTop: spacing.xs,
+    backgroundColor: colors.background.white,
+    paddingHorizontal: spacing.md,
+    paddingVertical: ms(4),
+    borderRadius: borderRadius.pill,
+    ...shadows.soft,
+  },
+  heroRoleText: {
+    ...typography.overline,
+    color: colors.text.secondary,
   },
   gymImageContainer: {
     alignItems: 'center',

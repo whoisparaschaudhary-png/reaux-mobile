@@ -21,6 +21,7 @@ import { useUIStore } from '../../../src/stores/useUIStore';
 import { exportDietPlanPDF } from '../../../src/utils/pdfExport';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
 import { ms, mvs } from '../../../src/utils/responsive';
+import { haptics } from '../../../src/utils/haptics';
 import type { User, DietCategory, Meal } from '../../../src/types/models';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -73,10 +74,12 @@ export default function DietPlanDetailScreen() {
   }, [id, selectedPlan, setPlanPublished, showToast]);
 
   const handleFollow = useCallback(() => {
+    haptics.light();
     if (id) followPlan(id);
   }, [id, followPlan]);
 
   const handleLike = useCallback(() => {
+    haptics.medium();
     if (id) likePlan(id);
   }, [id, likePlan]);
 
@@ -159,6 +162,7 @@ export default function DietPlanDetailScreen() {
               style={styles.heroImage}
               contentFit="cover"
               transition={300}
+              placeholder={{ blurhash: 'LGF5]+Yk^6#M@-5c,1J5@[or[Q6.' }}
             />
           ) : (
             <View style={styles.heroPlaceholder}>

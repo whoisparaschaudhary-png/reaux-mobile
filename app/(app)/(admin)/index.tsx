@@ -187,6 +187,22 @@ export default function AdminDashboardScreen() {
             </View>
           </View>
 
+          {/* Content Management */}
+          <View style={styles.navigationSection}>
+            <Text style={styles.sectionTitle}>Content</Text>
+            <View style={styles.menuCard}>
+              <MenuItem
+                label="Diet Plans"
+                onPress={() => router.push('/(app)/(diet)?mode=diets' as any)}
+              />
+              <View style={styles.divider} />
+              <MenuItem
+                label="Cycle Protocols"
+                onPress={() => router.push('/(app)/(diet)?mode=steroids' as any)}
+              />
+            </View>
+          </View>
+
           {/* Admin Navigation */}
           <View style={styles.navigationSection}>
             <Text style={styles.sectionTitle}>Management</Text>
@@ -194,6 +210,11 @@ export default function AdminDashboardScreen() {
               <MenuItem
                 label="Analytics"
                 onPress={() => router.push('/(app)/(admin)/analytics')}
+              />
+              <View style={styles.divider} />
+              <MenuItem
+                label="My Candidates"
+                onPress={() => router.push('/(app)/(admin)/candidates')}
               />
               <View style={styles.divider} />
               <MenuItem

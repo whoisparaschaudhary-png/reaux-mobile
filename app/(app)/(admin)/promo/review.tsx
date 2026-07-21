@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: 40,
+    paddingBottom: mvs(40),
   },
   bannerCard: {
     overflow: 'hidden',
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xxl,
   },
   bannerImageArea: {
-    height: 200,
+    height: mvs(200),
     backgroundColor: colors.background.dark,
     alignItems: 'center',
     justifyContent: 'center',

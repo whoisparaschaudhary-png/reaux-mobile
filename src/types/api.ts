@@ -1,4 +1,4 @@
-import type { Gender, DietCategory, DietType, DiscountType, ChallengeType, ProductVisibility, PaymentMethod } from './models';
+import type { Gender, DietCategory, DietType, DiscountType, ChallengeType, ProductVisibility, PaymentMethod, CycleCategory, CycleLevel, CycleType, CyclePhase, CyclePct, CycleRisk } from './models';
 
 export interface LoginRequest {
   email: string;
@@ -49,6 +49,30 @@ export interface CreateDietRequest {
   protein?: number;
   carbs?: number;
   fat?: number;
+  tags?: string[];
+  isPublished?: boolean;
+}
+
+export interface CreateCandidateRequest {
+  name: string;
+  phone: string;
+  monthlyFees?: number;
+  startDate?: string;   // ISO date the membership starts
+  avatar?: string;
+}
+
+export interface CreateCycleRequest {
+  title: string;
+  category: CycleCategory;
+  level?: CycleLevel;
+  type?: CycleType;
+  description?: string;
+  durationWeeks?: number;
+  estimatedGain?: string;
+  image?: string;
+  phases?: CyclePhase[];
+  pct?: CyclePct;
+  risks?: CycleRisk[];
   tags?: string[];
   isPublished?: boolean;
 }

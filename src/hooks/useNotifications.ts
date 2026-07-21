@@ -61,7 +61,8 @@ export function useNotifications() {
             // Don't fail the whole flow if registration fails
           }
         } else if (!token) {
-          console.error('❌ Failed to get push token');
+          // No token is expected on simulators/emulators — not an error there.
+          console.log('ℹ️ No push token (expected on simulator, or permission denied).');
         }
       } catch (error) {
         console.error('❌ Failed to initialize notifications:', error);

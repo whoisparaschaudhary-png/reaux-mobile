@@ -100,17 +100,25 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    // Filled, borderless resting state (premium; matches the Figma). A yellow
+    // border appears on focus (see inputFocused — paint-only, no shadow).
     borderWidth: 1.5,
-    borderColor: colors.border.gray,
+    borderColor: 'transparent',
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.background.white,
-    minHeight: mvs(48),
+    backgroundColor: colors.border.light,
+    minHeight: mvs(52),
   },
   inputFocused: {
+    // Paint-only change on focus (border color). Do NOT add a shadow or swap the
+    // background here: on the New Architecture, adding a shadow can force the
+    // container view to un-flatten and re-create its native children, which resigns
+    // the TextInput's first responder the instant it focuses — the keyboard opens and
+    // immediately closes. Keeping this to a paint prop avoids that.
     borderColor: colors.primary.yellow,
   },
   inputError: {
     borderColor: colors.status.error,
+    backgroundColor: colors.background.white,
   },
   multiline: {
     minHeight: mvs(100),

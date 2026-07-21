@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '../src/stores/useAuthStore';
 import { Toast } from '../src/components/ui/Toast';
 import { AppAlert } from '../src/components/ui/AppAlert';
+import { AppDrawer } from '../src/components/layout/AppDrawer';
 import { useNotifications } from '../src/hooks/useNotifications';
 
 // Keep the native splash visible while we load fonts and restore auth. This is
@@ -103,6 +104,7 @@ export default function RootLayout() {
         <Slot />
         <Toast />
         <AppAlert />
+        <AppDrawer />
       </View>
     </SafeAreaProvider>
   );

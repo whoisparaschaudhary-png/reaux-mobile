@@ -11,11 +11,12 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
+import { AppTopBar } from '../../../src/components/layout/AppTopBar';
 import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
 import { useBmiStore } from '../../../src/stores/useBmiStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
-import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../../src/theme';
+import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../src/theme';
 import { ms, mvs } from '../../../src/utils/responsive';
 import type { BmiCategory, BmiRecord, Gender } from '../../../src/types/models';
 
@@ -270,20 +271,13 @@ export default function HealthScreen() {
 
   return (
     <SafeScreen>
+      <AppTopBar title="BMI" />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         bounces
       >
-        {/* Heading */}
-        <View style={styles.headingSection}>
-          <Text style={styles.heading}>Check your Body stats</Text>
-          <Text style={styles.subtitle}>
-            Enter your stats to get BMI, BMR (calories at rest), and daily calorie estimate
-          </Text>
-        </View>
-
         {/* Height slider */}
         <View style={styles.sliderSection}>
           <View style={styles.sliderHeader}>
@@ -583,22 +577,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
     paddingBottom: spacing.xxxl,
-  },
-  headingSection: {
-    marginTop: spacing.lg,
-    marginBottom: spacing.xxl,
-  },
-  heading: {
-    ...typography.h1,
-    color: colors.text.primary,
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    fontFamily: fontFamily.regular,
-    fontSize: ms(15),
-    lineHeight: ms(22),
-    color: colors.text.secondary,
   },
   sliderSection: {
     marginBottom: spacing.xxl,
@@ -684,8 +664,8 @@ const styles = StyleSheet.create({
   colorBar: {
     flexDirection: 'row',
     width: '100%',
-    height: 8,
-    borderRadius: 4,
+    height: spacing.sm,
+    borderRadius: borderRadius.sm,
     overflow: 'hidden',
     marginTop: spacing.xl,
   },

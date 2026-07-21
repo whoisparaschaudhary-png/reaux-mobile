@@ -95,9 +95,10 @@ export default function UsersScreen() {
   }, [router]);
 
   const renderItem = useCallback(
-    ({ item }: { item: User }) => (
+    ({ item, index }: { item: User; index: number }) => (
       <UserCard
         user={item}
+        index={index}
         onPress={handleUserPress}
         onDeactivate={handleDeactivate}
         membershipEndDate={membershipExpiryMap[item._id]}

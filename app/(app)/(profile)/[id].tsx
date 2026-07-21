@@ -19,6 +19,7 @@ import {
   fontFamily,
   spacing,
   borderRadius,
+  shadows,
   layout,
 } from '../../../src/theme';
 import { ms } from '../../../src/utils/responsive';
@@ -157,10 +158,11 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   infoSection: {
-    backgroundColor: colors.background.white,
+    backgroundColor: colors.background.card,
     borderRadius: borderRadius.card,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
+    ...shadows.card,
   },
   infoRow: {
     flexDirection: 'row',
