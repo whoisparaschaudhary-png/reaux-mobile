@@ -57,7 +57,10 @@ export default function RootLayout() {
       const parsed = Linking.parse(url);
 
       // Handle reset-password deep link: reauxlabs://reset-password?token=xxx
-      if (parsed.path === 'reset-password' && parsed.queryParams?.token) {
+      // Depending on the URL form, "reset-password" lands in either `path` or
+      // `hostname` (a bare scheme://host puts it in hostname) — accept both.
+      const target = (parsed.path ?? parsed.hostname ?? '').replace(/^\/+/, '');
+      if (target === 'reset-password' && parsed.queryParams?.token) {
         const token = parsed.queryParams.token as string;
         router.push({
           pathname: '/(auth)/reset-password',
