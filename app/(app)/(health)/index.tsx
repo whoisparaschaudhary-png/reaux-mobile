@@ -512,7 +512,18 @@ export default function HealthScreen() {
         {result && (
           <TouchableOpacity
             style={[styles.dietSuggestionCard, shadows.card]}
-            onPress={() => router.push('/(health)/suggested' as any)}
+            onPress={() =>
+              router.push({
+                pathname: '/(health)/suggested',
+                // Pass the estimated daily calories (TDEE) so suggestions match the
+                // user's actual calorie need, not just the coarse BMI category.
+                params: {
+                  calories: String(
+                    Math.round(result.bmr * ACTIVITY_LEVELS[activityLevelIndex].multiplier),
+                  ),
+                },
+              } as any)
+            }
             activeOpacity={0.7}
           >
             <View style={styles.dietSuggestionContent}>

@@ -21,7 +21,7 @@ interface DietState {
 
   fetchPlans: (page?: number, category?: DietCategory, options?: { includeUnpublished?: boolean; dietType?: DietType }) => Promise<void>;
   getPlanById: (id: string) => Promise<void>;
-  fetchSuggestedPlans: (page?: number, options?: { goal?: 'lose' | 'gain' | 'maintain'; dietType?: string }) => Promise<void>;
+  fetchSuggestedPlans: (page?: number, options?: { goal?: 'lose' | 'gain' | 'maintain'; dietType?: string; targetCalories?: number }) => Promise<void>;
   followPlan: (id: string) => Promise<void>;
   likePlan: (id: string) => Promise<void>;
   createPlan: (data: CreateDietRequest | FormData, currentUser?: User | null) => Promise<void>;
@@ -102,6 +102,7 @@ export const useDietStore = create<DietState>((set, get) => ({
       const params: Record<string, any> = { page, limit: 10 };
       if (options?.goal) params.goal = options.goal;
       if (options?.dietType) params.dietType = options.dietType;
+      if (options?.targetCalories && options.targetCalories > 0) params.targetCalories = Math.round(options.targetCalories);
       const response = await dietsApi.getSuggested(params);
       set({
         suggestedPlans: page === 1 ? response.data : [...get().suggestedPlans, ...response.data],

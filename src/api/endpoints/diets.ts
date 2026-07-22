@@ -30,6 +30,6 @@ export const dietsApi = {
   like: (id: string) =>
     client.post<ApiResponse<DietPlan>>(`/diets/${id}/like`).then(r => r.data),
 
-  getSuggested: (params?: PaginationParams & { goal?: 'lose' | 'gain' | 'maintain'; dietType?: string }) =>
+  getSuggested: (params?: PaginationParams & { goal?: 'lose' | 'gain' | 'maintain'; dietType?: string; targetCalories?: number }) =>
     client.get<PaginatedResponse<DietPlan>>('/diets/suggested', { params }).then(r => r.data),
 };

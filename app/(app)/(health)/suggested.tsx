@@ -1,13 +1,14 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
@@ -15,25 +16,46 @@ import { DietPlanCard } from '../../../src/components/cards/DietPlanCard';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { useDietStore } from '../../../src/stores/useDietStore';
 import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../src/theme';
-import { ms, mvs } from '../../../src/utils/responsive';
-import type { DietPlan } from '../../../src/types/models';
+import { ms } from '../../../src/utils/responsive';
+import type { DietPlan, DietType } from '../../../src/types/models';
+
+const DIET_TYPES: { label: string; value: DietType | undefined }[] = [
+  { label: 'All', value: undefined },
+  { label: 'Veg', value: 'veg' },
+  { label: 'Non-Veg', value: 'non-veg' },
+];
 
 export default function SuggestedDietsScreen() {
   const { suggestedPlans, isLoading, suggestedPagination, fetchSuggestedPlans } = useDietStore();
 
+  // Estimated daily calories (TDEE) passed from the BMI screen. When present the
+  // backend matches diets to this calorie need instead of the coarse BMI band.
+  const params = useLocalSearchParams<{ calories?: string }>();
+  const targetCalories =
+    params.calories && Number(params.calories) > 0 ? Number(params.calories) : undefined;
+
+  const [selectedDietType, setSelectedDietType] = useState<DietType | undefined>(undefined);
+
+  const loadPage = useCallback(
+    (page: number) => {
+      fetchSuggestedPlans(page, { dietType: selectedDietType, targetCalories });
+    },
+    [fetchSuggestedPlans, selectedDietType, targetCalories],
+  );
+
   useEffect(() => {
-    fetchSuggestedPlans(1);
-  }, []);
+    loadPage(1);
+  }, [loadPage]);
 
   const handleRefresh = useCallback(() => {
-    fetchSuggestedPlans(1);
-  }, [fetchSuggestedPlans]);
+    loadPage(1);
+  }, [loadPage]);
 
   const handleLoadMore = useCallback(() => {
     if (suggestedPagination.page < suggestedPagination.pages && !isLoading) {
-      fetchSuggestedPlans(suggestedPagination.page + 1);
+      loadPage(suggestedPagination.page + 1);
     }
-  }, [fetchSuggestedPlans, suggestedPagination, isLoading]);
+  }, [loadPage, suggestedPagination, isLoading]);
 
   const handlePlanPress = useCallback((plan: DietPlan) => {
     router.push(`/(diet)/${plan._id}` as any);
@@ -71,9 +93,31 @@ export default function SuggestedDietsScreen() {
         <View style={styles.infoContent}>
           <Text style={styles.infoTitle}>Personalized for You</Text>
           <Text style={styles.infoText}>
-            These diet plans are recommended based on your current BMI category and health goals.
+            {targetCalories
+              ? `Diet plans matched to your daily need of ~${targetCalories} cal. Filter by preference below.`
+              : 'These diet plans are recommended based on your current BMI category. Record your BMI to fine-tune them to your calories.'}
           </Text>
         </View>
+      </View>
+
+      {/* Veg / Non-Veg filter */}
+      <View style={styles.filterRow}>
+        {DIET_TYPES.map((item) => {
+          const active = selectedDietType === item.value;
+          return (
+            <TouchableOpacity
+              key={item.label}
+              style={[styles.filterChip, active && styles.filterChipActive]}
+              onPress={() => setSelectedDietType(item.value)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
+                {item.value === 'veg' ? '🟢 ' : item.value === 'non-veg' ? '🔴 ' : ''}
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {isLoading && suggestedPlans.length === 0 ? (
@@ -84,7 +128,11 @@ export default function SuggestedDietsScreen() {
         <EmptyState
           icon="restaurant-outline"
           title="No Suggestions Available"
-          message="Record your BMI to get personalized diet plan suggestions"
+          message={
+            selectedDietType
+              ? 'No matching diet plans for this preference. Try a different filter.'
+              : 'Record your BMI to get personalized diet plan suggestions'
+          }
           actionLabel="Go to BMI Calculator"
           onAction={() => router.push('/(app)/(health)/' as any)}
         />
@@ -122,7 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.card,
     padding: spacing.lg,
     marginHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
     gap: spacing.md,
   },
   infoIcon: {
@@ -148,6 +196,33 @@ const styles = StyleSheet.create({
     fontSize: ms(13),
     lineHeight: ms(18),
     color: colors.text.secondary,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  filterChip: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.pill,
+    backgroundColor: colors.border.light,
+    borderWidth: 1,
+    borderColor: colors.border.gray,
+  },
+  filterChipActive: {
+    backgroundColor: colors.primary.yellow,
+    borderColor: colors.primary.yellow,
+  },
+  filterChipText: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(13),
+    lineHeight: ms(18),
+    color: colors.text.secondary,
+  },
+  filterChipTextActive: {
+    color: colors.text.primary,
   },
   centered: {
     flex: 1,
