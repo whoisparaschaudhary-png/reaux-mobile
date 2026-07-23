@@ -374,6 +374,15 @@ export interface PromoCode {
   createdAt: string;
 }
 
+// Response of POST /promo/validate — the server validates against the order
+// amount and returns the already-capped discount to apply.
+export interface PromoValidation {
+  code: string;
+  discountType: DiscountType;
+  discountValue: number;
+  discount: number;
+}
+
 // Challenge
 export interface ChallengeParticipant {
   userId: string | User;

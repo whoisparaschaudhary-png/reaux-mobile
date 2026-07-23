@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, StyleSheet, LogBox } from 'react-native';
 import { Slot, useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
@@ -51,40 +51,56 @@ export default function RootLayout() {
     restoreSession();
   }, []);
 
-  // Handle deep links for password reset
+  // Deep links for password reset. The URL can arrive long before the navigator
+  // exists (cold start resolves getInitialURL on the next tick, while fonts and
+  // the session restore are still in flight — and until then this component
+  // returns null, so nothing is mounted to navigate). Navigating there would be
+  // silently dropped and the user would land on login instead of the reset
+  // screen, so park the URL and consume it once the app is actually ready.
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+
   useEffect(() => {
-    const handleDeepLink = (url: string) => {
-      const parsed = Linking.parse(url);
-
-      // Handle reset-password deep link: reauxlabs://reset-password?token=xxx
-      // Depending on the URL form, "reset-password" lands in either `path` or
-      // `hostname` (a bare scheme://host puts it in hostname) — accept both.
-      const target = (parsed.path ?? parsed.hostname ?? '').replace(/^\/+/, '');
-      if (target === 'reset-password' && parsed.queryParams?.token) {
-        const token = parsed.queryParams.token as string;
-        router.push({
-          pathname: '/(auth)/reset-password',
-          params: { token },
-        } as any);
-      }
-    };
-
     // Handle initial URL (app opened via link)
     Linking.getInitialURL().then((url) => {
       if (url) {
-        handleDeepLink(url);
+        setPendingUrl(url);
       }
     });
 
     // Handle URL while app is running
     const subscription = Linking.addEventListener('url', (event) => {
-      handleDeepLink(event.url);
+      setPendingUrl(event.url);
     });
 
     return () => {
       subscription.remove();
     };
-  }, [router]);
+  }, []);
+
+  const isNavigatorReady = (fontsLoaded || fontError) && !isRestoring;
+
+  useEffect(() => {
+    if (!pendingUrl || !isNavigatorReady) return;
+
+    setPendingUrl(null);
+
+    const parsed = Linking.parse(pendingUrl);
+
+    // Handle reset-password deep link: reauxlabs://reset-password?token=xxx
+    // Depending on the URL form, "reset-password" lands in either `path` or
+    // `hostname` (a bare scheme://host puts it in hostname) — accept both.
+    const target = (parsed.path ?? parsed.hostname ?? '').replace(/^\/+/, '');
+    if (target === 'reset-password' && parsed.queryParams?.token) {
+      const token = parsed.queryParams.token as string;
+      // Safe to push now: the gate above guarantees the entry route has already
+      // resolved to login (or the feed), so this lands on top of it instead of
+      // being dropped or immediately redirected away.
+      router.push({
+        pathname: '/(auth)/reset-password',
+        params: { token },
+      } as any);
+    }
+  }, [pendingUrl, isNavigatorReady, router]);
 
   // Hide the native splash only once fonts are loaded AND the session has been
   // restored — so the single splash covers the whole boot and reveals the app

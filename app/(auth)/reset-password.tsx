@@ -22,38 +22,62 @@ export default function ResetPasswordScreen() {
   const { token } = useLocalSearchParams<{ token?: string }>();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
+  // Kept apart so a message always renders under the field it belongs to —
+  // one shared `error` string meant "Passwords do not match" also matched the
+  // new-password field's check and showed under both inputs at once.
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmError, setConfirmError] = useState('');
+  const [formError, setFormError] = useState('');
+  const [tokenMissing, setTokenMissing] = useState(false);
 
   const showToast = useUIStore((s) => s.showToast);
 
   useEffect(() => {
-    if (!token) {
-      setError('Invalid or missing reset token. Please request a new password reset link.');
-    }
+    setTokenMissing(!token);
   }, [token]);
 
-  const handleReset = async () => {
-    setError('');
+  const goToLogin = () => router.replace('/(auth)/login');
 
-    if (!newPassword || !confirmPassword) {
-      setError('Please fill in all fields');
+  // The screen is usually opened by replacing the entry route from an email
+  // deep link, so there is nothing to pop back to — fall back to login.
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      goToLogin();
+    }
+  };
+
+  const handleReset = async () => {
+    setPasswordError('');
+    setConfirmError('');
+    setFormError('');
+
+    if (!newPassword) {
+      setPasswordError('Please enter a new password');
       return;
     }
 
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+      setPasswordError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (!confirmPassword) {
+      setConfirmError('Please re-enter your new password');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setConfirmError('Passwords do not match');
       return;
     }
 
     if (!token) {
-      setError('Invalid reset token');
+      setTokenMissing(true);
       return;
     }
 
@@ -63,20 +87,27 @@ export default function ResetPasswordScreen() {
       setSuccess(true);
       showToast('Password reset successful!', 'success');
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Failed to reset password';
-      setError(msg);
+      const msg =
+        err.response?.data?.message || err.message || 'Failed to reset password';
+      setFormError(msg);
       showToast(msg, 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleBackToLogin = () => {
-    router.replace('/(auth)/login');
-  };
+  const subtext = success
+    ? 'Your password has been updated.'
+    : tokenMissing
+      ? 'This reset link is no longer valid.'
+      : 'Choose a new password for your account.';
 
   return (
-    <SafeScreen style={styles.screen} edges={['top', 'left', 'right']} statusBarStyle="light-content">
+    <SafeScreen
+      style={styles.screen}
+      edges={['top', 'left', 'right']}
+      statusBarStyle="light-content"
+    >
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -90,11 +121,11 @@ export default function ResetPasswordScreen() {
           {/* Dark header */}
           <View style={styles.headerSection}>
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={handleBack}
               style={styles.backBtn}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="arrow-back" size={24} color={colors.text.white} />
+              <Ionicons name="arrow-back" size={ms(24)} color={colors.text.white} />
             </TouchableOpacity>
             <View style={styles.logoRow}>
               <View style={styles.logoBox}>
@@ -103,37 +134,47 @@ export default function ResetPasswordScreen() {
               <Text style={styles.logoText}>REAUX LABS</Text>
             </View>
             <Text style={styles.heading}>Reset Password</Text>
-            <Text style={styles.subtext}>
-              Enter your new password below.
-            </Text>
+            <Text style={styles.subtext}>{subtext}</Text>
           </View>
 
           {/* Form */}
           <View style={styles.formSection}>
             {success ? (
-              <View style={styles.successContainer}>
-                <View style={styles.successIcon}>
-                  <Ionicons name="checkmark-circle" size={40} color={colors.status.success} />
+              <View style={styles.stateContainer}>
+                <View style={[styles.stateIcon, styles.successIcon]}>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={ms(40)}
+                    color={colors.status.success}
+                  />
                 </View>
-                <Text style={styles.successTitle}>Password Reset!</Text>
-                <Text style={styles.successMessage}>
-                  Your password has been successfully reset. You can now log in with your new password.
+                <Text style={styles.stateTitle}>Password Reset!</Text>
+                <Text style={styles.stateMessage}>
+                  Your password has been successfully reset. You can now log in with
+                  your new password.
                 </Text>
                 <Button
                   title="Go to Login"
-                  onPress={handleBackToLogin}
+                  onPress={goToLogin}
                   variant="primary"
                   size="lg"
                   fullWidth
                 />
               </View>
-            ) : error && !token ? (
-              <View style={styles.errorContainer}>
-                <View style={styles.errorIcon}>
-                  <Ionicons name="alert-circle" size={40} color={colors.status.error} />
+            ) : tokenMissing ? (
+              <View style={styles.stateContainer}>
+                <View style={[styles.stateIcon, styles.errorIcon]}>
+                  <Ionicons
+                    name="alert-circle"
+                    size={ms(40)}
+                    color={colors.status.error}
+                  />
                 </View>
-                <Text style={styles.errorTitle}>Invalid Link</Text>
-                <Text style={styles.errorMessage}>{error}</Text>
+                <Text style={styles.stateTitle}>Invalid Link</Text>
+                <Text style={styles.stateMessage}>
+                  This password reset link is invalid or has expired. Reset links are
+                  only valid for one hour — please request a new one.
+                </Text>
                 <Button
                   title="Request New Link"
                   onPress={() => router.replace('/(auth)/forgot-password')}
@@ -149,8 +190,21 @@ export default function ResetPasswordScreen() {
                   placeholder="Enter new password (min. 6 characters)"
                   value={newPassword}
                   onChangeText={setNewPassword}
-                  secureTextEntry
-                  error={error && error.includes('Password') ? error : undefined}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  error={passwordError || undefined}
+                  rightIcon={
+                    <TouchableOpacity
+                      onPress={() => setShowPassword((v) => !v)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons
+                        name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                        size={ms(20)}
+                        color={colors.text.light}
+                      />
+                    </TouchableOpacity>
+                  }
                 />
 
                 <Input
@@ -158,13 +212,12 @@ export default function ResetPasswordScreen() {
                   placeholder="Re-enter new password"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  secureTextEntry
-                  error={error && error.includes('match') ? error : undefined}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  error={confirmError || undefined}
                 />
 
-                {error && !error.includes('Password') && !error.includes('match') && (
-                  <Text style={styles.errorText}>{error}</Text>
-                )}
+                {formError ? <Text style={styles.formError}>{formError}</Text> : null}
 
                 <Button
                   title="Reset Password  →"
@@ -177,10 +230,8 @@ export default function ResetPasswordScreen() {
                 />
 
                 <View style={styles.backRow}>
-                  <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
-                    <Text style={styles.backLink}>
-                      ← Back to Login
-                    </Text>
+                  <TouchableOpacity onPress={goToLogin}>
+                    <Text style={styles.backLink}>{'←'} Back to Login</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -205,24 +256,24 @@ const styles = StyleSheet.create({
   headerSection: {
     backgroundColor: colors.background.dark,
     paddingHorizontal: spacing.xl,
-    paddingTop: 20,
-    paddingBottom: 32,
+    paddingTop: mvs(20),
+    paddingBottom: mvs(32),
   },
   backBtn: {
-    marginBottom: 16,
+    marginBottom: mvs(16),
     alignSelf: 'flex-start',
   },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 24,
+    gap: ms(10),
+    marginBottom: mvs(24),
   },
   logoBox: {
-    width: 36,
-    height: 36,
+    width: ms(36),
+    height: ms(36),
     backgroundColor: colors.primary.yellow,
-    borderRadius: 8,
+    borderRadius: ms(8),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -242,7 +293,7 @@ const styles = StyleSheet.create({
     fontSize: ms(28),
     lineHeight: ms(34),
     color: colors.text.white,
-    marginBottom: 8,
+    marginBottom: mvs(8),
   },
   subtext: {
     fontFamily: fontFamily.regular,
@@ -253,75 +304,52 @@ const styles = StyleSheet.create({
   formSection: {
     flex: 1,
     backgroundColor: colors.background.light,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: ms(24),
+    borderTopRightRadius: ms(24),
     paddingHorizontal: spacing.xl,
-    paddingTop: 28,
-    paddingBottom: 40,
+    paddingTop: mvs(28),
+    paddingBottom: mvs(40),
   },
   backRow: {
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: mvs(24),
   },
   backLink: {
     fontFamily: fontFamily.bold,
     fontSize: ms(14),
     color: colors.text.primary,
   },
-  errorText: {
+  formError: {
     fontFamily: fontFamily.regular,
     fontSize: ms(14),
     color: colors.status.error,
-    marginTop: -spacing.sm,
     marginBottom: spacing.md,
   },
-  successContainer: {
+  stateContainer: {
     alignItems: 'center',
-    paddingTop: spacing.xxxl,
+    paddingTop: mvs(24),
+  },
+  stateIcon: {
+    width: ms(80),
+    height: ms(80),
+    borderRadius: ms(40),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
   },
   successIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
     backgroundColor: colors.primary.yellowLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
-  successTitle: {
-    fontFamily: fontFamily.bold,
-    fontSize: ms(22),
-    color: colors.text.primary,
-    marginBottom: spacing.sm,
-  },
-  successMessage: {
-    fontFamily: fontFamily.regular,
-    fontSize: ms(15),
-    lineHeight: ms(22),
-    color: colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: spacing.xl,
-  },
-  errorContainer: {
-    alignItems: 'center',
-    paddingTop: spacing.xxxl,
   },
   errorIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
     backgroundColor: '#fee',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
   },
-  errorTitle: {
+  stateTitle: {
     fontFamily: fontFamily.bold,
     fontSize: ms(22),
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
-  errorMessage: {
+  stateMessage: {
     fontFamily: fontFamily.regular,
     fontSize: ms(15),
     lineHeight: ms(22),

@@ -1,6 +1,6 @@
 import client from '../client';
 import type { ApiResponse, PaginatedResponse, PaginationParams } from '../types';
-import type { PromoCode } from '../../types/models';
+import type { PromoCode, PromoValidation } from '../../types/models';
 import type { CreatePromoRequest } from '../../types/api';
 
 export const promosApi = {
@@ -10,8 +10,13 @@ export const promosApi = {
   create: (data: CreatePromoRequest) =>
     client.post<ApiResponse<PromoCode>>('/promo/create', data).then(r => r.data),
 
-  validate: (code: string) =>
-    client.post<ApiResponse<PromoCode>>('/promo/validate', { code }).then(r => r.data),
+  // orderAmount is REQUIRED by the backend — it enforces minOrderAmount and
+  // returns the computed `discount` against this total. Omitting it made the
+  // server see 0 and reject every promo that has a minimum order.
+  validate: (code: string, orderAmount: number) =>
+    client
+      .post<ApiResponse<PromoValidation>>('/promo/validate', { code, orderAmount })
+      .then(r => r.data),
 
   getById: (id: string) =>
     client.get<ApiResponse<PromoCode>>(`/promo/${id}`).then(r => r.data),

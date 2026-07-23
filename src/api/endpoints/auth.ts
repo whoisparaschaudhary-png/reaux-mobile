@@ -112,6 +112,10 @@ export async function resetPassword(
 ): Promise<ApiResponse<null>> {
   const { data } = await client.post<ApiResponse<null>>(
     '/auth/reset-password',
+    // The DEPLOYED backend validator expects `password` (auth.validator.js
+    // resetPasswordSchema), even though docs/API.md §1.6 says `newPassword`.
+    // Verified live: {token,password} passes validation; {token,newPassword}
+    // fails with "Password is required".
     { token, password: newPassword },
   );
   return data;

@@ -19,6 +19,7 @@ import { NotificationCard } from '../../../src/components/cards/NotificationCard
 import { useNotificationStore } from '../../../src/stores/useNotificationStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { formatDate, formatRelative } from '../../../src/utils/formatters';
+import { enterAdminRoute } from '../../../src/utils/navigation';
 import {
   colors,
   fontFamily,
@@ -155,7 +156,10 @@ export default function NotificationsScreen() {
       switch (notification.type) {
         case 'order':
           if (meta.orderId) {
-            router.push(`/(app)/(admin)/orders/${meta.orderId}`);
+            // Admin orders is a list screen (no /orders/[id] route) — navigating to
+            // /orders/<id> hit the Unmatched Route page. Open the list and pass the
+            // id so it auto-expands that order.
+            enterAdminRoute(`/(app)/(admin)/orders?orderId=${meta.orderId}`);
           } else {
             setDetailNotification(notification);
           }
@@ -170,7 +174,7 @@ export default function NotificationsScreen() {
           }
           break;
         case 'challenge':
-          router.push('/(app)/(admin)/challenges');
+          enterAdminRoute('/(app)/(admin)/challenges');
           break;
         default:
           setDetailNotification(notification);

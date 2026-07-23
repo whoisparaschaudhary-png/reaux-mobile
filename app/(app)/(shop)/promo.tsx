@@ -14,12 +14,12 @@ import { promosApi } from '../../../src/api/endpoints/promos';
 import { showAppAlert } from '../../../src/stores/useUIStore';
 import { colors, fontFamily, borderRadius, spacing } from '../../../src/theme';
 import { ms } from '../../../src/utils/responsive';
-import type { PromoCode } from '../../../src/types/models';
+import type { PromoValidation } from '../../../src/types/models';
 
 export default function PromoScreen() {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<PromoCode | null>(null);
+  const [result, setResult] = useState<PromoValidation | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleApply = useCallback(async () => {
@@ -33,10 +33,12 @@ export default function PromoScreen() {
     setResult(null);
 
     try {
-      const response = await promosApi.validate(code.trim().toUpperCase());
+      // Standalone code check has no cart; validate against a nominal amount so
+      // the backend's min-order guard passes and returns the code's terms.
+      const response = await promosApi.validate(code.trim().toUpperCase(), 999999);
       setResult(response.data);
     } catch (err: any) {
-      setError(err.message || 'Invalid promo code');
+      setError(err.response?.data?.message || err.message || 'Invalid promo code');
     } finally {
       setIsLoading(false);
     }
@@ -109,15 +111,7 @@ export default function PromoScreen() {
                 {result.discountType === 'percentage'
                   ? `${result.discountValue}% off`
                   : `Flat ₹${result.discountValue} off`}
-                {result.minOrderAmount
-                  ? ` on orders above ₹${result.minOrderAmount}`
-                  : ''}
               </Text>
-              {result.maxDiscount && (
-                <Text style={styles.resultMax}>
-                  Max discount: ₹{result.maxDiscount}
-                </Text>
-              )}
             </View>
             <Button
               title="Use Code"

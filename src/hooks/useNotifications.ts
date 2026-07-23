@@ -12,6 +12,7 @@ import {
 import { useAuthStore } from '../stores/useAuthStore';
 import { useNotificationStore } from '../stores/useNotificationStore';
 import { useUIStore } from '../stores/useUIStore';
+import { enterAdminRoute } from '../utils/navigation';
 
 /**
  * Hook to manage push notifications throughout the app
@@ -106,7 +107,7 @@ export function useNotifications() {
         if (data.type === 'order') {
           router.push(`/(app)/(shop)/invoice/${data.orderId}`);
         } else if (data.type === 'challenge') {
-          router.push(`/(app)/(admin)/challenges`);
+          enterAdminRoute('/(app)/(admin)/challenges');
         } else if (data.type === 'membership') {
           router.push(`/(app)/(profile)/memberships`);
         } else {

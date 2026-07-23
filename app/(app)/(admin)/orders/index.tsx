@@ -63,12 +63,14 @@ const FILTER_TABS: { key: StatusFilter; label: string }[] = [
 
 export default function AdminOrdersScreen() {
   const router = useRouter();
-  const { backRoute } = useLocalSearchParams<{ backRoute?: string }>();
+  const { backRoute, orderId } = useLocalSearchParams<{ backRoute?: string; orderId?: string }>();
   const handleBack = () => backRoute === 'profile' ? router.navigate('/(app)/(profile)') : router.back();
   const { orders, isLoading, isUpdating, fetchAllOrders, updateOrderStatus } = useOrderStore();
   const showToast = useUIStore((s) => s.showToast);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  // Pre-expand the order the user arrived for (e.g. tapping an order notification),
+  // so it opens directly instead of dropping them on an unfiltered list.
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(orderId ?? null);
   const [activeFilter, setActiveFilter] = useState<StatusFilter>('all');
   const [isExporting, setIsExporting] = useState(false);
   const [exportingOrderId, setExportingOrderId] = useState<string | null>(null);

@@ -58,6 +58,12 @@ export default function AppLayout() {
           IG/TikTok convention. */}
       <Tabs.Screen
         name="(feed)"
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('(feed)', { screen: 'index' });
+          },
+        })}
         options={{
           title: isAdmin ? 'Members' : 'Feed',
           tabBarIcon: ({ color, size }) => (
@@ -97,6 +103,12 @@ export default function AppLayout() {
       />
       <Tabs.Screen
         name="(health)"
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('(health)', { screen: 'index' });
+          },
+        })}
         options={{
           title: 'BMI',
           tabBarIcon: ({ color, size }) => (

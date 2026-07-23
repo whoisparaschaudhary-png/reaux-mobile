@@ -17,25 +17,36 @@ import { forgotPassword } from '../../src/api/endpoints/auth';
 import { useUIStore } from '../../src/stores/useUIStore';
 import { colors, fontFamily, spacing, borderRadius } from '../../src/theme';
 import { ms, mvs } from '../../src/utils/responsive';
+import { isValidEmail } from '../../src/utils/validators';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
 
   const showToast = useUIStore((s) => s.showToast);
 
   const handleSend = async () => {
-    if (!email.trim()) {
-      showToast('Please enter your email', 'error');
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setError('Please enter your email');
       return;
     }
+    // The endpoint always reports success to prevent email enumeration, so a
+    // typo'd address silently "sends" — catch the obvious ones up front.
+    if (!isValidEmail(trimmed)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    setError('');
     setIsLoading(true);
     try {
-      await forgotPassword(email.trim());
+      await forgotPassword(trimmed);
       setSent(true);
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Something went wrong';
+      setError(msg);
       showToast(msg, 'error');
     } finally {
       setIsLoading(false);
@@ -69,9 +80,13 @@ export default function ForgotPasswordScreen() {
               </View>
               <Text style={styles.logoText}>REAUX LABS</Text>
             </View>
-            <Text style={styles.heading}>Reset Password</Text>
+            <Text style={styles.heading}>
+              {sent ? 'Link Sent' : 'Reset Password'}
+            </Text>
             <Text style={styles.subtext}>
-              Enter your email and we'll send you a link to reset your password.
+              {sent
+                ? 'Follow the link in the email to set a new password.'
+                : "Enter your email and we'll send you a link to reset your password."}
             </Text>
           </View>
 
@@ -100,9 +115,13 @@ export default function ForgotPasswordScreen() {
                   label="EMAIL"
                   placeholder="Enter your email"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    if (error) setError('');
+                  }}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  error={error || undefined}
                 />
 
                 <Button

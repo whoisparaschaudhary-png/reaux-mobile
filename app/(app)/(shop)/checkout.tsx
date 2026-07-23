@@ -219,25 +219,16 @@ export default function CheckoutScreen() {
                     setPromoLoading(true);
                     setPromoError(null);
                     try {
-                      const response = await promosApi.validate(promoCode.trim());
-                      const promo = response.data;
-                      let discountAmt = 0;
-                      if (promo.discountType === 'percentage') {
-                        discountAmt = (total * promo.discountValue) / 100;
-                        if (promo.maxDiscount && discountAmt > promo.maxDiscount) {
-                          discountAmt = promo.maxDiscount;
-                        }
-                      } else {
-                        discountAmt = promo.discountValue;
-                      }
-                      if (promo.minOrderAmount && total < promo.minOrderAmount) {
-                        setPromoError(`Minimum order ₹${promo.minOrderAmount}`);
-                      } else {
-                        setDiscount(Math.min(discountAmt, total));
-                        setPromoApplied(true);
-                      }
+                      // The backend validates against the order total (min-order,
+                      // expiry, usage) and returns the already-capped discount.
+                      const response = await promosApi.validate(promoCode.trim(), total);
+                      const discountAmt = response.data?.discount ?? 0;
+                      setDiscount(Math.min(discountAmt, total));
+                      setPromoApplied(true);
                     } catch (err: any) {
-                      setPromoError(err.message || 'Invalid promo code');
+                      setPromoError(
+                        err.response?.data?.message || err.message || 'Invalid promo code',
+                      );
                     } finally {
                       setPromoLoading(false);
                     }
