@@ -10,6 +10,15 @@ import type { ApiError } from './types';
 
 // ─── Axios instance ─────────────────────────────────────────────────
 
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    // Set on requests where a 401 is a user-facing validation result (e.g. the
+    // wrong-password reply from DELETE /auth/account), not an expired session —
+    // the interceptor must not clear the token and bounce to login for these.
+    skipAuthLogout?: boolean;
+  }
+}
+
 const client = axios.create({
   baseURL: API_URL,
   timeout: 30_000,
@@ -36,7 +45,7 @@ client.interceptors.request.use(
 client.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError<ApiError>) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !error.config?.skipAuthLogout) {
       // Token expired or invalid — clear BOTH the secure token and the in-memory
       // auth store, else isAuthenticated stays true and stale authed UI persists.
       // Lazy require avoids a circular import (store → auth api → this client).

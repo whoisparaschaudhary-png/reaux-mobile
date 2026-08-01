@@ -14,6 +14,7 @@ import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { Header } from '../../../src/components/layout/Header';
 import { DietPlanCard } from '../../../src/components/cards/DietPlanCard';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
+import { SourcesCard } from '../../../src/components/ui/SourcesCard';
 import { useDietStore } from '../../../src/stores/useDietStore';
 import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../src/theme';
 import { ms } from '../../../src/utils/responsive';
@@ -69,10 +70,15 @@ export default function SuggestedDietsScreen() {
   );
 
   const renderFooter = useCallback(() => {
-    if (!isLoading || suggestedPlans.length === 0) return null;
     return (
-      <View style={styles.footer}>
-        <ActivityIndicator size="small" color={colors.primary.yellow} />
+      <View>
+        {isLoading && suggestedPlans.length > 0 && (
+          <View style={styles.footer}>
+            <ActivityIndicator size="small" color={colors.primary.yellow} />
+          </View>
+        )}
+        {/* Citations for diet/calorie recommendations (App Store guideline 1.4.1) */}
+        <SourcesCard style={styles.sourcesCard} />
       </View>
     );
   }, [isLoading, suggestedPlans.length]);
@@ -239,5 +245,8 @@ const styles = StyleSheet.create({
   footer: {
     paddingVertical: spacing.xl,
     alignItems: 'center',
+  },
+  sourcesCard: {
+    marginTop: spacing.lg,
   },
 });

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { login, register, getMe, updateProfile, uploadAvatar } from '../api/endpoints/auth';
+import { login, register, getMe, updateProfile, uploadAvatar, deleteAccount } from '../api/endpoints/auth';
 import type { UpdateProfileParams } from '../api/endpoints/auth';
 import { getToken, setToken, removeToken } from '../utils/storage';
 import { resetAllStores } from './resetAllStores';
@@ -16,6 +16,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, phone?: string, dateOfBirth?: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
   restoreSession: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   uploadAvatar: (uri: string, type: string, fileName: string) => Promise<void>;
@@ -103,6 +104,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await removeToken();
     resetAllStores();
     set({ user: null, token: null, isAuthenticated: false, error: null });
+  },
+
+  deleteAccount: async (password) => {
+    set({ isLoading: true, error: null });
+    try {
+      // Server soft-deletes + anonymizes and clears device tokens itself, so no
+      // removeDeviceToken call here — it would 403 once the account is deleted.
+      await deleteAccount(password);
+      await removeToken();
+      resetAllStores();
+      set({ user: null, token: null, isAuthenticated: false, isLoading: false, error: null });
+    } catch (err: any) {
+      const message = err.response?.data?.message || err.message || 'Account deletion failed';
+      set({ error: message, isLoading: false });
+      throw new Error(message);
+    }
   },
 
   restoreSession: async () => {

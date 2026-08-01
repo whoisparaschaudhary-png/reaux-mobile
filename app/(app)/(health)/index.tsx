@@ -14,6 +14,7 @@ import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { AppTopBar } from '../../../src/components/layout/AppTopBar';
 import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
+import { SourcesCard } from '../../../src/components/ui/SourcesCard';
 import { useBmiStore } from '../../../src/stores/useBmiStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { colors, fontFamily, spacing, borderRadius, shadows } from '../../../src/theme';
@@ -576,6 +577,9 @@ export default function HealthScreen() {
           </View>
         </TouchableOpacity>
 
+        {/* Citations for BMI/BMR/TDEE figures (App Store guideline 1.4.1) */}
+        <SourcesCard style={styles.sourcesCard} />
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeScreen>
@@ -971,6 +975,9 @@ const styles = StyleSheet.create({
     lineHeight: ms(18),
     color: colors.text.secondary,
     marginTop: 2,
+  },
+  sourcesCard: {
+    marginTop: spacing.xxl,
   },
   bottomSpacer: {
     height: spacing.xxxl,

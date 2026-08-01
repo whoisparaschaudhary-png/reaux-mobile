@@ -29,7 +29,7 @@ export const LEGAL_DOCS: Record<string, LegalDoc> = {
       { heading: 'Information we collect', body: 'Account details you provide (name, email, phone), fitness data you record (BMI, plans you follow), and basic usage information needed to run the app.' },
       { heading: 'How we use it', body: 'To provide the community, marketplace, diet and cycle content, process orders, and improve the experience. We do not sell your personal data.' },
       { heading: 'Sharing', body: 'We share data only with service providers that help operate the app (e.g. payments, hosting) and where required by law.' },
-      { heading: 'Your choices', body: 'You can edit your profile, request account deletion, and control notification permissions from your device settings.' },
+      { heading: 'Your choices', body: 'You can edit your profile and delete your account at any time from Profile → Delete Account — this permanently removes your personal information. Notification permissions can be controlled from your device settings.' },
       { heading: 'Contact', body: 'For any privacy request, reach out to REAUX Labs support through the Contact option in your profile.' },
     ],
   },

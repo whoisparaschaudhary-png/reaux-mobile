@@ -5,6 +5,9 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
@@ -39,6 +42,7 @@ export default function ProfileScreen() {
   const uploadAvatarAction = useAuthStore((s) => s.uploadAvatar);
   const isLoading = useAuthStore((s) => s.isLoading);
   const logout = useAuthStore((s) => s.logout);
+  const deleteAccountAction = useAuthStore((s) => s.deleteAccount);
   const openDrawer = useUIStore((s) => s.openDrawer);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const getUnreadCount = useNotificationStore((s) => s.getUnreadCount);
@@ -123,6 +127,41 @@ export default function ProfileScreen() {
         },
       },
     ]);
+  };
+
+  // Account deletion (App Store 5.1.1(v) / Play requirement): password-confirmed
+  // soft delete via DELETE /auth/account, then drop the local session.
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const openDeleteModal = () => {
+    setDeletePassword('');
+    setDeleteError(null);
+    setDeleteModalVisible(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletePassword.trim()) {
+      setDeleteError('Enter your password to confirm');
+      return;
+    }
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteAccountAction(deletePassword);
+      setDeleteModalVisible(false);
+      router.replace('/(auth)/login');
+      showAppAlert(
+        'Account Deleted',
+        'Your account and personal data have been deleted.',
+      );
+    } catch (err: any) {
+      setDeleteError(err?.message || 'Could not delete account. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -653,7 +692,77 @@ export default function ProfileScreen() {
             fullWidth
           />
         </View>
+
+        {/* Delete account (App Store 5.1.1(v): must be reachable in-app) */}
+        <TouchableOpacity
+          style={styles.deleteAccountButton}
+          onPress={openDeleteModal}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="trash-outline" size={18} color={colors.status.error} />
+          <Text style={styles.deleteAccountText}>Delete Account</Text>
+        </TouchableOpacity>
       </ScrollView>
+
+      {/* Delete account confirmation modal */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !isDeleting && setDeleteModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.deleteModalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={[styles.deleteModalCard, shadows.card]}>
+            <View style={styles.deleteModalIconWrap}>
+              <Ionicons name="warning" size={28} color={colors.status.error} />
+            </View>
+            <Text style={styles.deleteModalTitle}>Delete Account?</Text>
+            <Text style={styles.deleteModalMessage}>
+              This permanently deletes your account. Your profile, personal details and saved
+              addresses are removed and you will be signed out everywhere. This cannot be undone.
+            </Text>
+            <Input
+              label="Confirm your password"
+              placeholder="Password"
+              value={deletePassword}
+              onChangeText={(v) => {
+                setDeletePassword(v);
+                if (deleteError) setDeleteError(null);
+              }}
+              secureTextEntry
+              error={deleteError ?? undefined}
+            />
+            <View style={styles.deleteModalActions}>
+              <View style={styles.deleteModalActionButton}>
+                <Button
+                  title="Cancel"
+                  onPress={() => setDeleteModalVisible(false)}
+                  variant="outline"
+                  size="md"
+                  fullWidth
+                  disabled={isDeleting}
+                />
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.deleteModalConfirm,
+                  isDeleting && styles.deleteModalConfirmDisabled,
+                ]}
+                onPress={handleConfirmDelete}
+                disabled={isDeleting}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.deleteModalConfirmText}>
+                  {isDeleting ? 'Deleting…' : 'Delete'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeScreen>
   );
 }
@@ -888,6 +997,80 @@ const styles = StyleSheet.create({
   logoutContainer: {
     marginTop: spacing.xxl,
     marginBottom: spacing.lg,
+  },
+  deleteAccountButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  deleteAccountText: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(15),
+    lineHeight: ms(20),
+    color: colors.status.error,
+  },
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay.medium,
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  deleteModalCard: {
+    backgroundColor: colors.background.white,
+    borderRadius: borderRadius.card,
+    padding: spacing.xxl,
+  },
+  deleteModalIconWrap: {
+    width: ms(56),
+    height: ms(56),
+    borderRadius: ms(28),
+    backgroundColor: '#fee2e2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  deleteModalTitle: {
+    ...typography.h3,
+    color: colors.text.primary,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  deleteModalMessage: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(14),
+    lineHeight: ms(20),
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  deleteModalActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
+  deleteModalActionButton: {
+    flex: 1,
+  },
+  deleteModalConfirm: {
+    flex: 1,
+    backgroundColor: colors.status.error,
+    borderRadius: borderRadius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+  },
+  deleteModalConfirmDisabled: {
+    opacity: 0.6,
+  },
+  deleteModalConfirmText: {
+    fontFamily: fontFamily.bold,
+    fontSize: ms(15),
+    lineHeight: ms(20),
+    color: colors.text.white,
   },
   sectionGroupTitle: {
     fontFamily: fontFamily.bold,

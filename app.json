@@ -16,9 +16,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.babbaranish.reauxlabsmobile",
+      "buildNumber": "2",
       "infoPlist": {
-        "NSCameraUsageDescription": "REAUX Labs needs camera access to upload gym photos.",
-        "NSPhotoLibraryUsageDescription": "REAUX Labs needs photo library access to upload images."
+        "NSCameraUsageDescription": "REAUX Labs uses your camera to let you take a photo in the app — for example, to snap a picture of yourself to set as your profile avatar or to attach a gym photo to a community post.",
+        "NSPhotoLibraryUsageDescription": "REAUX Labs uses your photo library to let you choose photos and videos to share in the app — for example, to pick a photo to set as your profile avatar, attach an image to a community post, or select a workout video to publish as a reel.",
+        "NSMicrophoneUsageDescription": "REAUX Labs uses your microphone when you record a video with sound in the app — for example, to record a workout reel with audio to share with the community.",
+        "NSFaceIDUsageDescription": "REAUX Labs uses Face ID to confirm it's you before unlocking your securely saved login session on this device, so you don't have to re-enter your password."
       }
     },
     "android": {
@@ -75,8 +78,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "REAUX Labs needs access to your photos to upload images.",
-          "cameraPermission": "REAUX Labs needs camera access to take photos."
+          "photosPermission": "REAUX Labs uses your photo library to let you choose photos and videos to share in the app — for example, to pick a photo to set as your profile avatar, attach an image to a community post, or select a workout video to publish as a reel.",
+          "cameraPermission": "REAUX Labs uses your camera to let you take a photo in the app — for example, to snap a picture of yourself to set as your profile avatar or to attach a gym photo to a community post."
         }
       ],
       [

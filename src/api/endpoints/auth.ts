@@ -96,6 +96,20 @@ export async function uploadAvatar(
   return data;
 }
 
+// Soft-deletes the account server-side (status='deleted' + PII anonymized).
+// Backend requires the current password to confirm.
+export async function deleteAccount(
+  password: string,
+): Promise<ApiResponse<null>> {
+  const { data } = await client.delete<ApiResponse<null>>('/auth/account', {
+    data: { password },
+    // A 401 here means "incorrect password" — surface it in the confirm UI
+    // instead of letting the interceptor kill the session.
+    skipAuthLogout: true,
+  });
+  return data;
+}
+
 export async function forgotPassword(
   email: string,
 ): Promise<ApiResponse<null>> {
