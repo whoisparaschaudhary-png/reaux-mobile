@@ -377,6 +377,37 @@ export default function ProfileScreen() {
           </Card>
         )}
 
+        {/* Reports & Moderation - Admin (App Store 1.2: act on reports within 24h).
+            Without this card, plain admins have no path to the queue — the
+            Admin Panel dashboard card above is superadmin-only. */}
+        {isAdmin && (
+          <Card
+            style={styles.linkCard}
+            onPress={() => router.navigate({ pathname: '/(app)/(admin)/moderation', params: { backRoute: 'profile' } } as any)}
+          >
+            <View style={styles.linkCardContent}>
+              <View style={styles.linkCardLeft}>
+                <Ionicons
+                  name="flag-outline"
+                  size={22}
+                  color={colors.text.primary}
+                />
+                <View style={styles.linkCardText}>
+                  <Text style={styles.linkCardTitle}>Reports & Moderation</Text>
+                  <Text style={styles.linkCardSubtitle}>
+                    Review flagged content and blocked users
+                  </Text>
+                </View>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.text.light}
+              />
+            </View>
+          </Card>
+        )}
+
         {/* My Gym - Admin with gym */}
         {isAdmin && !isSuperadmin && gym && (
           <Card
