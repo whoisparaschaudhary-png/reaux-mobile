@@ -17,6 +17,8 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { SafeScreen } from '../../src/components/layout/SafeScreen';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
+import { LegalDocModal } from '../../src/components/ui/LegalDocModal';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/stores/useAuthStore';
 import { useUIStore } from '../../src/stores/useUIStore';
 import { isValidEmail, isValidIndianPhone, isValidName, isValidPassword, isValidDateOfBirth } from '../../src/utils/validators';
@@ -37,6 +39,8 @@ export default function RegisterScreen() {
   const [phone, setPhone] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [legalSlug, setLegalSlug] = useState<string | null>(null);
 
   const register = useAuthStore((s) => s.register);
   const isLoading = useAuthStore((s) => s.isLoading);
@@ -79,6 +83,10 @@ export default function RegisterScreen() {
     }
     if (!isValidDateOfBirth(dateOfBirth.toISOString())) {
       showToast('You must be at least 10 years old to register', 'error');
+      return;
+    }
+    if (!agreedToTerms) {
+      showToast('Please agree to the Terms of Use (EULA) to continue', 'error');
       return;
     }
     try {
@@ -223,6 +231,38 @@ export default function RegisterScreen() {
                     secureTextEntry
                   />
 
+                  {/* App Store 1.2: users must agree to the EULA (zero
+                      tolerance for objectionable content) before registering */}
+                  <TouchableOpacity
+                    style={styles.termsRow}
+                    onPress={() => setAgreedToTerms((v) => !v)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={agreedToTerms ? 'checkbox' : 'square-outline'}
+                      size={ms(22)}
+                      color={agreedToTerms ? colors.primary.yellowDark : colors.text.secondary}
+                    />
+                    <Text style={styles.termsText}>
+                      I agree to the{' '}
+                      <Text
+                        style={styles.termsLink}
+                        onPress={() => setLegalSlug('terms-and-conditions')}
+                      >
+                        Terms of Use (EULA)
+                      </Text>{' '}
+                      and{' '}
+                      <Text
+                        style={styles.termsLink}
+                        onPress={() => setLegalSlug('privacy-policy')}
+                      >
+                        Privacy Policy
+                      </Text>
+                      , including the zero-tolerance policy for objectionable
+                      content and abusive behavior.
+                    </Text>
+                  </TouchableOpacity>
+
                   <Button
                     title="Create Account"
                     onPress={handleRegister}
@@ -230,7 +270,7 @@ export default function RegisterScreen() {
                     size="lg"
                     fullWidth
                     loading={isLoading}
-                    disabled={isLoading}
+                    disabled={isLoading || !agreedToTerms}
                   />
 
                   <View style={styles.signinRow}>
@@ -247,6 +287,8 @@ export default function RegisterScreen() {
           </KeyboardAvoidingView>
         </LinearGradient>
       </ImageBackground>
+
+      <LegalDocModal slug={legalSlug} onClose={() => setLegalSlug(null)} />
     </SafeScreen>
   );
 }
@@ -364,6 +406,25 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: ms(16),
     color: colors.text.primary,
+  },
+  termsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  termsText: {
+    flex: 1,
+    fontFamily: fontFamily.regular,
+    fontSize: ms(12),
+    lineHeight: ms(18),
+    color: colors.text.secondary,
+  },
+  termsLink: {
+    fontFamily: fontFamily.bold,
+    color: colors.text.primary,
+    textDecorationLine: 'underline',
   },
   signinRow: {
     flexDirection: 'row',

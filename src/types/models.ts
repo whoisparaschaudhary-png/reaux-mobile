@@ -517,3 +517,32 @@ export interface Membership {
   createdAt: string;
   updatedAt: string;
 }
+
+// Moderation (App Store Guideline 1.2)
+export type ReportContentType = 'post' | 'reel' | 'comment' | 'reelComment' | 'user';
+export type ReportReason =
+  | 'spam'
+  | 'harassment'
+  | 'nudity'
+  | 'violence'
+  | 'hate_speech'
+  | 'false_information'
+  | 'blocked_user'
+  | 'other';
+export type ReportStatus = 'pending' | 'removed' | 'dismissed';
+
+export interface ContentReport {
+  _id: string;
+  reporter: string | User;
+  contentType: ReportContentType;
+  contentId: string;
+  contentAuthor?: string | User;
+  contentSnapshot?: string;
+  reason: ReportReason;
+  details?: string;
+  status: ReportStatus;
+  reviewedBy?: string | User;
+  reviewedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}

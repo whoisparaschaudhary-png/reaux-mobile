@@ -652,6 +652,25 @@ export default function ProfileScreen() {
           </View>
         </Card>
 
+        {/* Blocked Users (App Store 1.2: manage blocked members) */}
+        <Card
+          style={styles.linkCard}
+          onPress={() => router.push('/(app)/(profile)/blocked-users')}
+        >
+          <View style={styles.linkCardContent}>
+            <View style={styles.linkCardLeft}>
+              <Ionicons name="person-remove-outline" size={22} color={colors.text.primary} />
+              <View style={styles.linkCardText}>
+                <Text style={styles.linkCardTitle}>Blocked Users</Text>
+                <Text style={styles.linkCardSubtitle}>
+                  Manage members you have blocked
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.text.light} />
+          </View>
+        </Card>
+
         {/* Legal & Policies */}
         <Card style={styles.linkCard} onPress={openDrawer}>
           <View style={styles.linkCardContent}>

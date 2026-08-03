@@ -21,6 +21,8 @@ interface ReelCardProps {
   onComment?: () => void;
   onShare?: () => void;
   onDelete?: () => void;
+  /** Opens the report/block sheet. Omitted for the viewer's own reels. */
+  onOptions?: () => void;
   height: number;
 }
 
@@ -31,6 +33,7 @@ export const ReelCard: React.FC<ReelCardProps> = ({
   onComment,
   onShare,
   onDelete,
+  onOptions,
   height,
 }) => {
   const { width: screenW } = useWindowDimensions();
@@ -111,6 +114,12 @@ export const ReelCard: React.FC<ReelCardProps> = ({
           <TouchableOpacity onPress={onDelete} style={styles.actionItem}>
             <Ionicons name="trash-outline" size={ms(26)} color={colors.status.error} />
             <Text style={styles.actionText}>Delete</Text>
+          </TouchableOpacity>
+        )}
+        {onOptions != null && (
+          <TouchableOpacity onPress={onOptions} style={styles.actionItem}>
+            <Ionicons name="ellipsis-horizontal" size={ms(26)} color={colors.text.white} />
+            <Text style={styles.actionText}>More</Text>
           </TouchableOpacity>
         )}
       </View>

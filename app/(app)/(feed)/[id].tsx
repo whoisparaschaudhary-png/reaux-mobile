@@ -20,6 +20,7 @@ import { Header } from '../../../src/components/layout/Header';
 import { Avatar } from '../../../src/components/ui/Avatar';
 import { Badge } from '../../../src/components/ui/Badge';
 import { CommentCard } from '../../../src/components/cards/CommentCard';
+import { ContentModerationSheet, ModerationTarget } from '../../../src/components/moderation/ContentModerationSheet';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { postsApi } from '../../../src/api/endpoints/posts';
 import { useFeedStore } from '../../../src/stores/useFeedStore';
@@ -215,6 +216,7 @@ export default function PostDetailScreen() {
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [moderationTarget, setModerationTarget] = useState<ModerationTarget | null>(null);
 
   const loadPost = useCallback(async () => {
     if (!id) return;
@@ -312,6 +314,50 @@ export default function PostDetailScreen() {
     [id],
   );
 
+  const openPostOptions = useCallback(() => {
+    if (!post) return;
+    const author = typeof post.author === 'object' ? (post.author as User) : null;
+    setModerationTarget({
+      contentType: 'post',
+      contentId: post._id,
+      authorId: author?._id,
+      authorName: author?.name,
+    });
+  }, [post]);
+
+  const openCommentOptions = useCallback(
+    (commentId: string) => {
+      const comment = comments.find((c) => c._id === commentId);
+      if (!comment) return;
+      const author = typeof comment.author === 'object' ? (comment.author as User) : null;
+      setModerationTarget({
+        contentType: 'comment',
+        contentId: commentId,
+        authorId: author?._id,
+        authorName: author?.name,
+      });
+    },
+    [comments],
+  );
+
+  // Blocking from the post header means the whole post is gone — leave the
+  // screen. Blocking a commenter just refetches so their comments vanish.
+  const handleBlocked = useCallback(() => {
+    if (moderationTarget?.contentType === 'post') {
+      router.back();
+    } else {
+      loadPost();
+    }
+  }, [moderationTarget?.contentType, router, loadPost]);
+
+  const isOwnContent = useCallback(
+    (author: Comment['author'] | Post['author']) => {
+      const ownerId = typeof author === 'object' ? (author as User)?._id : author;
+      return !!user?._id && ownerId === user._id;
+    },
+    [user?._id],
+  );
+
   const headerElement = useMemo(() => {
     if (!post) return null;
     const author = typeof post.author === 'object' ? (post.author as User) : null;
@@ -359,6 +405,23 @@ export default function PostDetailScreen() {
         title="Post"
         showBack
         onBack={() => router.back()}
+        rightAction={
+          !isOwnContent(post.author) ? (
+            <TouchableOpacity
+              onPress={openPostOptions}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="ellipsis-horizontal" size={22} color={colors.text.primary} />
+            </TouchableOpacity>
+          ) : undefined
+        }
+      />
+
+      <ContentModerationSheet
+        visible={moderationTarget !== null}
+        onClose={() => setModerationTarget(null)}
+        target={moderationTarget}
+        onBlocked={handleBlocked}
       />
 
       <KeyboardAvoidingView
@@ -374,6 +437,7 @@ export default function PostDetailScreen() {
               comment={item}
               showDelete={isSuperAdmin}
               onDelete={handleDeleteComment}
+              onOptions={isOwnContent(item.author) ? undefined : openCommentOptions}
             />
           )}
           ListHeaderComponent={() => headerElement}

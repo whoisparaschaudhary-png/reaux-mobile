@@ -18,3 +18,4 @@ export { gymsApi } from './gyms';
 export { membershipsApi } from './memberships';
 export { workoutsApi } from './workouts';
 export { contactsApi } from './contacts';
+export { moderationApi } from './moderation';

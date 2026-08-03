@@ -18,6 +18,7 @@ import { RefreshControl, FlatList } from 'react-native';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { AppTopBar } from '../../../src/components/layout/AppTopBar';
 import { PostCard } from '../../../src/components/cards/PostCard';
+import { ContentModerationSheet, ModerationTarget } from '../../../src/components/moderation/ContentModerationSheet';
 import { UserCard } from '../../../src/components/cards/UserCard';
 import { Avatar } from '../../../src/components/ui/Avatar';
 import { SearchBar } from '../../../src/components/ui/SearchBar';
@@ -376,23 +377,40 @@ export default function FeedScreen() {
     [router],
   );
 
+  const [moderationTarget, setModerationTarget] = useState<ModerationTarget | null>(null);
+
+  const openPostOptions = useCallback((item: Post) => {
+    const author = typeof item.author === 'object' ? (item.author as User) : null;
+    setModerationTarget({
+      contentType: 'post',
+      contentId: item._id,
+      authorId: author?._id,
+      authorName: author?.name,
+    });
+  }, []);
+
   const renderPost = useCallback(
-    ({ item }: { item: Post }) => (
-      <PostCard
-        post={item}
-        onPress={() => router.push(`/(app)/(feed)/${item._id}`)}
-        onLike={() => { likePost(item._id).catch(() => {}); }}
-        onComment={() => router.push(`/(app)/(feed)/${item._id}`)}
-        onShare={() => {
-          Share.share({
-            message: item.content
-              ? `${item.content}\n\n— REAUX Labs\nFollow us: https://www.instagram.com/reauxlabs/`
-              : 'Check out REAUX Labs – your fitness community!\nFollow us: https://www.instagram.com/reauxlabs/',
-          });
-        }}
-      />
-    ),
-    [router, likePost],
+    ({ item }: { item: Post }) => {
+      const authorIdOfPost = typeof item.author === 'object' ? (item.author as User)?._id : item.author;
+      const isOwnPost = !!user?._id && authorIdOfPost === user._id;
+      return (
+        <PostCard
+          post={item}
+          onPress={() => router.push(`/(app)/(feed)/${item._id}`)}
+          onLike={() => { likePost(item._id).catch(() => {}); }}
+          onComment={() => router.push(`/(app)/(feed)/${item._id}`)}
+          onShare={() => {
+            Share.share({
+              message: item.content
+                ? `${item.content}\n\n— REAUX Labs\nFollow us: https://www.instagram.com/reauxlabs/`
+                : 'Check out REAUX Labs – your fitness community!\nFollow us: https://www.instagram.com/reauxlabs/',
+            });
+          }}
+          onOptions={isOwnPost ? undefined : () => openPostOptions(item)}
+        />
+      );
+    },
+    [router, likePost, user?._id, openPostOptions],
   );
 
   const renderFooter = useCallback(() => {
@@ -411,6 +429,12 @@ export default function FeedScreen() {
         title={isAdmin && (activeCategory === 'Members' || activeCategory === 'Birthdays' || activeCategory === 'Promotions')
           ? activeCategory
           : 'Feed'}
+      />
+
+      <ContentModerationSheet
+        visible={moderationTarget !== null}
+        onClose={() => setModerationTarget(null)}
+        target={moderationTarget}
       />
       {/* Category filters + contextual admin actions — one balanced toolbar row.
           Chips scroll on the left; the Members-tab actions (Export / Add member)

@@ -236,6 +236,11 @@ export default function AdminDashboardScreen() {
                 label="Manage Challenges"
                 onPress={() => router.push('/(app)/(admin)/challenges')}
               />
+              <View style={styles.divider} />
+              <MenuItem
+                label="Reports & Moderation"
+                onPress={() => router.push('/(app)/(admin)/moderation')}
+              />
               {isSuperadmin && (
                 <>
                   <View style={styles.divider} />

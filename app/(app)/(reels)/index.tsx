@@ -16,6 +16,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeScreen } from '../../../src/components/layout/SafeScreen';
 import { ReelCard } from '../../../src/components/cards/ReelCard';
+import { ContentModerationSheet, ModerationTarget } from '../../../src/components/moderation/ContentModerationSheet';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { useReelStore } from '../../../src/stores/useReelStore';
 import { useAuthStore } from '../../../src/stores/useAuthStore';
@@ -30,6 +31,7 @@ export default function ReelsScreen() {
   const router = useRouter();
   const [visibleId, setVisibleId] = useState<string | null>(null);
   const [reelHeight, setReelHeight] = useState(SCREEN_HEIGHT);
+  const [moderationTarget, setModerationTarget] = useState<ModerationTarget | null>(null);
   const user = useAuthStore((s) => s.user);
   const isSuperAdmin = user?.role === 'superadmin';
   const isAdmin = user?.role === 'admin' || isSuperAdmin;
@@ -118,6 +120,24 @@ export default function ReelsScreen() {
     [deleteReel],
   );
 
+  const openReelOptions = useCallback((item: Reel) => {
+    const author = typeof item.author === 'object' ? item.author : null;
+    setModerationTarget({
+      contentType: 'reel',
+      contentId: item._id,
+      authorId: author?._id,
+      authorName: author?.name,
+    });
+  }, []);
+
+  const isOwnReel = useCallback(
+    (reel: Reel) => {
+      const authorId = typeof reel.author === 'object' ? reel.author?._id : reel.author;
+      return !!user?._id && authorId === user._id;
+    },
+    [user?._id],
+  );
+
   const renderReel = useCallback(
     ({ item }: { item: Reel }) => (
       <ReelCard
@@ -127,10 +147,11 @@ export default function ReelsScreen() {
         onComment={() => router.push(`/(app)/(reels)/${item._id}`)}
         onShare={() => handleShareReel()}
         onDelete={canDelete(item) ? () => handleDeleteReel(item) : undefined}
+        onOptions={isOwnReel(item) ? undefined : () => openReelOptions(item)}
         height={reelHeight}
       />
     ),
-    [visibleId, likeReel, reelHeight, handleShareReel, router, canDelete, handleDeleteReel],
+    [visibleId, likeReel, reelHeight, handleShareReel, router, canDelete, handleDeleteReel, isOwnReel, openReelOptions],
   );
 
   const renderFooter = useCallback(() => {
@@ -185,6 +206,12 @@ export default function ReelsScreen() {
             removeClippedSubviews
           />
         )}
+
+        <ContentModerationSheet
+          visible={moderationTarget !== null}
+          onClose={() => setModerationTarget(null)}
+          target={moderationTarget}
+        />
 
         {/* Overlay header */}
         <View style={styles.overlayHeader} pointerEvents="box-none">

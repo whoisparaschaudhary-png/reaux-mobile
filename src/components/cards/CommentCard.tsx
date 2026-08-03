@@ -10,9 +10,11 @@ interface CommentCardProps {
   comment: Comment | ReelComment;
   showDelete?: boolean;
   onDelete?: (commentId: string) => void;
+  /** Opens the report/block sheet. Omitted for the viewer's own comments. */
+  onOptions?: (commentId: string) => void;
 }
 
-export const CommentCard: React.FC<CommentCardProps> = ({ comment, showDelete, onDelete }) => {
+export const CommentCard: React.FC<CommentCardProps> = ({ comment, showDelete, onDelete, onOptions }) => {
   const author =
     typeof comment.author === 'object' ? (comment.author as User) : null;
   const authorName = author?.name ?? 'User';
@@ -29,15 +31,24 @@ export const CommentCard: React.FC<CommentCardProps> = ({ comment, showDelete, o
           <Text style={styles.timestamp}>
             {formatRelative(comment.createdAt)}
           </Text>
-          {showDelete && onDelete && (
-            <TouchableOpacity
-              onPress={() => onDelete(comment._id)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              style={styles.deleteButton}
-            >
-              <Ionicons name="trash-outline" size={16} color={colors.status.error} />
-            </TouchableOpacity>
-          )}
+          <View style={styles.trailingActions}>
+            {onOptions && (
+              <TouchableOpacity
+                onPress={() => onOptions(comment._id)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="flag-outline" size={15} color={colors.text.light} />
+              </TouchableOpacity>
+            )}
+            {showDelete && onDelete && (
+              <TouchableOpacity
+                onPress={() => onDelete(comment._id)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="trash-outline" size={16} color={colors.status.error} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
         <Text style={styles.content}>{comment.content}</Text>
       </View>
@@ -74,8 +85,11 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: colors.text.light,
   },
-  deleteButton: {
+  trailingActions: {
     marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
   },
   content: {
     fontFamily: fontFamily.regular,

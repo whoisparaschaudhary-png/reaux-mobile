@@ -18,6 +18,8 @@ interface PostCardProps {
   onLike?: () => void;
   onComment?: () => void;
   onShare?: () => void;
+  /** Opens the report/block sheet. Omitted for the viewer's own posts. */
+  onOptions?: () => void;
 }
 
 const getRoleBadge = (role: Role): { text: string; variant: 'primary' | 'success' | 'info' } | null => {
@@ -32,6 +34,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   onLike,
   onComment,
   onShare,
+  onOptions,
 }) => {
   const cardMargin = spacing.lg;
 
@@ -126,6 +129,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                 {railButton('heart-outline', 'heart', !!post.isLiked, colors.status.error, handleLike, formatNumber(post.likesCount), true)}
                 {railButton('chatbubble-outline', 'chatbubble', false, colors.text.white, onComment, formatNumber(post.commentsCount))}
                 {railButton('share-social-outline', 'share-social', false, colors.text.white, onShare, 'Share')}
+                {onOptions && railButton('ellipsis-horizontal', 'ellipsis-horizontal', false, colors.text.white, onOptions)}
               </View>
 
               {/* Author overlay */}
@@ -239,6 +243,16 @@ export const PostCard: React.FC<PostCardProps> = ({
 
               {post.category && (
                 <Badge text={post.category} variant="default" size="sm" />
+              )}
+
+              {onOptions && (
+                <TouchableOpacity
+                  onPress={onOptions}
+                  style={styles.actionButton}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="ellipsis-horizontal" size={ms(20)} color={colors.text.secondary} />
+                </TouchableOpacity>
               )}
             </View>
           </>

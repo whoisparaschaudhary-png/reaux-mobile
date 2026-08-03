@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeScreen } from '../../src/components/layout/SafeScreen';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
+import { LegalDocModal } from '../../src/components/ui/LegalDocModal';
 import { FadeInView, SlideInUpView } from '../../src/components/animated/AnimatedComponents';
 import { useAuthStore } from '../../src/stores/useAuthStore';
 import { useUIStore } from '../../src/stores/useUIStore';
@@ -25,6 +26,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [legalSlug, setLegalSlug] = useState<string | null>(null);
 
   const login = useAuthStore((s) => s.login);
   const isLoading = useAuthStore((s) => s.isLoading);
@@ -155,6 +157,19 @@ export default function LoginScreen() {
               disabled={isLoading}
             />
 
+            {/* App Store 1.2: surface the EULA before signing in */}
+            <Text style={styles.termsNotice}>
+              By continuing, you agree to our{' '}
+              <Text style={styles.termsNoticeLink} onPress={() => setLegalSlug('terms-and-conditions')}>
+                Terms of Use (EULA)
+              </Text>{' '}
+              and{' '}
+              <Text style={styles.termsNoticeLink} onPress={() => setLegalSlug('privacy-policy')}>
+                Privacy Policy
+              </Text>
+              .
+            </Text>
+
             {/* Sign up link */}
             <View style={styles.signupRow}>
               <Text style={styles.signupText}>Don't have an account? </Text>
@@ -166,6 +181,8 @@ export default function LoginScreen() {
             </View>
           </View>
       </ScrollView>
+
+      <LegalDocModal slug={legalSlug} onClose={() => setLegalSlug(null)} />
     </SafeScreen>
   );
 }
@@ -258,6 +275,19 @@ const styles = StyleSheet.create({
   },
   socialButton: {
     flex: 1,
+  },
+  termsNotice: {
+    fontFamily: fontFamily.regular,
+    fontSize: ms(12),
+    lineHeight: ms(18),
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginTop: spacing.md,
+  },
+  termsNoticeLink: {
+    fontFamily: fontFamily.bold,
+    color: colors.text.primary,
+    textDecorationLine: 'underline',
   },
   signupRow: {
     flexDirection: 'row',

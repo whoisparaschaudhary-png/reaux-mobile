@@ -10,6 +10,7 @@ import { useBmiStore } from './useBmiStore';
 import { useChallengeStore } from './useChallengeStore';
 import { useAdminStore } from './useAdminStore';
 import { useWorkoutStore } from './useWorkoutStore';
+import { useModerationStore } from './useModerationStore';
 
 /**
  * Clears all user-scoped store data.
@@ -29,4 +30,5 @@ export function resetAllStores() {
   useChallengeStore.setState({ challenges: [], isLoading: false, isRefreshing: false, error: null });
   useAdminStore.setState({ stats: null, salesReport: null, users: [], isLoading: false, error: null });
   useWorkoutStore.setState({ workouts: [], selectedWorkout: null, isLoading: false, isRefreshing: false, error: null });
+  useModerationStore.setState({ blockedUsers: [], blockedLoading: false, error: null, reports: [], reportsLoading: false });
 }

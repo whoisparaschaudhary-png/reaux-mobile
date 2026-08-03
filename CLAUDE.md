@@ -244,6 +244,7 @@ large:  offset(0,25) opacity(0.25) radius(50) elevation(10)
 | Challenges | `GET /challenges`, `POST /challenges`, `POST /challenges/:id/join` |
 | Notifications | `GET /notifications`, `PUT /notifications/read/:id`, `PATCH /notifications/mark-all-read` |
 | Promos | `GET /promo`, `POST /promo/create`, `POST /promo/validate` |
+| Moderation | `POST /moderation/reports`, `GET /moderation/reports` (admin), `PATCH /moderation/reports/:id` (admin), `POST/DELETE /moderation/block/:userId`, `GET /moderation/blocked` |
 | Admin | `GET /admin/stats`, `GET /admin/sales-report`, `GET/PUT /users`, `CRUD /gyms` |
 
 ---
@@ -329,6 +330,13 @@ This section tracks which API features (as defined in the backend API documentat
 - Join challenges
 - View challenge participants and progress
 - Create challenges (admin)
+
+**UGC Moderation (App Store Guideline 1.2)**
+- EULA/terms agreement required at registration (checkbox + in-modal Terms of Use viewer); terms include zero-tolerance policy
+- Report/flag any post, reel, or comment (`ContentModerationSheet`, reason picker)
+- Block users (instant client-side purge + server-side feed filtering via `User.blockedUsers`); Blocked Users management screen in Profile
+- Backend objectionable-content filter on post/comment/reel creation (`shared/contentFilter.js`)
+- Admin "Reports & Moderation" queue (`(admin)/moderation.tsx`): remove content, remove + eject user, dismiss; reports also emailed to `MODERATION_EMAIL`
 
 **Admin Features**
 - Platform analytics (user counts, posts, orders, products)

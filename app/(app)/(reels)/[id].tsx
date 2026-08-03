@@ -19,6 +19,8 @@ import { Header } from '../../../src/components/layout/Header';
 import { Avatar } from '../../../src/components/ui/Avatar';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { CommentCard } from '../../../src/components/cards/CommentCard';
+import { ContentModerationSheet, ModerationTarget } from '../../../src/components/moderation/ContentModerationSheet';
+import { useAuthStore } from '../../../src/stores/useAuthStore';
 import { reelsApi } from '../../../src/api/endpoints/reels';
 import { useReelStore } from '../../../src/stores/useReelStore';
 import { formatRelative, formatNumber } from '../../../src/utils/formatters';
@@ -40,7 +42,9 @@ export default function ReelDetailScreen() {
   const clearComments = useReelStore((s) => s.clearComments);
   const showToast = useUIStore((s) => s.showToast);
 
+  const currentUser = useAuthStore((s) => s.user);
   const [reel, setReel] = useState<Reel | null>(null);
+  const [moderationTarget, setModerationTarget] = useState<ModerationTarget | null>(null);
   const [commentText, setCommentText] = useState('');
   const [isSendingComment, setIsSendingComment] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,6 +135,7 @@ export default function ReelDetailScreen() {
   const author = typeof reel.author === 'object' ? (reel.author as User) : null;
   const authorName = author?.name ?? 'Unknown';
   const authorAvatar = author?.avatar;
+  const isOwnReel = !!currentUser?._id && author?._id === currentUser._id;
 
   return (
     <SafeScreen>
@@ -139,10 +144,42 @@ export default function ReelDetailScreen() {
         showBack
         onBack={() => router.back()}
         rightAction={
-          <TouchableOpacity onPress={handleShare} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="share-outline" size={24} color={colors.text.primary} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
+            <TouchableOpacity onPress={handleShare} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="share-outline" size={24} color={colors.text.primary} />
+            </TouchableOpacity>
+            {!isOwnReel && (
+              <TouchableOpacity
+                onPress={() =>
+                  setModerationTarget({
+                    contentType: 'reel',
+                    contentId: reel._id,
+                    authorId: author?._id,
+                    authorName,
+                  })
+                }
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="ellipsis-horizontal" size={24} color={colors.text.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
         }
+      />
+
+      <ContentModerationSheet
+        visible={moderationTarget !== null}
+        onClose={() => setModerationTarget(null)}
+        target={moderationTarget}
+        onBlocked={() => {
+          // Blocking the reel's author removes the reel — leave the screen.
+          // Blocking a commenter just refreshes the thread.
+          if (moderationTarget?.contentType === 'reel') {
+            router.back();
+          } else if (id) {
+            fetchComments(id);
+          }
+        }}
       />
       <KeyboardAvoidingView
         style={styles.flex}
@@ -188,7 +225,27 @@ export default function ReelDetailScreen() {
                 <Text style={styles.emptyText}>No comments yet. Be the first to comment.</Text>
               </View>
             ) : (
-              comments.map((c) => <CommentCard key={c._id} comment={c} />)
+              comments.map((c) => {
+                const commentAuthor = typeof c.author === 'object' ? (c.author as User) : null;
+                const isOwnComment = !!currentUser?._id && commentAuthor?._id === currentUser._id;
+                return (
+                  <CommentCard
+                    key={c._id}
+                    comment={c}
+                    onOptions={
+                      isOwnComment
+                        ? undefined
+                        : (commentId) =>
+                            setModerationTarget({
+                              contentType: 'reelComment',
+                              contentId: commentId,
+                              authorId: commentAuthor?._id,
+                              authorName: commentAuthor?.name,
+                            })
+                    }
+                  />
+                );
+              })
             )}
           </View>
         </ScrollView>

@@ -35,12 +35,17 @@ export const LEGAL_DOCS: Record<string, LegalDoc> = {
   },
   'terms-and-conditions': {
     slug: 'terms-and-conditions',
-    title: 'Terms and Conditions',
+    title: 'Terms of Use (EULA)',
     updated: 'This is a summary. Contact REAUX Labs support for the full terms.',
-    intro: 'By using REAUX Labs you agree to these terms.',
+    intro: 'By creating an account or using REAUX Labs you agree to these terms of use (end user license agreement).',
     sections: [
       { heading: 'Your account', body: 'You are responsible for keeping your login secure and for activity on your account. You must provide accurate information.' },
       { heading: 'Acceptable use', body: 'Do not misuse the community, upload unlawful content, or attempt to disrupt the service. Admin/coach content is provided for information only.' },
+      {
+        heading: 'Zero tolerance for objectionable content',
+        body:
+          'REAUX Labs has NO TOLERANCE for objectionable content or abusive users. Objectionable content includes nudity or sexually explicit material, harassment or bullying, hate speech, violence, spam, and misleading or unlawful content. All user content passes through an automated filter, and every post, reel and comment can be reported in-app. Our moderation team reviews reports within 24 hours; content that violates these terms is removed and the user who posted it is ejected from the platform. You can also block any user — their content disappears from your feeds immediately and our team is notified.',
+      },
       { heading: 'Health disclaimer', body: 'Diet plans, cycle protocols, and fitness content are educational and are not medical advice. Consult a qualified professional before starting any program.' },
       { heading: 'Purchases', body: 'Marketplace orders are subject to availability and the pricing shown at checkout, in INR (₹).' },
       { heading: 'Changes', body: 'We may update these terms; continued use means you accept the updated terms.' },
@@ -74,7 +79,7 @@ export const LEGAL_DOCS: Record<string, LegalDoc> = {
 
 export const LEGAL_MENU: { slug: string; title: string }[] = [
   { slug: 'privacy-policy', title: 'Privacy Policy' },
-  { slug: 'terms-and-conditions', title: 'Terms and Conditions' },
+  { slug: 'terms-and-conditions', title: 'Terms of Use (EULA)' },
   { slug: 'cancellation-and-refund', title: 'Cancellation and Refund' },
   { slug: 'user-data-policy', title: 'User Data Policy' },
 ];
