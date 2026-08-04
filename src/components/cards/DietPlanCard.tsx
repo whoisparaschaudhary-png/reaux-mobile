@@ -63,6 +63,9 @@ export const DietPlanCard: React.FC<DietPlanCardProps> = ({ plan, onPress }) => 
           )}
           <View style={styles.badgeOverlay}>
             <Badge text={categoryInfo.label} variant={categoryInfo.variant} size="sm" />
+            {/* Drafts are only ever returned to their author/superadmin, so this
+                badge is what tells them apart from live plans in the list. */}
+            {plan.isPublished === false && <Badge text="Draft" variant="warning" size="sm" />}
           </View>
         </View>
 
@@ -142,6 +145,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.sm,
     left: spacing.sm,
+    // Bounded + wrapping so the Draft badge sits beside the category badge
+    // instead of stacking or overflowing the card.
+    right: spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   content: {
     padding: spacing.lg,
