@@ -34,7 +34,7 @@ const CATEGORIES: { label: string; value: DietCategory }[] = [
 const DIET_TYPES: { label: string; value: DietType }[] = [
   { label: 'Veg', value: 'veg' },
   { label: 'Non-Veg', value: 'non-veg' },
-  { label: 'Both', value: 'both' },
+  { label: 'Both (mixed veg + non-veg)', value: 'both' },
 ];
 
 export default function EditDietScreen() {

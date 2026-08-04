@@ -33,11 +33,14 @@ const CATEGORIES: { label: string; value: DietCategory | undefined }[] = [
   { label: 'Other', value: 'other' },
 ];
 
+// No "Both" chip: dietType=both applies no server-side filter, so it returned the
+// exact same list as "All" and read as a broken filter. "Both" remains a value a
+// plan can be tagged with — it just isn't something you filter *by*.
+// Veg is strict; Non-Veg includes mixed plans.
 const DIET_TYPES: { label: string; value: DietType | undefined }[] = [
   { label: 'All', value: undefined },
   { label: 'Veg', value: 'veg' },
   { label: 'Non-Veg', value: 'non-veg' },
-  { label: 'Both', value: 'both' },
 ];
 
 type FuelMode = 'diets' | 'steroids';

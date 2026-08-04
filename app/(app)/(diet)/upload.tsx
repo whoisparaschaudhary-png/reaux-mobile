@@ -33,7 +33,7 @@ const CATEGORIES: { label: string; value: DietCategory }[] = [
 const DIET_TYPES: { label: string; value: DietType }[] = [
   { label: 'Veg', value: 'veg' },
   { label: 'Non-Veg', value: 'non-veg' },
-  { label: 'Both', value: 'both' },
+  { label: 'Both (mixed veg + non-veg)', value: 'both' },
 ];
 
 export default function UploadDietScreen() {
@@ -49,7 +49,9 @@ export default function UploadDietScreen() {
   const [snacks, setSnacks] = useState('');
   const [dinner, setDinner] = useState('');
   const [instructions, setInstructions] = useState('');
-  const [dietType, setDietType] = useState<DietType>('both');
+  // No default — 'both' silently tags egg/meat plans as mixed, which used to leak
+  // them into the Veg filter. Force the admin to pick.
+  const [dietType, setDietType] = useState<DietType | undefined>(undefined);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showDietTypePicker, setShowDietTypePicker] = useState(false);
 
@@ -60,6 +62,11 @@ export default function UploadDietScreen() {
   const handleSubmit = useCallback(async () => {
     if (!title.trim()) {
       showAppAlert('Validation', 'Please enter a plan title.');
+      return;
+    }
+
+    if (!dietType) {
+      showAppAlert('Validation', 'Please select a diet type (Veg / Non-Veg / Both).');
       return;
     }
 
