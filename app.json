@@ -3,7 +3,7 @@
     "name": "Reaux Labs",
     "slug": "reaux-labs-mobile",
     "scheme": "reauxlabs",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/Example.png",
     "userInterfaceStyle": "light",
@@ -16,11 +16,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.babbaranish.reauxlabsmobile",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
-        "NSCameraUsageDescription": "REAUX Labs uses your camera to let you take a photo in the app — for example, to snap a picture of yourself to set as your profile avatar or to attach a gym photo to a community post.",
-        "NSPhotoLibraryUsageDescription": "REAUX Labs uses your photo library to let you choose photos and videos to share in the app — for example, to pick a photo to set as your profile avatar, attach an image to a community post, or select a workout video to publish as a reel.",
-        "NSMicrophoneUsageDescription": "REAUX Labs uses your microphone when you record a video with sound in the app — for example, to record a workout reel with audio to share with the community.",
+        "NSCameraUsageDescription": "REAUX Labs uses your camera to let you take a photo in the app \u2014 for example, to snap a picture of yourself to set as your profile avatar or to attach a gym photo to a community post.",
+        "NSPhotoLibraryUsageDescription": "REAUX Labs uses your photo library to let you choose photos and videos to share in the app \u2014 for example, to pick a photo to set as your profile avatar, attach an image to a community post, or select a workout video to publish as a reel.",
+        "NSMicrophoneUsageDescription": "REAUX Labs uses your microphone when you record a video with sound in the app \u2014 for example, to record a workout reel with audio to share with the community.",
         "NSFaceIDUsageDescription": "REAUX Labs uses Face ID to confirm it's you before unlocking your securely saved login session on this device, so you don't have to re-enter your password."
       }
     },
@@ -78,8 +78,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "REAUX Labs uses your photo library to let you choose photos and videos to share in the app — for example, to pick a photo to set as your profile avatar, attach an image to a community post, or select a workout video to publish as a reel.",
-          "cameraPermission": "REAUX Labs uses your camera to let you take a photo in the app — for example, to snap a picture of yourself to set as your profile avatar or to attach a gym photo to a community post."
+          "photosPermission": "REAUX Labs uses your photo library to let you choose photos and videos to share in the app \u2014 for example, to pick a photo to set as your profile avatar, attach an image to a community post, or select a workout video to publish as a reel.",
+          "cameraPermission": "REAUX Labs uses your camera to let you take a photo in the app \u2014 for example, to snap a picture of yourself to set as your profile avatar or to attach a gym photo to a community post."
         }
       ],
       [
