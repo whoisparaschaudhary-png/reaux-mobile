@@ -21,6 +21,9 @@ interface ReelState {
   commentsLoading: boolean;
   commentsPagination: Pagination;
 
+  /** Seed for the server-side shuffle. Held so paging stays consistent. */
+  shuffleSeed: number;
+
   fetchReels: (page?: number) => Promise<void>;
   refreshReels: () => Promise<void>;
   likeReel: (id: string) => Promise<void>;
@@ -31,12 +34,16 @@ interface ReelState {
   clearError: () => void;
 }
 
+/** Positive 32-bit seed — the backend ignores anything <= 0 and falls back to newest-first. */
+const newShuffleSeed = () => Math.floor(Math.random() * 2147483646) + 1;
+
 export const useReelStore = create<ReelState>((set, get) => ({
   reels: [],
   isLoading: false,
   isRefreshing: false,
   error: null,
   pagination: { page: 1, limit: 10, total: 0, pages: 0 },
+  shuffleSeed: 0,
 
   comments: [],
   commentsLoading: false,
@@ -45,10 +52,15 @@ export const useReelStore = create<ReelState>((set, get) => ({
   fetchReels: async (page = 1) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await reelsApi.list({ page, limit: 10 });
+      // Page 1 with no seed yet means a cold open — mint one so the very first
+      // view is shuffled too. Later pages MUST reuse the same seed, or the server
+      // reshuffles and we get duplicate/missing reels as we scroll.
+      const seed = page === 1 ? get().shuffleSeed || newShuffleSeed() : get().shuffleSeed;
+      const response = await reelsApi.list({ page, limit: 10, seed });
       set((state) => ({
         reels: page === 1 ? (response.data ?? []) : [...state.reels, ...(response.data ?? [])],
         pagination: response.pagination,
+        shuffleSeed: seed,
         isLoading: false,
       }));
     } catch (err: any) {
@@ -60,10 +72,13 @@ export const useReelStore = create<ReelState>((set, get) => ({
   refreshReels: async () => {
     set({ isRefreshing: true, error: null });
     try {
-      const response = await reelsApi.list({ page: 1, limit: 10 });
+      // A brand-new seed on every pull-to-refresh — that is what reshuffles the feed.
+      const seed = newShuffleSeed();
+      const response = await reelsApi.list({ page: 1, limit: 10, seed });
       set({
         reels: response.data ?? [],
         pagination: response.pagination,
+        shuffleSeed: seed,
         isRefreshing: false,
       });
     } catch (err: any) {

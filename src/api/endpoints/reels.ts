@@ -3,7 +3,9 @@ import type { ApiResponse, PaginatedResponse, PaginationParams } from '../types'
 import type { Reel, ReelComment } from '../../types/models';
 
 export const reelsApi = {
-  list: (params?: PaginationParams) =>
+  // `seed` requests a stable server-side shuffle — same seed, same order, so
+  // paging is consistent; a new seed on refresh reshuffles the feed.
+  list: (params?: PaginationParams & { seed?: number }) =>
     client.get<PaginatedResponse<Reel>>('/reels', { params }).then(r => r.data),
 
   getById: (id: string) =>
