@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: fontFamily.regular,
     fontSize: ms(16),
-    lineHeight: ms(24),
+    // No lineHeight on a TextInput — it clips descenders while typing on iOS.
     color: colors.text.primary,
     paddingVertical: spacing.sm,
   },

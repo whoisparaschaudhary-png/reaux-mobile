@@ -128,7 +128,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: fontFamily.regular,
     fontSize: ms(16),
-    lineHeight: ms(24),
+    // NO lineHeight here. On iOS a numeric lineHeight on a TextInput (not a Text)
+    // mis-positions the text box: descenders get clipped as you type, and the text
+    // no longer shares a baseline with a leftIcon — which is why "+91" sat off
+    // from the phone number. Let the field use the font's natural metrics; the
+    // container's minHeight + alignItems:'center' handle the vertical rhythm.
     color: colors.text.primary,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,

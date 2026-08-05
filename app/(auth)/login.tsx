@@ -220,6 +220,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xl,
+    // The form card below is pulled up by mvs(-30) so its rounded top overlaps the
+    // hero. Without clearing that overlap the subtitle's second line sits
+    // underneath the card and gets cut in half. Must stay >= that offset.
+    paddingBottom: mvs(30) + spacing.xxl,
   },
   logo: {
     width: wp(53),
