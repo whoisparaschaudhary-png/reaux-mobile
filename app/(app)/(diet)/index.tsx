@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -176,71 +177,60 @@ export default function DietScreen() {
         )}
 
         {/* Category filter */}
-            <View style={styles.categoryRow}>
-              <FlashList
-                data={CATEGORIES}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-
-                renderItem={({ item }) => (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.categoryRow}
+              contentContainerStyle={styles.categoryRowContent}
+            >
+              {CATEGORIES.map((item) => {
+                const active =
+                  selectedCategory === item.value ||
+                  (item.value === undefined && selectedCategory === undefined);
+                return (
                   <TouchableOpacity
-                    style={[
-                      styles.categoryChip,
-                      selectedCategory === item.value && styles.categoryChipActive,
-                      item.value === undefined && selectedCategory === undefined && styles.categoryChipActive,
-                    ]}
+                    key={item.label}
+                    style={[styles.categoryChip, active && styles.categoryChipActive]}
                     onPress={() => handleCategorySelect(item.value)}
                     activeOpacity={0.7}
                   >
-                    <Text
-                      style={[
-                        styles.categoryChipText,
-                        (selectedCategory === item.value ||
-                          (item.value === undefined && selectedCategory === undefined)) &&
-                          styles.categoryChipTextActive,
-                      ]}
-                    >
+                    <Text style={[styles.categoryChipText, active && styles.categoryChipTextActive]}>
                       {item.label}
                     </Text>
                   </TouchableOpacity>
-                )}
-                keyExtractor={(item) => item.label}
-              />
-            </View>
+                );
+              })}
+            </ScrollView>
 
             {/* Diet Type filter (Veg / Non-Veg) */}
-            <View style={styles.categoryRow}>
-              <FlashList
-                data={DIET_TYPES}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-
-                renderItem={({ item }) => (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.categoryRow}
+              contentContainerStyle={styles.categoryRowContent}
+            >
+              {DIET_TYPES.map((item) => {
+                const active =
+                  selectedDietType === item.value ||
+                  (item.value === undefined && selectedDietType === undefined);
+                return (
                   <TouchableOpacity
+                    key={item.label}
                     style={[
                       styles.categoryChip,
                       styles.dietTypeChip,
-                      selectedDietType === item.value && styles.categoryChipActive,
-                      item.value === undefined && selectedDietType === undefined && styles.categoryChipActive,
+                      active && styles.categoryChipActive,
                     ]}
                     onPress={() => handleDietTypeSelect(item.value)}
                     activeOpacity={0.7}
                   >
-                    <Text
-                      style={[
-                        styles.categoryChipText,
-                        (selectedDietType === item.value ||
-                          (item.value === undefined && selectedDietType === undefined)) &&
-                          styles.categoryChipTextActive,
-                      ]}
-                    >
+                    <Text style={[styles.categoryChipText, active && styles.categoryChipTextActive]}>
                       {item.value === 'veg' ? '🟢 ' : item.value === 'non-veg' ? '🔴 ' : ''}{item.label}
                     </Text>
                   </TouchableOpacity>
-                )}
-                keyExtractor={(item) => item.label}
-              />
-            </View>
+                );
+              })}
+            </ScrollView>
 
             {/* Plans list */}
             <View style={styles.listContainer}>
@@ -357,16 +347,22 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   categoryRow: {
-    height: ms(40),
+    // No fixed height — see the Community screen for the full note. A hard height
+    // cropped the chip labels once the OS text-size setting scaled them up.
+    flexGrow: 0,
     marginBottom: spacing.md,
-    paddingLeft: spacing.xl,
+  },
+  categoryRowContent: {
+    paddingHorizontal: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   categoryChip: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.pill,
     backgroundColor: colors.border.light,
-    marginRight: spacing.sm,
+    justifyContent: 'center',
   },
   categoryChipActive: {
     backgroundColor: colors.primary.yellow,
@@ -378,8 +374,10 @@ const styles = StyleSheet.create({
   categoryChipText: {
     fontFamily: fontFamily.medium,
     fontSize: ms(13),
-    lineHeight: ms(18),
+    // No lineHeight — a hard one does not scale with the OS text-size setting,
+    // so the glyphs get cropped. Single-line pills don't need one.
     color: colors.text.secondary,
+    includeFontPadding: false,
   },
   categoryChipTextActive: {
     color: colors.text.primary,
