@@ -937,10 +937,9 @@ const styles = StyleSheet.create({
   tabText: {
     fontFamily: fontFamily.medium,
     fontSize: ms(14),
-    // No lineHeight — a hard one does not scale with the OS text-size setting,
-    // so the glyphs get cropped. Single-line pills don't need one.
+    // No lineHeight: a single-line pill does not need one, and omitting it lets
+    // the label use the font's own line box. See installLineHeightFloor.ts.
     color: colors.text.secondary,
-    includeFontPadding: false,
   },
   tabTextActive: {
     color: colors.text.onPrimary,

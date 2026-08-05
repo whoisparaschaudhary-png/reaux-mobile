@@ -102,6 +102,22 @@ export default function RootLayout() {
     }
   }, [pendingUrl, isNavigatorReady, router]);
 
+  // A font failure must never be silent again. assets/fonts/SplineSans-*.ttf were
+  // GitHub 404 HTML pages saved with a .ttf extension, so Spline Sans never loaded
+  // and every fontFamily silently fell back to the system face — all the way into
+  // the 1.0 App Store build. The app still renders (the fallback is legible), so
+  // the only way to catch this is to shout about it in development.
+  useEffect(() => {
+    if (fontError && __DEV__) {
+      console.error(
+        '[fonts] Spline Sans FAILED TO LOAD — the app is rendering in the system ' +
+          'font. Check that assets/fonts/*.ttf are real fonts (a TrueType file ' +
+          'starts with the bytes 00 01 00 00):',
+        fontError
+      );
+    }
+  }, [fontError]);
+
   // Hide the native splash only once fonts are loaded AND the session has been
   // restored — so the single splash covers the whole boot and reveals the app
   // (login or dashboard) directly, with no intermediate flash.

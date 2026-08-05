@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -80,30 +80,30 @@ export const CyclesList: React.FC<CyclesListProps> = ({ isAdmin }) => {
       )}
 
       {/* Category filter */}
-      <View style={styles.categoryRow}>
-        <FlashList
-          data={CATEGORIES}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item }) => {
-            const active =
-              selectedCategory === item.value ||
-              (item.value === undefined && selectedCategory === undefined);
-            return (
-              <TouchableOpacity
-                style={[styles.categoryChip, active && styles.categoryChipActive]}
-                onPress={() => handleCategorySelect(item.value)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.categoryChipText, active && styles.categoryChipTextActive]}>
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          }}
-          keyExtractor={(item) => item.label}
-        />
-      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoryRow}
+        contentContainerStyle={styles.categoryRowContent}
+      >
+        {CATEGORIES.map((item) => {
+          const active =
+            selectedCategory === item.value ||
+            (item.value === undefined && selectedCategory === undefined);
+          return (
+            <TouchableOpacity
+              key={item.label}
+              style={[styles.categoryChip, active && styles.categoryChipActive]}
+              onPress={() => handleCategorySelect(item.value)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.categoryChipText, active && styles.categoryChipTextActive]}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
       {/* Cycles list */}
       <View style={styles.listContainer}>
@@ -166,16 +166,23 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   categoryRow: {
-    height: ms(40),
+    // No fixed height — the old height: ms(40) is frozen at module load while the
+    // chip label grows with the OS text-size setting, which cropped the labels on
+    // device. Same fix as the Diet and Community chip rows.
+    flexGrow: 0,
     marginBottom: spacing.md,
-    paddingLeft: spacing.xl,
+  },
+  categoryRowContent: {
+    paddingHorizontal: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   categoryChip: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.pill,
     backgroundColor: colors.border.light,
-    marginRight: spacing.sm,
+    justifyContent: 'center',
   },
   categoryChipActive: {
     backgroundColor: colors.primary.yellow,

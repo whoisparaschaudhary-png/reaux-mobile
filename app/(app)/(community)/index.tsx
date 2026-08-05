@@ -159,10 +159,10 @@ export default function CommunityScreen() {
 
 const styles = StyleSheet.create({
   categoryRow: {
-    // No fixed height. A hard height clipped the chip text once the OS font
-    // scale pushed the label past it — which is why the labels looked cropped on
-    // device but fine in the simulator at default text size. flexGrow: 0 stops
-    // the row stretching inside the parent flex column.
+    // No fixed height. The row used to be height: ms(40) — a constant frozen at
+    // module load — while the text inside grows with the OS text-size setting, so
+    // the labels were cropped on a device with larger text and fine in a simulator
+    // at the default. flexGrow: 0 stops the row stretching in the parent column.
     flexGrow: 0,
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
@@ -185,11 +185,9 @@ const styles = StyleSheet.create({
   chipText: {
     fontFamily: fontFamily.medium,
     fontSize: ms(13),
-    // Deliberately no lineHeight. fontSize scales with the OS text-size setting
-    // but a hard lineHeight does not, so the glyphs outgrow their line box and
-    // get cropped top and bottom. Single-line pills don't need one.
+    // No lineHeight: a single-line pill does not need one, and omitting it lets
+    // the label use the font's own line box. See installLineHeightFloor.ts.
     color: colors.text.secondary,
-    includeFontPadding: false,
   },
   chipTextActive: {
     color: colors.text.onPrimary,

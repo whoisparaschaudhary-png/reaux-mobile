@@ -347,8 +347,9 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   categoryRow: {
-    // No fixed height — see the Community screen for the full note. A hard height
-    // cropped the chip labels once the OS text-size setting scaled them up.
+    // No fixed height — see the Community screen for the full note. The old
+    // height: ms(40) was frozen at module load while the label grows with the OS
+    // text-size setting, so the labels cropped on device.
     flexGrow: 0,
     marginBottom: spacing.md,
   },
@@ -374,10 +375,9 @@ const styles = StyleSheet.create({
   categoryChipText: {
     fontFamily: fontFamily.medium,
     fontSize: ms(13),
-    // No lineHeight — a hard one does not scale with the OS text-size setting,
-    // so the glyphs get cropped. Single-line pills don't need one.
+    // No lineHeight: a single-line pill does not need one, and omitting it lets
+    // the label use the font's own line box. See installLineHeightFloor.ts.
     color: colors.text.secondary,
-    includeFontPadding: false,
   },
   categoryChipTextActive: {
     color: colors.text.primary,
