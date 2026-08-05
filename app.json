@@ -33,7 +33,7 @@
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.babbaranish.reauxlabsmobile",
-      "versionCode": 2,
+      "versionCode": 7,
       "permissions": [
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.VIBRATE",
