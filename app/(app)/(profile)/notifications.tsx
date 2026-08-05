@@ -149,37 +149,42 @@ export default function NotificationsScreen() {
       markAsRead(notification._id);
     }
 
-    // Superadmin: navigate to related detail or show metadata
-    if (isSuperAdmin) {
-      const meta = notification.metadata ?? {};
+    // Route everyone, not just superadmins. This whole block used to sit behind
+    // `if (isSuperAdmin)`, so for a regular user tapping a notification only
+    // marked it read and went nowhere — tapping "Order Placed" did nothing.
+    // Only the *destination* differs by role.
+    const meta = notification.metadata ?? {};
 
-      switch (notification.type) {
-        case 'order':
-          if (meta.orderId) {
-            // Admin orders is a list screen (no /orders/[id] route) — navigating to
-            // /orders/<id> hit the Unmatched Route page. Open the list and pass the
-            // id so it auto-expands that order.
-            enterAdminRoute(`/(app)/(admin)/orders?orderId=${meta.orderId}`);
-          } else {
-            setDetailNotification(notification);
-          }
-          break;
-        case 'community':
-          if (meta.postId) {
-            router.push(`/(app)/(feed)/${meta.postId}`);
-          } else if (meta.reelId) {
-            router.push(`/(app)/(reels)/${meta.reelId}`);
-          } else {
-            setDetailNotification(notification);
-          }
-          break;
-        case 'challenge':
-          enterAdminRoute('/(app)/(admin)/challenges');
-          break;
-        default:
+    switch (notification.type) {
+      case 'order':
+        if (!meta.orderId) {
           setDetailNotification(notification);
-          break;
-      }
+        } else if (isSuperAdmin) {
+          // Admin orders is a list screen (no /orders/[id] route) — navigating to
+          // /orders/<id> hit the Unmatched Route page. Open the list and pass the
+          // id so it auto-expands that order.
+          enterAdminRoute(`/(app)/(admin)/orders?orderId=${meta.orderId}`);
+        } else {
+          // The customer owns this order — open their own receipt.
+          router.push(`/(app)/(shop)/invoice/${meta.orderId}`);
+        }
+        break;
+      case 'community':
+        if (meta.postId) {
+          router.push(`/(app)/(feed)/${meta.postId}`);
+        } else if (meta.reelId) {
+          router.push(`/(app)/(reels)/${meta.reelId}`);
+        } else {
+          setDetailNotification(notification);
+        }
+        break;
+      case 'challenge':
+        if (isSuperAdmin) enterAdminRoute('/(app)/(admin)/challenges');
+        else setDetailNotification(notification);
+        break;
+      default:
+        setDetailNotification(notification);
+        break;
     }
   }, [markAsRead, isSuperAdmin]);
 

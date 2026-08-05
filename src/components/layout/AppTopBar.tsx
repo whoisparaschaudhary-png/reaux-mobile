@@ -13,6 +13,8 @@ interface AppTopBarProps {
   title: string;
   onSearch?: () => void;
   showCommunity?: boolean;
+  /** Shop only: My Orders was previously unreachable except from checkout success. */
+  showOrders?: boolean;
   style?: ViewStyle;
 }
 
@@ -21,7 +23,13 @@ interface AppTopBarProps {
  * redesign: hamburger + title on the left; search / community / bell / avatar
  * actions on the right. Self-wires the drawer, notifications badge, and profile.
  */
-export const AppTopBar: React.FC<AppTopBarProps> = ({ title, onSearch, showCommunity = true, style }) => {
+export const AppTopBar: React.FC<AppTopBarProps> = ({
+  title,
+  onSearch,
+  showCommunity = true,
+  showOrders = false,
+  style,
+}) => {
   const openDrawer = useUIStore((s) => s.openDrawer);
   const user = useAuthStore((s) => s.user);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
@@ -46,6 +54,17 @@ export const AppTopBar: React.FC<AppTopBarProps> = ({ title, onSearch, showCommu
         {onSearch ? (
           <TouchableOpacity onPress={onSearch} hitSlop={6} activeOpacity={0.7}>
             <Ionicons name="search" size={ms(22)} color={colors.text.primary} />
+          </TouchableOpacity>
+        ) : null}
+
+        {showOrders ? (
+          <TouchableOpacity
+            onPress={() => router.push('/(app)/(shop)/orders' as any)}
+            hitSlop={6}
+            activeOpacity={0.7}
+            accessibilityLabel="My orders"
+          >
+            <Ionicons name="receipt-outline" size={ms(22)} color={colors.text.primary} />
           </TouchableOpacity>
         ) : null}
 

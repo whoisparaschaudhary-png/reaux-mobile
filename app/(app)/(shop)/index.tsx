@@ -136,7 +136,7 @@ export default function MarketplaceScreen() {
     <SafeScreen>
       <View style={styles.container}>
         {/* Header — shared redesigned top bar */}
-        <AppTopBar title="Marketplace" />
+        <AppTopBar title="Marketplace" showOrders />
 
         {/* Search */}
         <View style={styles.searchWrap}>

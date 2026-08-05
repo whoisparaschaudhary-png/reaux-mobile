@@ -109,9 +109,24 @@ export default function CheckoutScreen() {
         return;
       }
 
+      // Once the order exists, both the cart and this checkout screen are spent.
+      // `replace` only swapped out checkout, so the emptied cart stayed underneath
+      // and Back from My Orders landed on "Your cart is empty" — a dead end with
+      // no route back to the order. Unwind the whole shop stack to the
+      // Marketplace first, so Back from My Orders goes somewhere useful.
+      const resetToShop = () => {
+        if (router.canDismiss()) router.dismissAll();
+      };
+
       showAppAlert('Order Placed!', `Your order #${order._id?.slice(-8).toUpperCase() ?? ''} has been placed successfully.`, [
-        { text: 'View Orders', onPress: () => router.replace('/(app)/(shop)/orders') },
-        { text: 'OK', onPress: () => router.replace('/(app)/(shop)/') },
+        {
+          text: 'View Orders',
+          onPress: () => {
+            resetToShop();
+            router.push('/(app)/(shop)/orders');
+          },
+        },
+        { text: 'OK', onPress: resetToShop },
       ]);
     } catch (err: any) {
       showAppAlert('Order Failed', err.message || 'Something went wrong. Please try again.');

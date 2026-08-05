@@ -88,7 +88,9 @@ export default function CartScreen() {
           title="Your cart is empty"
           message="Browse the marketplace and add products to your cart"
           actionLabel="Browse Products"
-          onAction={() => router.back()}
+          // Was router.back(), which only happened to land on the Marketplace
+          // depending on how you got here. Navigate explicitly instead.
+          onAction={() => router.replace('/(app)/(shop)/')}
         />
       ) : (
         <View style={styles.container}>
