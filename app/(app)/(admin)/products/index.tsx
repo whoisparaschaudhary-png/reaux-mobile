@@ -42,15 +42,22 @@ export default function ProductListScreen() {
   const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
   const [isExporting, setIsExporting] = useState(false);
 
+  // Hidden and members-only products have to stay on this screen — it is the
+  // only place they can be edited or switched back on.
+  const loadProducts = useCallback(
+    () => fetchProducts(1, undefined, undefined, { manage: true }),
+    [fetchProducts],
+  );
+
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    loadProducts();
+  }, [loadProducts]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await fetchProducts();
+    await loadProducts();
     setIsRefreshing(false);
-  }, [fetchProducts]);
+  }, [loadProducts]);
 
   const formatPrice = (price: number) => `Rs ${price.toLocaleString()}`;
 
@@ -63,7 +70,7 @@ export default function ProductListScreen() {
         setTogglingIds((prev) => new Set(prev).add(product._id));
         try {
           await productsApi.update(product._id, { isActive: newStatus });
-          await fetchProducts();
+          await loadProducts();
         } catch {
           showAppAlert('Error', `Failed to ${action} product.`);
         } finally {
@@ -88,7 +95,7 @@ export default function ProductListScreen() {
         performToggle();
       }
     },
-    [fetchProducts]
+    [loadProducts]
   );
 
   const handleExportPDF = async () => {

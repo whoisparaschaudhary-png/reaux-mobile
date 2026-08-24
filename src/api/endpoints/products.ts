@@ -4,7 +4,9 @@ import type { Product } from '../../types/models';
 import type { CreateProductRequest } from '../../types/api';
 
 export const productsApi = {
-  list: (params?: PaginationParams & { category?: string; search?: string }) =>
+  // `manage` is honoured for admin/superadmin only — it is the catalogue view
+  // that keeps hidden and members-only products listed so they stay editable.
+  list: (params?: PaginationParams & { category?: string; search?: string; manage?: boolean }) =>
     client.get<PaginatedResponse<Product>>('/products', { params }).then(r => r.data),
 
   getById: (id: string) =>

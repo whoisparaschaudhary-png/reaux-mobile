@@ -18,7 +18,12 @@ interface ProductState {
   searchQuery: string;
   category: string;
 
-  fetchProducts: (page?: number, search?: string, category?: string) => Promise<void>;
+  fetchProducts: (
+    page?: number,
+    search?: string,
+    category?: string,
+    options?: { manage?: boolean },
+  ) => Promise<void>;
   getProductById: (id: string) => Promise<void>;
   setSearchQuery: (query: string) => void;
   setCategory: (category: string) => void;
@@ -35,7 +40,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
   searchQuery: '',
   category: '',
 
-  fetchProducts: async (page = 1, search?: string, category?: string) => {
+  fetchProducts: async (page = 1, search?: string, category?: string, options?) => {
     set({ isLoading: true, error: null });
     try {
       const params: Record<string, any> = { page, limit: 10 };
@@ -44,6 +49,9 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
       if (searchQuery) params.search = searchQuery;
       if (cat && cat !== 'All') params.category = cat;
+      // Admin catalogue only: hidden and members-only products must stay listed
+      // so they can be edited or switched back on.
+      if (options?.manage) params.manage = true;
 
       const response = await productsApi.list(params);
 
