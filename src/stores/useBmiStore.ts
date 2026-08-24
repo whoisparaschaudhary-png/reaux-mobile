@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { bmiApi } from '../api/endpoints/bmi';
-import type { BmiRecord } from '../types/models';
+import type { BmiRecord, Gender } from '../types/models';
 
 interface BmiState {
   records: BmiRecord[];
@@ -8,7 +8,7 @@ interface BmiState {
   isLoading: boolean;
   error: string | null;
 
-  recordBmi: (height: number, weight: number) => Promise<BmiRecord>;
+  recordBmi: (height: number, weight: number, age?: number, gender?: Gender) => Promise<BmiRecord>;
   fetchHistory: () => Promise<void>;
   getLatest: () => Promise<void>;
   clearError: () => void;
@@ -20,10 +20,12 @@ export const useBmiStore = create<BmiState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  recordBmi: async (height, weight) => {
+  recordBmi: async (height, weight, age, gender) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await bmiApi.record({ height, weight });
+      // age + gender are what let the server store a BMR alongside the BMI —
+      // without them the record's bmr comes back null.
+      const response = await bmiApi.record({ height, weight, age, gender });
       const newRecord = response.data;
       set((state) => ({
         records: [newRecord, ...state.records],

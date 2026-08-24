@@ -37,6 +37,28 @@ const ACTIVITY_LEVELS: { label: string; multiplier: number; description: string 
   { label: 'Very Active', multiplier: 1.9, description: 'Intense daily exercise' },
 ];
 
+// Height is always held in centimetres (that is what the BMI record stores and
+// what every formula below expects); feet/inches is purely a display unit.
+type HeightUnit = 'cm' | 'in';
+
+const CM_PER_INCH = 2.54;
+const HEIGHT_MIN_CM = 100;
+const HEIGHT_MAX_CM = 220;
+// Round inwards so the imperial ends of the slider still land inside the cm range.
+const HEIGHT_MIN_IN = Math.ceil(HEIGHT_MIN_CM / CM_PER_INCH);
+const HEIGHT_MAX_IN = Math.floor(HEIGHT_MAX_CM / CM_PER_INCH);
+
+const inchesToCm = (inches: number) => Math.round(inches * CM_PER_INCH * 10) / 10;
+
+const cmToInches = (cm: number) =>
+  Math.min(HEIGHT_MAX_IN, Math.max(HEIGHT_MIN_IN, Math.round(cm / CM_PER_INCH)));
+
+const formatHeight = (cm: number, unit: HeightUnit) => {
+  if (unit === 'cm') return `${Math.round(cm)} cm`;
+  const totalInches = cmToInches(cm);
+  return `${Math.floor(totalInches / 12)}' ${totalInches % 12}"`;
+};
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SLIDER_PADDING = 20; // padding on each side
 const TRACK_WIDTH = SCREEN_WIDTH - spacing.xl * 2 - SLIDER_PADDING * 2;
@@ -204,6 +226,7 @@ export default function HealthScreen() {
   const genderFromProfile = user?.gender ?? 'male';
 
   const [height, setHeight] = useState(170);
+  const [heightUnit, setHeightUnit] = useState<HeightUnit>('cm');
   const [weight, setWeight] = useState(70);
   const [age, setAge] = useState(() => ageFromProfile ?? 30);
   const [gender, setGender] = useState<Gender>(genderFromProfile);
@@ -229,6 +252,13 @@ export default function HealthScreen() {
     setGender(genderFromProfile);
   }, [genderFromProfile]);
 
+  // Snap to whole inches when switching to feet/inches so the readout and the
+  // slider thumb never disagree by a rounding step.
+  const handleHeightUnitChange = useCallback((unit: HeightUnit) => {
+    setHeightUnit(unit);
+    if (unit === 'in') setHeight((cm) => inchesToCm(cmToInches(cm)));
+  }, []);
+
   const handleCalculate = useCallback(async () => {
     const localResult = calculateBmiLocal(height, weight);
     const bmr = calculateBMR(weight, height, age, gender);
@@ -240,7 +270,7 @@ export default function HealthScreen() {
     });
 
     try {
-      const apiRecord = await recordBmi(height, weight);
+      const apiRecord = await recordBmi(height, weight, age, gender);
       setResult((prev) =>
         prev
           ? {
@@ -283,18 +313,39 @@ export default function HealthScreen() {
         <View style={styles.sliderSection}>
           <View style={styles.sliderHeader}>
             <Text style={styles.sliderLabel}>Height</Text>
-            <Text style={styles.sliderValue}>{height} cm</Text>
+            <View style={styles.sliderHeaderRight}>
+              <Text style={styles.sliderValue}>{formatHeight(height, heightUnit)}</Text>
+              <View style={styles.unitToggle}>
+                {(['cm', 'in'] as HeightUnit[]).map((unit) => {
+                  const isSelected = heightUnit === unit;
+                  return (
+                    <TouchableOpacity
+                      key={unit}
+                      style={[styles.unitChip, isSelected && styles.unitChipActive]}
+                      onPress={() => handleHeightUnitChange(unit)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.unitChipText, isSelected && styles.unitChipTextActive]}>
+                        {unit === 'cm' ? 'cm' : 'ft/in'}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
           </View>
           <CustomSlider
-            value={height}
-            min={100}
-            max={220}
+            value={heightUnit === 'cm' ? Math.round(height) : cmToInches(height)}
+            min={heightUnit === 'cm' ? HEIGHT_MIN_CM : HEIGHT_MIN_IN}
+            max={heightUnit === 'cm' ? HEIGHT_MAX_CM : HEIGHT_MAX_IN}
             step={1}
-            onValueChange={setHeight}
+            onValueChange={(value) =>
+              setHeight(heightUnit === 'cm' ? value : inchesToCm(value))
+            }
           />
           <View style={styles.sliderRange}>
-            <Text style={styles.rangeText}>100 cm</Text>
-            <Text style={styles.rangeText}>220 cm</Text>
+            <Text style={styles.rangeText}>{formatHeight(HEIGHT_MIN_CM, heightUnit)}</Text>
+            <Text style={styles.rangeText}>{formatHeight(HEIGHT_MAX_CM, heightUnit)}</Text>
           </View>
         </View>
 
@@ -416,7 +467,7 @@ export default function HealthScreen() {
                   <View style={styles.bmiDetailRow}>
                     <Ionicons name="resize-outline" size={18} color={colors.text.secondary} />
                     <Text style={styles.bmiDetailText}>
-                      Ideal weight for your height ({height} cm):{' '}
+                      Ideal weight for your height ({formatHeight(height, heightUnit)}):{' '}
                       <Text style={styles.bmiDetailValue}>{ideal.minKg} – {ideal.maxKg} kg</Text>
                     </Text>
                   </View>
@@ -615,6 +666,35 @@ const styles = StyleSheet.create({
     fontSize: ms(18),
     lineHeight: ms(22),
     color: colors.primary.yellowDark,
+  },
+  sliderHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  unitToggle: {
+    flexDirection: 'row',
+    backgroundColor: colors.border.light,
+    borderRadius: borderRadius.pill,
+    padding: ms(2),
+  },
+  unitChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: ms(4),
+    borderRadius: borderRadius.pill,
+  },
+  unitChipActive: {
+    backgroundColor: colors.primary.yellow,
+  },
+  unitChipText: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(12),
+    lineHeight: ms(16),
+    color: colors.text.secondary,
+  },
+  unitChipTextActive: {
+    fontFamily: fontFamily.bold,
+    color: colors.text.onPrimary,
   },
   sliderRange: {
     flexDirection: 'row',
