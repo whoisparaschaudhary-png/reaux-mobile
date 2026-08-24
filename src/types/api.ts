@@ -10,6 +10,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   phone?: string;
+  dateOfBirth?: string;
+  gender?: Gender;
   gymId?: string;
 }
 

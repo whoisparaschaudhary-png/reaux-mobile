@@ -23,6 +23,7 @@ import { useAuthStore } from '../../src/stores/useAuthStore';
 import { useUIStore } from '../../src/stores/useUIStore';
 import { isValidEmail, isValidIndianPhone, isValidName, isValidPassword, isValidDateOfBirth } from '../../src/utils/validators';
 import { colors, fontFamily, spacing, borderRadius } from '../../src/theme';
+import type { Gender } from '../../src/types/models';
 import { ms, mvs } from '../../src/utils/responsive';
 
 const maxDate = new Date();
@@ -30,6 +31,14 @@ maxDate.setFullYear(maxDate.getFullYear() - 10);
 
 const formatDisplayDate = (date: Date) =>
   date.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+
+// Gender feeds the Mifflin-St Jeor BMR formula on the BMI screen, so it is
+// collected up front rather than left to Edit Profile.
+const GENDER_OPTIONS: { value: Gender; label: string }[] = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'other', label: 'Other' },
+];
 
 export default function RegisterScreen() {
   const [firstName, setFirstName] = useState('');
@@ -39,6 +48,7 @@ export default function RegisterScreen() {
   const [phone, setPhone] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [gender, setGender] = useState<Gender | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [legalSlug, setLegalSlug] = useState<string | null>(null);
 
@@ -85,12 +95,23 @@ export default function RegisterScreen() {
       showToast('You must be at least 10 years old to register', 'error');
       return;
     }
+    if (!gender) {
+      showToast('Please select your gender', 'error');
+      return;
+    }
     if (!agreedToTerms) {
       showToast('Please agree to the Terms of Use (EULA) to continue', 'error');
       return;
     }
     try {
-      await register(fullName, email.trim(), password, phone.trim() || undefined, dateOfBirth.toISOString());
+      await register({
+        name: fullName,
+        email: email.trim(),
+        password,
+        phone: phone.trim() || undefined,
+        dateOfBirth: dateOfBirth.toISOString(),
+        gender,
+      });
       router.replace('/(app)/(feed)');
     } catch (err: any) {
       showToast(err.message || 'Registration failed', 'error');
@@ -222,6 +243,32 @@ export default function RegisterScreen() {
                       )}
                     </View>
                   )}
+
+                  <View style={styles.genderField}>
+                    <Text style={styles.inputLabel}>GENDER</Text>
+                    <View style={styles.genderRow}>
+                      {GENDER_OPTIONS.map((option) => {
+                        const isSelected = gender === option.value;
+                        return (
+                          <TouchableOpacity
+                            key={option.value}
+                            style={[styles.genderChip, isSelected && styles.genderChipActive]}
+                            onPress={() => setGender(option.value)}
+                            activeOpacity={0.7}
+                          >
+                            <Text
+                              style={[
+                                styles.genderChipText,
+                                isSelected && styles.genderChipTextActive,
+                              ]}
+                            >
+                              {option.label}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
 
                   <Input
                     label="PASSWORD"
@@ -394,6 +441,39 @@ const styles = StyleSheet.create({
   },
   datePickerWrap: {
     marginBottom: spacing.md,
+  },
+  genderField: {
+    marginBottom: spacing.lg,
+  },
+  genderRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  genderChip: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.border.gray,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background.white,
+    minHeight: 48,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  genderChipActive: {
+    borderColor: colors.primary.yellowDark,
+    backgroundColor: colors.primary.yellow,
+  },
+  genderChipText: {
+    fontFamily: fontFamily.medium,
+    fontSize: ms(15),
+    lineHeight: ms(20),
+    color: colors.text.secondary,
+  },
+  genderChipTextActive: {
+    fontFamily: fontFamily.bold,
+    color: colors.text.onPrimary,
   },
   datePickerDone: {
     marginTop: spacing.sm,

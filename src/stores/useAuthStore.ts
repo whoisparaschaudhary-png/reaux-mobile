@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { login, register, getMe, updateProfile, uploadAvatar, deleteAccount } from '../api/endpoints/auth';
-import type { UpdateProfileParams } from '../api/endpoints/auth';
+import type { RegisterParams, UpdateProfileParams } from '../api/endpoints/auth';
 import { getToken, setToken, removeToken } from '../utils/storage';
 import { resetAllStores } from './resetAllStores';
 import type { User } from '../types/models';
@@ -14,7 +14,7 @@ interface AuthState {
   error: string | null;
 
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, phone?: string, dateOfBirth?: string) => Promise<void>;
+  register: (params: RegisterParams) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
   restoreSession: () => Promise<void>;
@@ -61,10 +61,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  register: async (name, email, password, phone, dateOfBirth) => {
+  register: async (params) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await register({ name, email, password, phone, dateOfBirth });
+      const response = await register(params);
       const { token: authToken, user } = response.data;
       await setToken(authToken);
       set({ user: user as unknown as User, token: authToken, isAuthenticated: true, isLoading: false });

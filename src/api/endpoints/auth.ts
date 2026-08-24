@@ -24,6 +24,7 @@ export interface RegisterParams {
   password: string;
   phone?: string;
   dateOfBirth?: string;
+  gender?: 'male' | 'female' | 'other';
   gymId?: string;
 }
 
