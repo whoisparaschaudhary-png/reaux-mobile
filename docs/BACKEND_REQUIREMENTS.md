@@ -1,6 +1,6 @@
 # REAUX Labs — Backend Requirements for Frontend Compatibility
 
-**Base URL:** `https://reaux-labs-be.onrender.com/api`
+**Base URL:** `https://api.reauxlabs.com/api`
 **Auth:** All protected routes require `Authorization: Bearer <JWT>` header
 **Standard response envelope:**
 ```json

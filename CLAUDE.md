@@ -1,7 +1,7 @@
 # REAUX Labs Mobile - AI Development Guide
 
 ## Overview
-REAUX Labs is a fitness/gym community + e-commerce mobile app built with **React Native**, **Expo SDK 54**, and **Expo Router v6** (file-based routing). It features social feeds, short-form video reels, diet plans, BMI tracking, a supplement marketplace, and a full admin panel. The backend API is hosted at `https://reaux-labs-be.onrender.com/api`.
+REAUX Labs is a fitness/gym community + e-commerce mobile app built with **React Native**, **Expo SDK 54**, and **Expo Router v6** (file-based routing). It features social feeds, short-form video reels, diet plans, BMI tracking, a supplement marketplace, and a full admin panel. The backend API is hosted at `https://api.reauxlabs.com/api`.
 
 Currency: **INR (₹)**. Locale: India.
 

@@ -1,6 +1,6 @@
 # REAUX Labs Mobile
 
-Fitness/gym community + e-commerce mobile app built with **React Native**, **Expo SDK 54**, and **Expo Router v6**. Features social feed, short-form reels, diet plans, BMI/BMR tracking, supplement shop, and admin panel. Backend: `https://reaux-labs-be.onrender.com/api`. Currency: **INR (₹)**.
+Fitness/gym community + e-commerce mobile app built with **React Native**, **Expo SDK 54**, and **Expo Router v6**. Features social feed, short-form reels, diet plans, BMI/BMR tracking, supplement shop, and admin panel. Backend: `https://api.reauxlabs.com/api`. Currency: **INR (₹)**.
 
 ## Tech Stack
 

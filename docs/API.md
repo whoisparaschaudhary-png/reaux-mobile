@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Base URL (local):** `http://localhost:5001/api`
-**Base URL (production):** `https://reaux-labs-be.onrender.com/api`
+**Base URL (production):** `https://api.reauxlabs.com/api`
 
 ---
 
