@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fontFamily, typography, spacing, borderRadius, shadows } from '../../theme';
 import { ms } from '../../utils/responsive';
 import { Badge } from '../ui/Badge';
@@ -54,6 +55,15 @@ export const BmiRecordCard: React.FC<BmiRecordCardProps> = ({ record }) => {
           </View>
         </View>
       </View>
+
+      {record.bmr != null && (
+        <View style={styles.bmrRow}>
+          <Ionicons name="flame-outline" size={14} color={colors.status.warning} />
+          <Text style={styles.bmrText}>
+            BMR: <Text style={styles.bmrValue}>{Math.round(record.bmr)} cal/day</Text>
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -116,6 +126,24 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.medium,
     fontSize: ms(14),
     lineHeight: ms(20),
+    color: colors.text.primary,
+  },
+  bmrRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+  },
+  bmrText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 13,
+    color: colors.text.secondary,
+  },
+  bmrValue: {
+    fontFamily: fontFamily.bold,
     color: colors.text.primary,
   },
 });

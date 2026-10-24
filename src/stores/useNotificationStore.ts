@@ -23,6 +23,7 @@ interface NotificationState {
   markAllAsRead: () => Promise<void>;
   getUnreadCount: () => Promise<void>;
   clearError: () => void;
+  reset: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
@@ -123,4 +124,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  reset: () => set({
+    notifications: [],
+    unreadCount: 0,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    pagination: { page: 1, limit: 20, total: 0, pages: 0 },
+  }),
 }));
